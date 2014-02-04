@@ -10,14 +10,18 @@ if(process.argv[2]) {
 	PORT = process.argv[2];
 }
 
-var n = [];
-
 var id_color = clc.xterm(232).bgWhiteBright;
 var def_app_color = clc.whiteBright.bgXterm(232);
 
-// append notification to array
+var n = [];
+var N_SIZE = 100;
+// max length (in chars) of the n_pos number, log base conversion needed
+var N_LENGTH = Math.ceil(Math.log(N_SIZE) / Math.log(10));
+var n_pos = 0;
+
+// put notification to array at pos n_pos and increment n_pos
 var n_append = function(data) {
-	n.push({
+	n[n_pos++] = ({
 		'text': data.text,
 		'app': data.app,
 		'colorbg': data.color,
@@ -27,9 +31,9 @@ var n_append = function(data) {
 		'url': data.url
 	});
 
-	// remove from beginning of array if it starts to grow big
-	if(n.length > 30) {
-		n.splice(0, 1);
+	// wrap n_pos to the beginning of the array if it starts growing big
+	if(n_pos >= 30) {
+		n_pos = 0;
 	}
 };
 
@@ -42,7 +46,14 @@ s = http.createServer(function (req, res) {
 			if(data_json.colorfg)
 				app_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
 
-			console.log(id_color(' 42 ') + app_color(' ' + data_json.app + ' ') + ' ' + data_json.text);
+			// pad with leading zeroes
+			var leading_zeros = '';
+			for(var i = 0; i < N_LENGTH - 1; i++) {
+				leading_zeros += '0';
+			}
+			var pos_string = String(leading_zeros + n_pos).slice(N_SIZE * -1);
+
+			console.log(id_color(' ' + pos_string + ' ') + app_color(' ' + data_json.app + ' ') + ' ' + data_json.text);
 
 			n_append(data_json);
 			// TODO: also store in sqlite3 db
