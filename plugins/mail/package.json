@@ -1,0 +1,11 @@
+{
+	"name" : "notifyer-mail",
+	"version" : "0.0.1",
+	"description" : "Mail plugin for notifyer",
+	"main" : "plugin.js",
+	"dependencies" : {
+		"imap": "~0.3.1",
+		"mailparser": "~0.4",
+		"seq": "~0.3.5"
+	}
+}

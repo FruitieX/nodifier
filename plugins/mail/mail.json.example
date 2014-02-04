@@ -1,0 +1,11 @@
+// default config, copy this file to mail.json and remove this line before use!
+{
+	username: "imap-username",
+	password: "imap-password",
+	host: "imap-host",
+	port: 993, // imap port
+	secure: true, // use secure connection
+	mailbox: "INBOX", // mailbox to monitor
+	markSeen: true, // all fetched email willbe marked as seen and not fetched next time
+	fetchUnreadOnStart: true // use it only if you want to get all unread email on lib start. Default is `false`
+}
