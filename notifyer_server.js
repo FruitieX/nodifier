@@ -1,10 +1,14 @@
+#!/usr/bin/env node
 var http = require('http');
 var querystring = require('querystring');
 var terminal = require('node-terminal');
 
-PORT = 8888;
+var PORT = 8888;
+if(process.argv[2]) {
+	PORT = process.argv[2];
+}
 
-n = [];
+var n = [];
 
 // append notification to array
 var n_append = function(text, app, color, url) {
@@ -46,4 +50,5 @@ s = http.createServer(function (req, res) {
 	}
 });
 
+terminal.color('green').write('listening on port ' + PORT + '\n');
 s.listen(PORT);
