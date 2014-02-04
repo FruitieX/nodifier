@@ -1,4 +1,5 @@
 var http = require('http');
+var querystring = require('querystring');
 var terminal = require('node-terminal');
 
 PORT = 8888;
@@ -15,7 +16,7 @@ var n_append = function(text, app, color, url) {
 	});
 
 	// remove from beginning of array if it starts to grow big
-	if(n.length() > 30) {
+	if(n.length > 30) {
 		n.splice(0, 1);
 	}
 };
@@ -23,12 +24,14 @@ var n_append = function(text, app, color, url) {
 s = http.createServer(function (req, res) {
 	if (req.method == 'POST') {
 		req.on('data', function(data) {
-			var text = data.toString();
+			var data_json = querystring.parse(data.toString());
 
-			terminal.colorize('%rR%ma%ci%bn%yb%go%rw\n');
-			//console.log('[' + app + '] ' + text);
+			terminal.color('white').write('[');
+			terminal.color(data_json.color).write(data_json.app);
+			terminal.color('white').write('] ');
+			terminal.color('white').write(data_json.text + '\n');
 
-			//n_append(text, app, color, url);
+			n_append(data_json.text, data_json.app, data_json.color, data_json.url);
 			// TODO: also store in sqlite3 db
 		});
 
