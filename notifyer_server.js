@@ -37,6 +37,14 @@ var n_append = function(data) {
 	}
 };
 
+var n_fetch = function(pos) {
+	console.log(pos);
+	pos = parseInt(pos, 10); // remove leading zeros
+	console.log(pos);
+
+	return n[pos];
+};
+
 s = http.createServer(function (req, res) {
 	if (req.method == 'POST') {
 		req.on('data', function(data) {
@@ -67,9 +75,11 @@ s = http.createServer(function (req, res) {
 		var resource = url.parse(req.url).pathname;
 		resource = resource.substr(1);
 
-		if(n[resource]) {
+		notification = n_fetch(resource);
+
+		if(notification) {
 			res.writeHead(200, "OK", {'Content-Type': 'text/html'});
-			res.end(n[resource].url);
+			res.end(notification.url);
 		} else {
 			res.writeHead(404, "Not found.", {'Content-Type': 'text/html'});
 			res.end("");
