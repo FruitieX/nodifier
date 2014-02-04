@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 var http = require('http');
+var url = require('url');
 var querystring = require('querystring');
 var clc = require('cli-color');
 var clc_color = require('./clc-color');
@@ -48,15 +49,23 @@ s = http.createServer(function (req, res) {
 		});
 
 		req.on('end', function() {
-			// empty 200 OK response for now
 			res.writeHead(200, "OK", {'Content-Type': 'text/html'});
 			res.end();
 		});
 	} else {
-		res.writeHead(405, "only POST method supported", {'Content-Type': 'text/html'});
-		res.end('405 - only POST method supported');
+		var resource = url.parse(req.url).pathname;
+		resource = resource.substr(1);
+
+		if(n[resource]) {
+			res.writeHead(200, "OK", {'Content-Type': 'text/html'});
+			res.end(n[resource].url);
+		} else {
+			res.writeHead(404, "Not found.", {'Content-Type': 'text/html'});
+			res.end("");
+		}
 	}
 });
 
+process.stdout.write('\u001B[2J\u001B[0;0f');
 console.log(clc.green('listening on port ' + PORT));
 s.listen(PORT);
