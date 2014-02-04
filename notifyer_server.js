@@ -13,6 +13,7 @@ if(process.argv[2]) {
 var id_color = clc.xterm(232).bgWhiteBright;
 var def_app_color = clc.whiteBright.bgXterm(232);
 
+// array containing notifications (as JSON)
 var n = [];
 var N_SIZE = 100;
 // max length (in chars) of the n_pos number, log base conversion needed
