@@ -50,7 +50,7 @@ s = http.createServer(function (req, res) {
 			for(var i = 0; i < N_LENGTH - 1; i++) {
 				leading_zeros += '0';
 			}
-			var pos_string = String(leading_zeros + n_pos).slice(N_SIZE * -1);
+			var pos_string = String(leading_zeros + n_pos).slice(N_LENGTH * -1);
 
 			console.log(id_color(' ' + pos_string + ' ') + source_color(' ' + data_json.source + ' ') + ' ' + data_json.text);
 
