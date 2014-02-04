@@ -38,9 +38,7 @@ var n_append = function(data) {
 };
 
 var n_fetch = function(pos) {
-	console.log(pos);
 	pos = parseInt(pos, 10); // remove leading zeros
-	console.log(pos);
 
 	return n[pos];
 };
