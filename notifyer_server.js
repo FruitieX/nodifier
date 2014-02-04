@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 var http = require('http');
 var querystring = require('querystring');
-var terminal = require('node-terminal');
+var clc = require('cli-color');
+var clc_color = require('./clc-color');
 
 var PORT = 8888;
 if(process.argv[2]) {
@@ -10,13 +11,19 @@ if(process.argv[2]) {
 
 var n = [];
 
+var id_color = clc.xterm(232).bgWhiteBright;
+var def_app_color = clc.whiteBright.bgXterm(232);
+
 // append notification to array
-var n_append = function(text, app, color, url) {
+var n_append = function(data) {
 	n.push({
-		'text': text,
-		'app': app,
-		'color': color,
-		'url': url
+		'text': data.text,
+		'app': data.app,
+		'colorbg': data.color,
+		'colorfg': data.colorbg,
+		'colorbg_id': data.color_id,
+		'colorfg_id': data.colorbg_id,
+		'url': data.url
 	});
 
 	// remove from beginning of array if it starts to grow big
@@ -30,12 +37,13 @@ s = http.createServer(function (req, res) {
 		req.on('data', function(data) {
 			var data_json = querystring.parse(data.toString());
 
-			terminal.color('white').write('[');
-			terminal.color(data_json.color).write(data_json.app);
-			terminal.color('white').write('] ');
-			terminal.color('white').write(data_json.text + '\n');
+			var app_color = def_app_color;
+			if(data_json.colorfg)
+				app_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
 
-			n_append(data_json.text, data_json.app, data_json.color, data_json.url);
+			console.log(id_color(' 42 ') + app_color(' ' + data_json.app + ' ') + ' ' + data_json.text);
+
+			n_append(data_json);
 			// TODO: also store in sqlite3 db
 		});
 
@@ -50,5 +58,5 @@ s = http.createServer(function (req, res) {
 	}
 });
 
-terminal.color('green').write('listening on port ' + PORT + '\n');
+console.log(clc.green('listening on port ' + PORT));
 s.listen(PORT);

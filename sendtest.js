@@ -4,7 +4,10 @@ var querystring = require('querystring');
 post_data = querystring.stringify({
 	'text': 'hello world!',
 	'app': 'gmail',
-	'color': 'red',
+	'colorbg': 'red',
+    'colorfg': 'whiteBright',
+	//'colorbg_id': '',
+	//'colorfg_id': '',
 	'url': 'http://localhost:8888'
 });
 
