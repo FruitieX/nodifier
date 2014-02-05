@@ -104,8 +104,8 @@ exports.start = function(config) {
 
 		// limit text length
 		if(text.length > 110)
-			text = text.substr(0, 110) + '...';
+			text = text.substr(0, 110);
 
-		post.sendPOST(from + ', "' + subject + '":\n' + text, config.source, config.app, config.url, config.colorbg, config.colorfg);
+		post.sendPOST(from + ', "' + subject + '": ' + text, config.source, config.app, config.url, config.colorbg, config.colorfg);
 	}).start();
 };

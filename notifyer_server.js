@@ -41,6 +41,9 @@ s = http.createServer(function (req, res) {
 		req.on('data', function(data) {
 			var data_json = querystring.parse(data.toString());
 
+			// store POST in notifications array
+			n_append(data_json);
+
 			var source_color = def_source_color;
 			if(data_json.colorfg)
 				source_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
@@ -52,10 +55,14 @@ s = http.createServer(function (req, res) {
 			}
 			var pos_string = String(leading_zeros + n_pos).slice(N_LENGTH * -1);
 
-			console.log(id_color(' ' + pos_string + ' ') + source_color(' ' + data_json.source + ' ') + ' ' + data_json.text);
+			var source_text_length = 5 + pos_string.length + data_json.source.length;
+			var text_length = data_json.text.length;
 
-			n_append(data_json);
-			// TODO: also store in sqlite3 db?
+			// if the string is wider than our terminal we need to shorten it
+			if(source_text_length + text_length > process.stdout.columns)
+				data_json.text = data_json.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
+
+			console.log(id_color(' ' + pos_string + ' ') + source_color(' ' + data_json.source + ' ') + ' ' + data_json.text);
 		});
 
 		req.on('end', function() {
