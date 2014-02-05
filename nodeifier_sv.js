@@ -87,7 +87,7 @@ s = http.createServer(function (req, res) {
 				res.end(JSON.stringify(notification));
 			} else {
 				res.writeHead(404, "Not found.", {'Content-Type': 'text/html'});
-				res.end("");
+				res.end("No notification matching ID!");
 			}
 		}
 	}
