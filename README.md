@@ -1,5 +1,5 @@
-notifyer
-========
+nodeifier
+=========
 
 A very simple CLI program capable of receiving notifications via HTTP POST.
 Useful e.g. on a secondary monitor to list notifications from various sources.
