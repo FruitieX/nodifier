@@ -73,14 +73,23 @@ s = http.createServer(function (req, res) {
 		var resource = url.parse(req.url).pathname;
 		resource = resource.substr(1);
 
-		notification = n_fetch(resource);
-
-		if(notification) {
+		if(resource === "getstate") {
 			res.writeHead(200, "OK", {'Content-Type': 'text/html'});
-			res.end(JSON.stringify(notification));
-		} else {
-			res.writeHead(404, "Not found.", {'Content-Type': 'text/html'});
-			res.end("");
+			res.end(JSON.stringify({
+				'n_pos': n_pos,
+				'N_SIZE': N_SIZE
+			}));
+		}
+		else {
+			notification = n_fetch(resource);
+
+			if(notification) {
+				res.writeHead(200, "OK", {'Content-Type': 'text/html'});
+				res.end(JSON.stringify(notification));
+			} else {
+				res.writeHead(404, "Not found.", {'Content-Type': 'text/html'});
+				res.end("");
+			}
 		}
 	}
 });
