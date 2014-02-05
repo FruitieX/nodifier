@@ -1,0 +1,12 @@
+{
+	"username": "imap-username",
+	"password": "imap-password",
+	"host": "imap-host",
+	"port": 993,
+	"secure": true,
+	"source": "Gmail",
+	"app": "browser",
+	"url": "https://mail.google.com",
+	"colorbg": "red",
+	"colorfg": "whiteBright"
+}
