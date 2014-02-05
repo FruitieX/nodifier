@@ -22,22 +22,26 @@ var requestNotification = function(id) {
 
 	var data = req.end();
 
-	var data_json = JSON.parse(data.body);
+	if(data.statusCode == 200) {
+		var data_json = JSON.parse(data.body);
 
-	var source_color = def_source_color;
-	if(data_json.colorfg)
-		source_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
+		var source_color = def_source_color;
+		if(data_json.colorfg)
+			source_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
 
-	// pad with leading zeroes
-	var pos_string = String(id);
+		// pad with leading zeroes
+		var pos_string = String(id);
 
-	// if the string is wider than our terminal we need to shorten it
-	var source_text_length = 5 + pos_string.length + data_json.source.length;
-	var text_length = data_json.text.length;
-	if(source_text_length + text_length > process.stdout.columns)
-		data_json.text = data_json.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
+		// if the string is wider than our terminal we need to shorten it
+		var source_text_length = 5 + pos_string.length + data_json.source.length;
+		var text_length = data_json.text.length;
+		if(source_text_length + text_length > process.stdout.columns)
+			data_json.text = data_json.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
-	console.log(id_color(' ' + pos_string + ' ') + source_color(' ' + data_json.source + ' ') + ' ' + data_json.text);
+		console.log(id_color(' ' + pos_string + ' ') + source_color(' ' + data_json.source + ' ') + ' ' + data_json.text);
+	} else {
+		// do nothing
+	}
 };
 
 if(process.argv[2]) {
