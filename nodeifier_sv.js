@@ -41,9 +41,6 @@ s = http.createServer(function (req, res) {
 		req.on('data', function(data) {
 			var data_json = querystring.parse(data.toString());
 
-			// store POST in notifications array
-			n_append(data_json);
-
 			var source_color = def_source_color;
 			if(data_json.colorfg)
 				source_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
@@ -54,6 +51,9 @@ s = http.createServer(function (req, res) {
 				leading_zeros += '0';
 			}
 			var pos_string = String(leading_zeros + n_pos).slice(N_LENGTH * -1);
+
+			// store POST in notifications array
+			n_append(data_json);
 
 			var source_text_length = 5 + pos_string.length + data_json.source.length;
 			var text_length = data_json.text.length;

@@ -14,7 +14,8 @@ var requestNotification = function(id) {
 
 	var req = http.request(config, function(res) {
 		res.on('data', function(data) {
-			console.log(JSON.parse(data));
+			console.log(id);
+			console.log(JSON.parse(data).text);
 		});
 	});
 
@@ -35,9 +36,23 @@ if(process.argv[2]) {
 
 	var req = http.request(config, function(res) {
 		res.on('data', function(data) {
-			console.log(JSON.parse(data));
-			for (var i = 0; i < 10; i++) {
+			var data_json = JSON.parse(data);
+
+			var NUM_NOTIFICATIONS = 15;
+			var i;
+			var id = data_json.n_pos - NUM_NOTIFICATIONS + 1;
+			if (id < 0)
+				id += data_json.N_SIZE;
+		console.log(id);
+
+			for (i = id; i <= id + NUM_NOTIFICATIONS && i < data_json.N_SIZE; i++) {
 				requestNotification(i);
+			}
+
+			if (id + NUM_NOTIFICATIONS >= data_json.N_SIZE) {
+				for (i = 0; i < data_json.N_SIZE - id; i++) {
+					requestNotification(i);
+				}
 			}
 		});
 	});
