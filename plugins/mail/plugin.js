@@ -98,6 +98,13 @@ var mailListener = new Notifier(config);
 mailListener.on('mail', function(mail) {
 	var subject = mail.subject;
 	var from = mail.headers.from;
-	var text = mail.text.replace(/\n/g, ' ');
+	var text = "(no plaintext)";
+	if(mail.text)
+		text = mail.text.replace(/\n/g, ' ');
+
+	// limit text length
+	if(text.length > 120)
+		text = text.substr(0, 120) + '...';
+
 	post.sendPOST(from + ', ' + subject + ': ' + text, 'Gmail', 'browser', 'https://mail.google.com', 'red', 'whiteBright');
 }).start();
