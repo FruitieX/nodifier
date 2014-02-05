@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var gmail = require('./plugins/mail/plugin').start(
 	// config file
 	require('./plugins/mail/gmail.json')
