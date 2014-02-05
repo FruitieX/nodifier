@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 var http = require('http');
 var url = require('url');
 var querystring = require('querystring');
@@ -47,18 +48,16 @@ s = http.createServer(function (req, res) {
 
 			// pad with leading zeroes
 			var leading_zeros = '';
-			for(var i = 0; i < N_LENGTH - 1; i++) {
+			for(var i = 0; i < N_LENGTH - 1; i++)
 				leading_zeros += '0';
-			}
 			var pos_string = String(leading_zeros + n_pos).slice(N_LENGTH * -1);
 
 			// store POST in notifications array
 			n_append(data_json);
 
+			// if the string is wider than our terminal we need to shorten it
 			var source_text_length = 5 + pos_string.length + data_json.source.length;
 			var text_length = data_json.text.length;
-
-			// if the string is wider than our terminal we need to shorten it
 			if(source_text_length + text_length > process.stdout.columns)
 				data_json.text = data_json.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
