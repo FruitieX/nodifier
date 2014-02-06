@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 var auth = require('http-auth');
+var htpasswd = require('./htpasswd.json');
 var basic = auth.basic({
-	realm: "nodeifier",
-	file: __dirname + "/.htpasswd"
+	realm: "nodeifier"
+}, function (username, password, callback) {
+	callback(username === htpasswd.username && password === htpasswd.password);
 });
 
 var http = require('http');

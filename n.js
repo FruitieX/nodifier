@@ -9,8 +9,7 @@ var id_color = clc.xterm(232).bgWhiteBright;
 var def_source_color = clc.whiteBright.bgXterm(232);
 
 var config = require(getUserHome() + '/.nodeifier.json');
-var auth = config.username + ":" + config.password;
-//var auth = 'Basic ' + new Buffer(config.username + ":" + config.password).toString('base64');
+var htpasswd = require('./htpasswd.json');
 
 function getUserHome() {
 	return process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
@@ -18,15 +17,19 @@ function getUserHome() {
 
 var requestNotification = function(id) {
 	var req = httpSync.request({
-		url: config.host + '/' + id,
+		url: config.host,
+		path: '/' + id,
 		port: config.port,
 		method: 'GET',
 		headers: {
-			auth: auth
+			Authorization: 'Basic ' + new Buffer(htpasswd.username + ":" + htpasswd.password).toString('base64')
 		}
 	});
 
+	console.log(req);
+
 	var data = req.end();
+	console.log(data.statusCode);
 
 	if(data.statusCode == 200) {
 		var data_json = JSON.parse(data.body);
@@ -59,8 +62,9 @@ if(process.argv[2]) {
 		port: config.port,
 		path: '/getstate',
 		method: 'GET',
-		auth: auth
-	}
+		auth: htpasswd.username + ':' + htpasswd.password
+	};
+	console.log(options);
 
 	var req = http.request(options, function(res) {
 		res.on('data', function(data) {
