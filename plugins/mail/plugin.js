@@ -54,12 +54,12 @@ exports.start = function(config) {
 			.seq(function(){
 				self.imap.search(['UNSEEN'],this);
 			})
-		.seq(function(seachResults){
-			if(!seachResults || seachResults.length === 0){
+		.seq(function(searchResults){
+			if(!searchResults || searchResults.length === 0){
 				util.log('no new mail in INBOX');
 				return;
 			}
-			var fetch = self.imap.fetch(seachResults,
+			var fetch = self.imap.fetch(searchResults,
 				{
 					request:{
 						headers:false,
