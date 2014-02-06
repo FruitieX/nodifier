@@ -65,6 +65,12 @@ exports.start = function(config) {
 				}
 			}
 
+			// get maximum uid and set next_uid accordingly
+			for (var i = 0; i < searchResults.length; i++) {
+				if(searchResults[i] >= next_uid)
+					next_uid = searchResults[i] + 1;
+			}
+
 			if(!searchResults || searchResults.length === 0) {
 				util.log('no new mail in INBOX');
 				return;
@@ -91,8 +97,6 @@ exports.start = function(config) {
 				fetch.on('end', function() {
 					util.log('Done fetching all messages!');
 				});
-
-				next_uid = searchResults[searchResults.length - 1] + 1;
 			}
 		});
 		return this;
