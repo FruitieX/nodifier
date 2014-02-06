@@ -28,8 +28,17 @@ var n_pos = 0;
 // regex for matching getprev urls, remembers the digit
 var url_re = /getprev\/(\d+)/;
 
+var pos_with_leading_zeros = function() {
+	// pad with leading zeros
+	var leading_zeros = '';
+	for(var i = 0; i < N_LENGTH - 1; i++)
+		leading_zeros += '0';
+	return String(leading_zeros + n_pos).slice(N_LENGTH * -1);
+};
+
 // put notification to array at pos n_pos and increment n_pos
 var n_append = function(data) {
+	data.id = pos_with_leading_zeros();
 	n[n_pos++] = data;
 
 	// wrap n_pos to the beginning of the array if it starts growing big
@@ -53,11 +62,7 @@ s = http.createServer(basic, function (req, res) {
 			if(data_json.colorfg)
 				source_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
 
-			// pad with leading zeroes
-			var leading_zeros = '';
-			for(var i = 0; i < N_LENGTH - 1; i++)
-				leading_zeros += '0';
-			var pos_string = String(leading_zeros + n_pos).slice(N_LENGTH * -1);
+			var pos_string = pos_with_leading_zeros();
 
 			// store POST in notifications array, note: make copy of object
 			n_append(JSON.parse(JSON.stringify(data_json)));
@@ -84,8 +89,20 @@ s = http.createServer(basic, function (req, res) {
 		if(num_notifications) { // fetch multiple notifications, starting from latest
 			var notifications = [];
 
-			for(var i = n_pos - 1; i >= 0 && i > n_pos - num_notifications; i--) {
+			var i;
+			var id = n_pos - num_notifications;
+			if (id < 0)
+				id += N_SIZE;
+
+			for(i = id; i < id + num_notifications && i < N_SIZE; i++) {
 				notifications.push(n_fetch(i));
+			}
+
+			// if we overflowed N_SIZE, take the rest from index 0 and up
+			if (id + num_notifications >= N_SIZE) {
+				for(i = 0; i < num_notifications - (N_SIZE - id); i++) {
+					notifications.push(n_fetch(i));
+				}
 			}
 
 			res.writeHead(200, "OK", {'Content-Type': 'text/html'});
