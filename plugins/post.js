@@ -1,6 +1,6 @@
 var http = require('http');
 var querystring = require('querystring');
-var config = require('../config.json');
+var config = require('../config_sv.json');
 
 exports.sendPOST = function(text, source, app, url, colorbg, colorfg, colorbg_id, colorfg_id) {
 	post_data = querystring.stringify({

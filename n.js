@@ -8,6 +8,7 @@ var clc_color = require('./clc-color');
 var id_color = clc.xterm(232).bgWhiteBright;
 var def_source_color = clc.whiteBright.bgXterm(232);
 
+
 function getUserHome() {
 	return process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
 }
@@ -46,7 +47,7 @@ var requestNotification = function(id) {
 
 if(process.argv[2]) {
 	requestNotification(process.argv[2]);
-} else { // get 15 previous notifications
+} else { // get 50 previous notifications
 	var config = require(getUserHome() + '/.nodeifier.json');
 
 	config.path = "/getstate";
@@ -56,19 +57,18 @@ if(process.argv[2]) {
 		res.on('data', function(data) {
 			var data_json = JSON.parse(data);
 
-			var NUM_NOTIFICATIONS = 15;
 			var i;
-			var id = data_json.n_pos - NUM_NOTIFICATIONS;
+			var id = data_json.n_pos - config.num_notifications;
 			if (id < 0)
 				id += data_json.N_SIZE;
 
-			for (i = id; i < id + NUM_NOTIFICATIONS && i < data_json.N_SIZE; i++) {
+			for (i = id; i < id + config.num_notifications && i < data_json.N_SIZE; i++) {
 				requestNotification(i);
 			}
 
 			// if we overflowed N_SIZE, take the rest from index 0 and up
-			if (id + NUM_NOTIFICATIONS >= data_json.N_SIZE) {
-				for (i = 0; i < NUM_NOTIFICATIONS - (data_json.N_SIZE - id); i++) {
+			if (id + config.num_notifications >= data_json.N_SIZE) {
+				for (i = 0; i < config.num_notifications - (data_json.N_SIZE - id); i++) {
 					requestNotification(i);
 				}
 			}

@@ -5,11 +5,7 @@ var url = require('url');
 var querystring = require('querystring');
 var clc = require('cli-color');
 var clc_color = require('./clc-color');
-
-var PORT = 8888;
-if(process.argv[2]) {
-	PORT = process.argv[2];
-}
+var config = require('./config_sv');
 
 var id_color = clc.xterm(232).bgWhiteBright;
 var def_source_color = clc.whiteBright.bgXterm(232);
@@ -94,5 +90,5 @@ s = http.createServer(function (req, res) {
 });
 
 process.stdout.write('\u001B[2J\u001B[0;0f');
-console.log(clc.green('listening on port ' + PORT));
-s.listen(PORT);
+console.log(clc.green('listening on port ' + config.port));
+s.listen(config.port);
