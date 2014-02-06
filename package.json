@@ -6,6 +6,7 @@
 	"dependencies" : {
 		"cli-color" : ">=0.2.3",
 		"stdio" : ">=0.1.5",
-		"http-sync" : ">=0.0.4"
+		"http-sync" : ">=0.0.4",
+		"http-auth" : ">=2.1.5"
 	}
 }

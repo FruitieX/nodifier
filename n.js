@@ -8,18 +8,23 @@ var clc_color = require('./clc-color');
 var id_color = clc.xterm(232).bgWhiteBright;
 var def_source_color = clc.whiteBright.bgXterm(232);
 
+var config = require(getUserHome() + '/.nodeifier.json');
+var auth = config.username + ":" + config.password;
+//var auth = 'Basic ' + new Buffer(config.username + ":" + config.password).toString('base64');
 
 function getUserHome() {
 	return process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
 }
 
 var requestNotification = function(id) {
-	var config = require(getUserHome() + '/.nodeifier.json');
-
-	config.path = "/" + id;
-	config.method = "GET";
-
-	var req = httpSync.request(config);
+	var req = httpSync.request({
+		url: config.host + '/' + id,
+		port: config.port,
+		method: 'GET',
+		headers: {
+			auth: auth
+		}
+	});
 
 	var data = req.end();
 
@@ -48,12 +53,16 @@ var requestNotification = function(id) {
 if(process.argv[2]) {
 	requestNotification(process.argv[2]);
 } else { // get 50 previous notifications
-	var config = require(getUserHome() + '/.nodeifier.json');
 
-	config.path = "/getstate";
-	config.method = "GET";
+	var options = {
+		hostname: config.host,
+		port: config.port,
+		path: '/getstate',
+		method: 'GET',
+		auth: auth
+	}
 
-	var req = http.request(config, function(res) {
+	var req = http.request(options, function(res) {
 		res.on('data', function(data) {
 			var data_json = JSON.parse(data);
 

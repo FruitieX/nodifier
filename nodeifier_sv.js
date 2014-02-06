@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
+var auth = require('http-auth');
+var basic = auth.basic({
+	realm: "nodeifier",
+	file: __dirname + "/.htpasswd"
+});
+
 var http = require('http');
 var url = require('url');
 var querystring = require('querystring');
@@ -33,7 +39,7 @@ var n_fetch = function(pos) {
 	return n[pos];
 };
 
-s = http.createServer(function (req, res) {
+s = http.createServer(basic, function (req, res) {
 	if (req.method == 'POST') {
 		req.on('data', function(data) {
 			var data_json = querystring.parse(data.toString());

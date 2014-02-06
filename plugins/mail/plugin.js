@@ -116,8 +116,8 @@ exports.start = function(config) {
 			text = mail.text.replace(/\n/g, ' ');
 
 		// limit text length
-		if(text.length > 110)
-			text = text.substr(0, 110);
+		if(text.length > 999)
+			text = text.substr(0, 999);
 
 		post.sendPOST(from + ', "' + subject + '": ' + text, config.source, config.app, config.url, config.colorbg, config.colorfg);
 	}).start();
