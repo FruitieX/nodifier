@@ -30,16 +30,13 @@ var printNotification = function(notification) {
 	if(notification.colorfg)
 		source_color = clc_color.color_from_text(notification.colorfg, notification.colorbg);
 
-	// pad with leading zeroes
-	var pos_string = String(id);
-
 	// if the string is wider than our terminal we need to shorten it
-	var source_text_length = 5 + pos_string.length + notification.source.length;
+	var source_text_length = 5 + notification.id.length + notification.source.length;
 	var text_length = notification.text.length;
 	if(source_text_length + text_length > process.stdout.columns)
 		notification.text = notification.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
-	console.log(id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
+	console.log(id_color(' ' + notification.id + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
 };
 
 var req = http.request(options, function(res) {
@@ -49,8 +46,9 @@ var req = http.request(options, function(res) {
 		if (get_n) // requested only a specific notification
 			printNotification(json_data);
 		else // got an array of notifications
-			for (var notification in json_data)
-				printNotification(notification);
+			for(var i = 0; i < json_data.length; i++)
+				if(json_data[i])
+					printNotification(json_data[i]);
 	});
 });
 

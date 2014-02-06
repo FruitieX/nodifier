@@ -85,8 +85,8 @@ s = http.createServer(basic, function (req, res) {
 		resource = resource.substr(1);
 
 		var getprev = resource.match(url_re);
-		var num_notifications = getprev[1];
-		if(num_notifications) { // fetch multiple notifications, starting from latest
+		if(getprev) { // fetch multiple notifications, starting from latest
+			var num_notifications = getprev[1];
 			var notifications = [];
 
 			var i;
