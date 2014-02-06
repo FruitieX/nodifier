@@ -11,6 +11,8 @@ var post = require('../post.js');
 // https://github.com/jcreigno/nodejs-mail-notifier
 
 exports.start = function(config) {
+	var next_uid;
+
 	function Notifier(opts) {
 		EventEmitter.call(this);
 		var self = this;
@@ -44,6 +46,7 @@ exports.start = function(config) {
 				util.log('successfully opened mail box');
 				self.imap.on('mail', function(id){ self.scan(); });
 				self.scan();
+				next_uid = self.imap._state.box._uidnext;
 			});
 		return this;
 	};
@@ -55,32 +58,42 @@ exports.start = function(config) {
 				self.imap.search(['UNSEEN'],this);
 			})
 		.seq(function(searchResults){
-			if(!searchResults || searchResults.length === 0){
+			// remove all messages up to next_uid
+			for (var i = 0; i < searchResults.length; i++) {
+				if(searchResults[i] < next_uid) {
+					searchResults.splice(i--, 1);
+				}
+			}
+
+			if(!searchResults || searchResults.length === 0) {
 				util.log('no new mail in INBOX');
 				return;
+			} else {
+				var fetch = self.imap.fetch(searchResults,
+					{
+						request:{
+							headers:false,
+							body: "full"
+						}
+					});
+				fetch.on('message', function(msg) {
+					var mp = new MailParser();
+					mp.on('end',function(mail){
+						self.emit('mail',mail);
+					});
+					msg.on('data', function(chunk) {
+						mp.write(chunk.toString());
+					});
+					msg.on('end', function() {
+						mp.end();
+					});
+				});
+				fetch.on('end', function() {
+					util.log('Done fetching all messages!');
+				});
+
+				next_uid = searchResults[searchResults.length - 1] + 1;
 			}
-			var fetch = self.imap.fetch(searchResults,
-				{
-					request:{
-						headers:false,
-						body: "full"
-					}
-				});
-			fetch.on('message', function(msg) {
-				var mp = new MailParser();
-				mp.on('end',function(mail){
-					self.emit('mail',mail);
-				});
-				msg.on('data', function(chunk) {
-					mp.write(chunk.toString());
-				});
-				msg.on('end', function() {
-					mp.end();
-				});
-			});
-			fetch.on('end', function() {
-				util.log('Done fetching all messages!');
-			});
 		});
 		return this;
 	};
