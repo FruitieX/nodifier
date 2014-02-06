@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var auth = require('http-auth');
-var htpasswd = require('./htpasswd.json');
+var htpasswd = require('./cfg/htpasswd.json');
 var basic = auth.basic({
 	realm: "nodeifier"
 }, function (username, password, callback) {
@@ -13,7 +13,7 @@ var url = require('url');
 var querystring = require('querystring');
 var clc = require('cli-color');
 var clc_color = require('./lib/clc-color');
-var config = require('./config_sv');
+var config = require('./cfg/config_sv.json');
 
 var id_color = clc.xterm(232).bgWhiteBright;
 var def_source_color = clc.whiteBright.bgXterm(232);

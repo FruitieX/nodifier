@@ -8,8 +8,8 @@ var clc_color = require('./lib/clc-color');
 var id_color = clc.xterm(232).bgWhiteBright;
 var def_source_color = clc.whiteBright.bgXterm(232);
 
-var config = require('./config_cl.json');
-var htpasswd = require('./htpasswd.json');
+var config = require('./cfg/config_cl.json');
+var htpasswd = require('./cfg/htpasswd.json');
 
 function getUserHome() {
 	return process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
