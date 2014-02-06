@@ -115,6 +115,7 @@ exports.start = function(config) {
 	mailListener.on('mail', function(mail) {
 		var subject = mail.subject;
 		var from = mail.headers.from;
+		/*
 		var text = "(no plaintext)";
 		if(mail.text)
 			text = mail.text.replace(/\n/g, ' ');
@@ -122,7 +123,8 @@ exports.start = function(config) {
 		// limit text length
 		if(text.length > 999)
 			text = text.substr(0, 999);
+		*/
 
-		post.sendPOST(from + ', "' + subject + '": ' + text, config.source, config.app, config.url, config.colorbg, config.colorfg);
+		post.sendPOST(from + ', Subject: "' + subject + '"', config.source, config.app, config.url, config.colorbg, config.colorfg);
 	}).start();
 };

@@ -56,8 +56,8 @@ s = http.createServer(basic, function (req, res) {
 				leading_zeros += '0';
 			var pos_string = String(leading_zeros + n_pos).slice(N_LENGTH * -1);
 
-			// store POST in notifications array
-			n_append(data_json);
+			// store POST in notifications array, note: make copy of object
+			n_append(JSON.parse(JSON.stringify(data_json)));
 
 			// if the string is wider than our terminal we need to shorten it
 			var source_text_length = 5 + pos_string.length + data_json.source.length;
