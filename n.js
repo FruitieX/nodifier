@@ -26,10 +26,7 @@ var requestNotification = function(id) {
 		}
 	});
 
-	console.log(req);
-
 	var data = req.end();
-	console.log(data.statusCode);
 
 	if(data.statusCode == 200) {
 		var data_json = JSON.parse(data.body);
@@ -64,7 +61,6 @@ if(process.argv[2]) {
 		method: 'GET',
 		auth: htpasswd.username + ':' + htpasswd.password
 	};
-	console.log(options);
 
 	var req = http.request(options, function(res) {
 		res.on('data', function(data) {
