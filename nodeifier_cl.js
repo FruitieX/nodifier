@@ -17,7 +17,7 @@ function getUserHome() {
 
 var requestNotification = function(id) {
 	var req = httpSync.request({
-		url: config.host,
+		host: config.host,
 		path: '/' + id,
 		port: config.port,
 		method: 'GET',
