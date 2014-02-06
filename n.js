@@ -3,7 +3,7 @@
 var http = require('http');
 var httpSync = require('http-sync');
 var clc = require('cli-color');
-var clc_color = require('./clc-color');
+var clc_color = require('./lib/clc-color');
 
 var id_color = clc.xterm(232).bgWhiteBright;
 var def_source_color = clc.whiteBright.bgXterm(232);

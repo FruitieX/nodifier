@@ -12,7 +12,7 @@ var http = require('http');
 var url = require('url');
 var querystring = require('querystring');
 var clc = require('cli-color');
-var clc_color = require('./clc-color');
+var clc_color = require('./lib/clc-color');
 var config = require('./config_sv');
 
 var id_color = clc.xterm(232).bgWhiteBright;
