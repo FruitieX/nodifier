@@ -25,6 +25,9 @@ var N_SIZE = 1000;
 var N_LENGTH = Math.ceil(Math.log(N_SIZE) / Math.log(10));
 var n_pos = 0;
 
+// regex for matching getprev urls, remembers the digit
+var url_re = /getprev\/(\d+)/;
+
 // put notification to array at pos n_pos and increment n_pos
 var n_append = function(data) {
 	n[n_pos++] = data;
@@ -76,14 +79,19 @@ s = http.createServer(basic, function (req, res) {
 		var resource = url.parse(req.url).pathname;
 		resource = resource.substr(1);
 
-		if(resource === "getstate") {
+		var getprev = resource.match(url_re);
+		var num_notifications = getprev[1];
+		if(num_notifications) { // fetch multiple notifications, starting from latest
+			var notifications = [];
+
+			for(var i = n_pos - 1; i >= 0 && i > n_pos - num_notifications; i--) {
+				notifications.push(n_fetch(i));
+			}
+
 			res.writeHead(200, "OK", {'Content-Type': 'text/html'});
-			res.end(JSON.stringify({
-				'n_pos': n_pos,
-				'N_SIZE': N_SIZE
-			}));
+			res.end(JSON.stringify(notifications));
 		}
-		else {
+		else { // fetch only one notification
 			notification = n_fetch(resource);
 
 			if(notification) {
