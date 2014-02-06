@@ -1,5 +1,7 @@
 {
 	"host": "example.com",
 	"port": "8888",
-	"num_notifications": 50
+	"num_notifications": 50,
+	"username": "user",
+	"password": "pass"
 }
