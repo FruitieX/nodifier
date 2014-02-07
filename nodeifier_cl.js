@@ -41,6 +41,11 @@ var printNotification = function(notification) {
 
 var req = http.request(options, function(res) {
 	res.on('data', function(data) {
+		if(res.statusCode !== 200) {
+			console.log("Notification not found.");
+			return;
+		}
+
 		var json_data = JSON.parse(data);
 
 		if (get_n) // requested only a specific notification
