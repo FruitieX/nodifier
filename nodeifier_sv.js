@@ -16,6 +16,7 @@ var clc_color = require('./lib/clc-color');
 var config = require('./cfg/config_sv.json');
 
 var id_color = clc.xterm(232).bgWhiteBright;
+var date_color = clc.xterm(234);
 var def_source_color = clc.whiteBright.bgXterm(232);
 
 // array containing notifications (as JSON)
@@ -39,6 +40,7 @@ var pos_with_leading_zeros = function() {
 // put notification to array at pos n_pos and increment n_pos
 var n_append = function(data) {
 	data.id = pos_with_leading_zeros();
+	data.date = new Date().valueOf();
 	n[n_pos++] = data;
 
 	// wrap n_pos to the beginning of the array if it starts growing big
@@ -62,6 +64,9 @@ s = http.createServer(basic, function (req, res) {
 			if(data_json.colorfg)
 				source_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
 
+			var date_obj = new Date();
+			var date_string = date_obj.getHours() + ':' + date_obj.getMinutes() + ':' + date_obj.getSeconds() + ' ';
+
 			var pos_string = pos_with_leading_zeros();
 
 			// store POST in notifications array, note: make copy of object
@@ -69,11 +74,11 @@ s = http.createServer(basic, function (req, res) {
 
 			// if the string is wider than our terminal we need to shorten it
 			var source_text_length = 5 + pos_string.length + data_json.source.length;
-			var text_length = data_json.text.length;
+			var text_length = data_json.text.length + date_string.length;
 			if(source_text_length + text_length > process.stdout.columns)
 				data_json.text = data_json.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
-			console.log(id_color(' ' + pos_string + ' ') + source_color(' ' + data_json.source + ' ') + ' ' + data_json.text);
+			console.log(date_color(date_string) + id_color(' ' + pos_string + ' ') + source_color(' ' + data_json.source + ' ') + ' ' + data_json.text);
 		});
 
 		req.on('end', function() {
