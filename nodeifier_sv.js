@@ -64,8 +64,7 @@ s = http.createServer(basic, function (req, res) {
 			if(data_json.colorfg)
 				source_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
 
-			var date_obj = new Date();
-			var date_string = date_obj.getHours() + ':' + date_obj.getMinutes() + ':' + date_obj.getSeconds() + ' ';
+			var date_string = new Date().toTimeString().split(' ')[0] + ' ';
 
 			var pos_string = pos_with_leading_zeros();
 
