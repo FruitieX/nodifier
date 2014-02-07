@@ -16,7 +16,7 @@ var clc_color = require('./lib/clc-color');
 var config = require('./cfg/config_sv.json');
 
 var id_color = clc.xterm(232).bgWhiteBright;
-var date_color = clc.xterm(234);
+var date_color = clc.xterm(242);
 var def_source_color = clc.whiteBright.bgXterm(232);
 
 // array containing notifications (as JSON)
