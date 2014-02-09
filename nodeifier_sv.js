@@ -72,8 +72,8 @@ s = http.createServer(basic, function (req, res) {
 			n_append(JSON.parse(JSON.stringify(data_json)));
 
 			// if the string is wider than our terminal we need to shorten it
-			var source_text_length = 5 + pos_string.length + data_json.source.length;
-			var text_length = data_json.text.length + date_string.length;
+			var source_text_length = 5 + pos_string.length + data_json.source.length + date_string.length;
+			var text_length = data_json.text.length;
 			if(source_text_length + text_length > process.stdout.columns)
 				data_json.text = data_json.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
