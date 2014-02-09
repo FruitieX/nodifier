@@ -47,6 +47,9 @@ exports.start = function(config) {
 				self.imap.on('mail', function(id){ self.scan(); });
 				self.scan();
 				next_uid = self.imap._state.box._uidnext;
+				setInterval(function() {
+					self.scan();
+				}, 60000); // check for new mail also every minute
 			});
 		return this;
 	};
@@ -58,15 +61,17 @@ exports.start = function(config) {
 				self.imap.search(['UNSEEN'],this);
 			})
 		.seq(function(searchResults){
+			console.log(self.imap);
 			// remove all messages up to next_uid
-			for (var i = 0; i < searchResults.length; i++) {
+			var i;
+			for (i = 0; i < searchResults.length; i++) {
 				if(searchResults[i] < next_uid) {
 					searchResults.splice(i--, 1);
 				}
 			}
 
 			// get maximum uid and set next_uid accordingly
-			for (var i = 0; i < searchResults.length; i++) {
+			for (i = 0; i < searchResults.length; i++) {
 				if(searchResults[i] >= next_uid)
 					next_uid = searchResults[i] + 1;
 			}
