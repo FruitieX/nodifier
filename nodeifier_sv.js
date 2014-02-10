@@ -110,7 +110,8 @@ s = http.createServer(basic, function (req, res) {
 			}
 
 			res.writeHead(200, "OK", {'Content-Type': 'text/html'});
-			res.end(JSON.stringify(notifications));
+			res.write(JSON.stringify(notifications));
+			res.end();
 		}
 		else { // fetch only one notification
 			notification = n_fetch(resource);
