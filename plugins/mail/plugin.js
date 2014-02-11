@@ -31,6 +31,7 @@ exports.start = function(config) {
 		});
 		self.imap.on('error',function(err){
 			self.emit('error', err);
+			console.log("ERROR! " + err);
 		});
 	}
 	util.inherits(Notifier, EventEmitter);
@@ -47,9 +48,6 @@ exports.start = function(config) {
 				self.imap.on('mail', function(id){ self.scan(); });
 				self.scan();
 				next_uid = self.imap._state.box._uidnext;
-				setInterval(function() {
-					self.scan();
-				}, 60000); // check for new mail also every minute
 			});
 		return this;
 	};
@@ -61,7 +59,6 @@ exports.start = function(config) {
 				self.imap.search(['UNSEEN'],this);
 			})
 		.seq(function(searchResults){
-			console.log(self.imap);
 			// remove all messages up to next_uid
 			var i;
 			for (i = 0; i < searchResults.length; i++) {
@@ -115,21 +112,20 @@ exports.start = function(config) {
 		return this;
 	};
 
+	var setupListener = function(ml) {
+		mailListener.on('end', function() {
+			mailListener = new Notifier(config);
+			setupListener(mailListener);
+		});
+
+		mailListener.on('mail', function(mail) {
+			var subject = mail.subject;
+			var from = mail.headers.from;
+			post.sendPOST(from + ', Subject: "' + subject + '"', config.source, config.app, config.url, config.colorbg, config.colorfg);
+		}).start();
+	};
+
 	var mailListener = new Notifier(config);
 
-	mailListener.on('mail', function(mail) {
-		var subject = mail.subject;
-		var from = mail.headers.from;
-		/*
-		var text = "(no plaintext)";
-		if(mail.text)
-			text = mail.text.replace(/\n/g, ' ');
-
-		// limit text length
-		if(text.length > 999)
-			text = text.substr(0, 999);
-		*/
-
-		post.sendPOST(from + ', Subject: "' + subject + '"', config.source, config.app, config.url, config.colorbg, config.colorfg);
-	}).start();
+	setupListener(mailListener);
 };
