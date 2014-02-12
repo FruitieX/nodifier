@@ -99,25 +99,39 @@ s = http.createServer(basic, function (req, res) {
 				id += N_SIZE;
 
 			for(i = id; i < id + num_notifications && i < N_SIZE; i++) {
-				notifications.push(n_fetch(i));
+				var notification = n_fetch(i)
+					if(notification)
+						notifications.push(notification);
 			}
 
 			// if we overflowed N_SIZE, take the rest from index 0 and up
 			if (id + num_notifications >= N_SIZE) {
 				for(i = 0; i < num_notifications - (N_SIZE - id); i++) {
-					notifications.push(n_fetch(i));
+					var notification = n_fetch(i)
+						if(notification)
+							notifications.push(notification);
 				}
 			}
 
-			res.writeHead(200, "OK", {'Content-Type': 'text/html'});
-			res.write(JSON.stringify(notifications));
+			var body = JSON.stringify(notifications);
+
+			res.writeHead(200, "OK", {
+				'Content-Type': 'text/html',
+				'Content-Length': body.length
+			});
+			res.write(body);
 			res.end();
 		}
 		else { // fetch only one notification
 			notification = n_fetch(resource);
 
 			if(notification) {
-				res.writeHead(200, "OK", {'Content-Type': 'text/html'});
+				var body = JSON.stringify(notifications);
+
+				res.writeHead(200, "OK", {
+					'Content-Type': 'text/html',
+					'Content-Length': body.length
+				});
 				res.end(JSON.stringify(notification));
 			} else {
 				res.writeHead(404, "Not found.", {'Content-Type': 'text/html'});
