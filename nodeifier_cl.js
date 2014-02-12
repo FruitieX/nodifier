@@ -40,20 +40,28 @@ var printNotification = function(notification) {
 };
 
 var req = http.request(options, function(res) {
-	res.on('data', function(data) {
+	var contentLength = res.headers['content-length'];
+	var data = "";
+
+	res.on('data', function(chunk) {
 		if(res.statusCode !== 200) {
 			console.log("Notification not found.");
 			return;
 		}
 
-		var json_data = JSON.parse(data);
+		data += chunk;
 
-		if (get_n) // requested only a specific notification
-			printNotification(json_data);
-		else // got an array of notifications
-			for(var i = 0; i < json_data.length; i++)
-				if(json_data[i])
-					printNotification(json_data[i]);
+		// do we have all data?
+		if (chunk.length >= contentLength) {
+			var json_data = JSON.parse(data);
+
+			if (get_n) // requested only a specific notification
+				printNotification(json_data);
+			else // got an array of notifications
+				for(var i = 0; i < json_data.length; i++)
+					if(json_data[i])
+						printNotification(json_data[i]);
+		}
 	});
 });
 
