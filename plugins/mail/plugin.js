@@ -114,7 +114,8 @@ exports.start = function(config) {
 	};
 
 	var setupListener = function(ml) {
-		mailListener.on('end', function() {
+		mailListener.on('end', function() { // reconnect
+			mailListener.stop();
 			mailListener = new Notifier(config);
 			setupListener(mailListener);
 		});
