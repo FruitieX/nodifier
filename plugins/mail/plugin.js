@@ -47,7 +47,8 @@ exports.start = function(config) {
 				util.log('successfully opened mail box');
 				self.imap.on('mail', function(id){ self.scan(); });
 				self.scan();
-				next_uid = self.imap._state.box._uidnext;
+				if(!next_uid)
+					next_uid = self.imap._state.box._uidnext;
 			});
 		return this;
 	};
