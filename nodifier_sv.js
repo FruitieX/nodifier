@@ -3,7 +3,7 @@
 var auth = require('http-auth');
 var htpasswd = require('./cfg/htpasswd.json');
 var basic = auth.basic({
-	realm: "nodeifier"
+	realm: "nodifier"
 }, function (username, password, callback) {
 	callback(username === htpasswd.username && password === htpasswd.password);
 });

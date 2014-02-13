@@ -1,4 +1,4 @@
-nodeifier
+nodifier
 =========
 
 A very simple CLI program capable of receiving notifications via HTTP POST.
@@ -16,10 +16,11 @@ later with GET requests with the notification ID as the requested resource.
 Setup
 -----
 
-1. cp config_sv.json.example config_sv.json TODO: do this automatically
+TODO
+1. cp cfg/config_sv.json.example cfg/config_sv.json TODO: do this automatically
 2. Edit the default config file (config_sv.json)
-3. Run nodeifier_sv.js in a terminal where you want notifications to show up
-4. Run plugins.js in a separate terminal TODO: integrate this with nodeifier_sv
+3. Run nodifier_sv.js in a terminal where you want notifications to show up
+4. Run plugins.js in a separate terminal TODO: integrate this with nodifier_sv?
 
 
 Client
@@ -32,8 +33,5 @@ launches a specific notification's program/URL.
 Setup
 -----
 
-1. cp .nodeifier.json.example ~/.nodeifier.json
-2. Edit the default config file (~/.nodeifier.json)
-3. Run n.js
-
+TODO
 Optional: make an alias/symlink to the command for quick access

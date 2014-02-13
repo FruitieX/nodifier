@@ -1,8 +1,8 @@
 {
-	"name" : "nodeifier",
+	"name" : "nodifier",
 	"version" : "0.0.1",
 	"description" : "A very simple CLI program capable of receiving notifications",
-	"main" : "n.js",
+	"main" : "nodifier_sv.js",
 	"dependencies" : {
 		"cli-color" : ">=0.2.3",
 		"stdio" : ">=0.1.5",
