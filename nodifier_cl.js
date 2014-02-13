@@ -5,6 +5,7 @@ var clc = require('cli-color');
 var clc_color = require('./lib/clc-color');
 
 var id_color = clc.xterm(232).bgWhiteBright;
+var date_color = clc.xterm(242);
 var def_source_color = clc.whiteBright.bgXterm(232);
 
 var config = require('./cfg/config_cl.json');
@@ -30,17 +31,19 @@ var printNotification = function(notification) {
 	if(notification.colorfg)
 		source_color = clc_color.color_from_text(notification.colorfg, notification.colorbg);
 
+	var date_string = new Date(notification.date).toTimeString().split(' ')[0] + ' ';
+
 	// if the string is wider than our terminal we need to shorten it
-	var source_text_length = 5 + notification.id.length + notification.source.length;
+	var source_text_length = 5 + notification.id.length + notification.source.length + date_string.length;
 	var text_length = notification.text.length;
 	if(source_text_length + text_length > process.stdout.columns)
 		notification.text = notification.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
-	console.log(id_color(' ' + notification.id + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
+	console.log(date_color(date_string) + id_color(' ' + notification.id + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
 };
 
 var req = http.request(options, function(res) {
-	var contentLength = res.headers['content-length'];
+	var contentLength = parseInt(res.headers['content-length']);
 	var data = "";
 
 	res.on('data', function(chunk) {
@@ -52,7 +55,7 @@ var req = http.request(options, function(res) {
 		data += chunk;
 
 		// do we have all data?
-		if (chunk.length >= contentLength) {
+		if (data.length >= contentLength) {
 			var json_data = JSON.parse(data);
 
 			if (get_n) // requested only a specific notification
