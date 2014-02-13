@@ -126,7 +126,7 @@ s = http.createServer(basic, function (req, res) {
 			notification = n_fetch(resource);
 
 			if(notification) {
-				var body = JSON.stringify(notifications);
+				var body = JSON.stringify(notification);
 
 				res.writeHead(200, "OK", {
 					'Content-Type': 'text/html',
