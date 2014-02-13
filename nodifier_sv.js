@@ -144,3 +144,8 @@ s = http.createServer(basic, function (req, res) {
 process.stdout.write('\u001B[2J\u001B[0;0f');
 console.log(clc.green('listening on port ' + config.port));
 s.listen(config.port);
+
+process.on('uncaughtException', function (err) {
+	console.error(err.stack);
+	console.log("Node NOT Exiting...");
+});

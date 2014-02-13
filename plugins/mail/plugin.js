@@ -30,8 +30,8 @@ exports.start = function(config) {
 			self.emit('end');
 		});
 		self.imap.on('error',function(err){
-			self.emit('error', err);
-			util.log(config.source + ' - ERROR! ' + err);
+			self.emit('end');
+			util.log(config.source + ' - ERROR! ' + err + ' attempting recorrect...');
 		});
 	}
 	util.inherits(Notifier, EventEmitter);
