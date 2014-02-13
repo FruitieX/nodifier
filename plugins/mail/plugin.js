@@ -123,6 +123,7 @@ exports.start = function(config) {
 		mailListener.on('mail', function(mail) {
 			var subject = mail.subject;
 			var from = mail.headers.from;
+			util.log(config.source + ' - new mail: ' + from + ', Subject "' + subject + '"');
 			post.sendPOST(from + ', Subject: "' + subject + '"', config.source, config.app, config.url, config.colorbg, config.colorfg);
 		}).start();
 	};
