@@ -31,7 +31,7 @@ exports.start = function(config) {
 		});
 		self.imap.on('error',function(err){
 			self.emit('error', err);
-			console.log("ERROR! " + err);
+			util.log(config.source + ' - ERROR! ' + err);
 		});
 	}
 	util.inherits(Notifier, EventEmitter);
@@ -44,7 +44,7 @@ exports.start = function(config) {
 				self.connected = true;
 				self.imap.openBox('INBOX',true,this);
 			}).seq(function(){
-				util.log('successfully opened mail box');
+				util.log(config.source + ' - successfully opened mail box');
 				self.imap.on('mail', function(id){ self.scan(); });
 				self.scan();
 				if(!next_uid)
@@ -75,7 +75,7 @@ exports.start = function(config) {
 			}
 
 			if(!searchResults || searchResults.length === 0) {
-				util.log('no new mail in INBOX');
+				util.log(config.source + ' - no new mail in INBOX');
 				return;
 			} else {
 				var fetch = self.imap.fetch(searchResults,
@@ -98,7 +98,7 @@ exports.start = function(config) {
 					});
 				});
 				fetch.on('end', function() {
-					util.log('Done fetching all messages!');
+					util.log(config.source + ' - Done fetching all messages!');
 				});
 			}
 		});
@@ -109,7 +109,7 @@ exports.start = function(config) {
 		if(this.connected){
 			this.imap.logout();
 		}
-		util.log('mail box closed.');
+		util.log(config.source + ' - mail box closed.');
 		return this;
 	};
 
