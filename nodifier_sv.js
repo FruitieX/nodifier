@@ -117,7 +117,7 @@ s = http.createServer(basic, function (req, res) {
 
 			res.writeHead(200, "OK", {
 				'Content-Type': 'text/html',
-				'Content-Length': body.length
+				'Content-Length': body.byteLength()
 			});
 			res.write(body);
 			res.end();
@@ -130,7 +130,7 @@ s = http.createServer(basic, function (req, res) {
 
 				res.writeHead(200, "OK", {
 					'Content-Type': 'text/html',
-					'Content-Length': body.length
+					'Content-Length': body.byteLength()
 				});
 				res.end(JSON.stringify(notification));
 			} else {
