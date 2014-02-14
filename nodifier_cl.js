@@ -55,7 +55,7 @@ var req = http.request(options, function(res) {
 		data += chunk;
 
 		// do we have all data?
-		if (data.length >= contentLength) {
+		if (Buffer.byteLength(data, 'utf8') >= contentLength) {
 			var json_data = JSON.parse(data);
 
 			if (get_n) // requested only a specific notification
