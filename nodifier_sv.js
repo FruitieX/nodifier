@@ -152,7 +152,8 @@ var redraw = function() {
 
 	// draw it
 	if (len)
-		for(var i = 0; i < process.stdout.rows && i < len; i++)
+		// TODO: figure out how to disable the prompt so we get one line more...
+		for(var i = 0; i < len; i++)
 			drawNotification(notifications[i]);
 	else
 		console.log(no_unread_color("No unread notifications."));
@@ -231,7 +232,6 @@ s = http.createServer(basic, function (req, res) {
 	}
 });
 
-process.stdout.write('\u001B[2J\u001B[0;0f');
 console.log(clc.green('listening on port ' + config.port));
 s.listen(config.port);
 
