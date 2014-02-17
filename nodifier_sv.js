@@ -15,11 +15,6 @@ var clc = require('cli-color');
 var clc_color = require('./lib/clc-color');
 var config = require('./config.json');
 
-var id_color = clc.xterm(232).bgWhiteBright;
-var date_color = clc.xterm(242);
-var no_unread_color = clc.xterm(242);
-var def_source_color = clc.whiteBright.bgXterm(232);
-
 // array containing JSON notifications
 var n = [];
 // first empty slot in array. already read notifications count as empty
@@ -122,7 +117,7 @@ var resWriteJSON = function(res, data) {
 };
 
 var drawNotification = function(notification) {
-	var source_color = def_source_color;
+	var source_color = clc_color.def_source_color;
 	if(notification.colorfg)
 		source_color = clc_color.color_from_text(notification.colorfg, notification.colorbg);
 
@@ -136,7 +131,7 @@ var drawNotification = function(notification) {
 	if(source_text_length + text_length > process.stdout.columns)
 		notification.text = notification.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
-	console.log(date_color(date_string) + id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
+	console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
 };
 
 var dateSort = function(a, b) {
@@ -156,7 +151,7 @@ var redraw = function() {
 		for(var i = 0; i < len; i++)
 			drawNotification(notifications[i]);
 	else
-		console.log(no_unread_color("No unread notifications."));
+		console.log(clc_color.no_unread_color("No unread notifications."));
 };
 
 s = http.createServer(basic, function (req, res) {
@@ -200,11 +195,10 @@ s = http.createServer(basic, function (req, res) {
 			}
 		});
 
-		// TODO: is this needed?
 		req.on('end', function() {
 			resMsg(res, 200, "OK");
 		});
-	} else {
+	} else { // GET request
 		var resource = url.parse(req.url).pathname;
 		resource = resource.substr(1);
 
