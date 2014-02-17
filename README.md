@@ -10,7 +10,8 @@ Server
 
 ## The server speaks HTTP. Here's what it can do:
 
-### POST request (resource is always '/', use 'querystring.stringify(data\_json)')
+### POST request
+`(resource is always '/', use 'querystring.stringify(data\_json)')`
 #### Add a notification
 ```
 {
@@ -39,7 +40,8 @@ Server
 ```
 
 ### GET request
-#### Request a list of all notifications (resource '/all')
+#### Request a list of all notifications
+`(resource '/all')`
 Returns something like:
 ```
 [
@@ -49,7 +51,8 @@ Returns something like:
 ]
 ```
 
-#### Request a specific notification (resource '/<id>')
+#### Request a specific notification
+`(resource '/<id>')`
 Returns something like:
 ```
 {
