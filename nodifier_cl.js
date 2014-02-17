@@ -67,8 +67,15 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 				var json_data = JSON.parse(data);
 
-				if (n_id) // requested only a specific notification
+				if (n_id) {// requested only a specific notification
 					printNotification(json_data);
+					if(config.autoMarkRead) {
+						post.sendPOST({
+							'method': 'setRead',
+							'id': n_id
+						}, true);
+					}
+				}
 				else { // requested all notifications
 					if(json_data.length) {
 						for(var i = 0; i < json_data.length; i++) {
