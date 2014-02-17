@@ -6,6 +6,7 @@ var clc_color = require('./lib/clc-color');
 
 var id_color = clc.xterm(232).bgWhiteBright;
 var date_color = clc.xterm(242);
+var no_unread_color = clc.xterm(242);
 var def_source_color = clc.whiteBright.bgXterm(232);
 
 var config = require('./cfg/config_cl.json');
@@ -73,10 +74,16 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 				if (n_id) // requested only a specific notification
 					printNotification(json_data);
-				else // got an array of notifications
-					for(var i = 0; i < json_data.length; i++)
-						if(json_data[i])
-							printNotification(json_data[i]);
+				else { // requested all notifications
+					if(json_data.length) {
+						for(var i = 0; i < json_data.length; i++) {
+							if(json_data[i])
+								printNotification(json_data[i]);
+						}
+					} else {
+						console.log(no_unread_color("No unread notifications."));
+					}
+				}
 			}
 		});
 	});

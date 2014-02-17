@@ -17,6 +17,7 @@ var config = require('./cfg/config_sv.json');
 
 var id_color = clc.xterm(232).bgWhiteBright;
 var date_color = clc.xterm(242);
+var no_unread_color = clc.xterm(242);
 var def_source_color = clc.whiteBright.bgXterm(232);
 
 // array containing JSON notifications
@@ -31,9 +32,9 @@ var url_re_all = /all.*/;
 // if array is full return n.length
 var n_findNextEmpty = function(start_id) {
 	for (var i = start_id + 1; i <= n.length; i++)
-		if(!n[i] || !n[i].read)
+		if(!n[i] || n[i].read)
 			return i;
-}
+};
 
 // store notification in the first empty slot and update n_firstEmpty
 var n_append = function(data_json) {
@@ -43,6 +44,28 @@ var n_append = function(data_json) {
 	data_json.date = new Date().valueOf();
 	n[n_firstEmpty] = data_json;
 	n_firstEmpty = n_findNextEmpty(n_firstEmpty);
+};
+
+var n_fetch = function(id) {
+	return n.filter(function (notification) {
+		return notification.id == id;
+	})[0];
+};
+
+var n_fetchAllUnread = function() {
+	var notifications = [];
+
+	// populate notifications array with unread messages
+	for(i = 0; i < n.length; i++) {
+		notification = n_fetch(i);
+		if(notification && !notification.read)
+			notifications.push(notification);
+	}
+
+	// sort it
+	notifications.sort(dateSort);
+
+	return notifications;
 };
 
 var n_mark_as_read = function(notification) {
@@ -56,7 +79,7 @@ var n_mark_as_read = function(notification) {
 		return "Notification already marked as read.";
 	}
 	// TODO: report back to plugin
-}
+};
 
 var n_mark_as_unread = function(notification) {
 	if(notification.read) {
@@ -71,13 +94,15 @@ var n_mark_as_unread = function(notification) {
 		return "Notification already marked as unread.";
 	}
 	// TODO: report back to plugin
-}
+};
 
+/*
 var n_fetch = function(id) {
 	id = parseInt(id, 10); // remove leading zeros
 
 	return n[id];
 };
+*/
 
 var resMsg = function(res, statusCode, msg) {
 	res.writeHead(statusCode, msg, {
@@ -85,7 +110,7 @@ var resMsg = function(res, statusCode, msg) {
 		'Content-Length': Buffer.byteLength(msg, 'utf8')
 	});
 	res.end(msg);
-}
+};
 
 var resWriteJSON = function(res, data) {
 	var data_json = JSON.stringify(data);
@@ -94,7 +119,7 @@ var resWriteJSON = function(res, data) {
 		'Content-Length': Buffer.byteLength(data_json, 'utf8')
 	});
 	res.end(data_json);
-}
+};
 
 var drawNotification = function(notification) {
 	var source_color = def_source_color;
@@ -112,25 +137,30 @@ var drawNotification = function(notification) {
 		notification.text = notification.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
 	console.log(date_color(date_string) + id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
-}
+};
+
+var dateSort = function(a, b) {
+	return a.date - b.date;
+};
 
 var redraw = function() {
 	// clear the terminal
 	process.stdout.write('\u001B[2J\u001B[0;0f');
 
-	for(var i = 0; i < process.stdout.rows; i++) {
-		if(i >= n.length) {
-			console.log(n_firstEmpty);
-			return;
-		}
-		if(n[i].read) // don't show read notifications
-			continue;
+	var notifications = n_fetchAllUnread();
+	var len = notifications.length;
 
-		drawNotification(n[i]);
-	}
-}
+	// draw it
+	if (len)
+		for(var i = 0; i < process.stdout.rows && i < len; i++)
+			drawNotification(notifications[i]);
+	else
+		console.log(no_unread_color("No unread notifications."));
+};
 
 s = http.createServer(basic, function (req, res) {
+	var msg, notification;
+
 	if (req.method == 'POST') {
 		req.on('data', function(data) {
 			var data_json = querystring.parse(data.toString());
@@ -145,22 +175,22 @@ s = http.createServer(basic, function (req, res) {
 				resMsg(res, 200, "Notification added.");
 				redraw();
 			} else if (data_json.method === 'setUnread') {
-				var notification = n[data_json.id];
+				notification = n_fetch(data_json.id);
 				if(!notification) {
 					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
 					return;
 				}
-				var msg = n_mark_as_unread(notification);
+				msg = n_mark_as_unread(notification);
 
 				resMsg(res, 200, msg);
 				redraw();
 			} else if (data_json.method === 'setRead') {
-				var notification = n[data_json.id];
+				notification = n_fetch(data_json.id);
 				if(!notification) {
 					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
 					return;
 				}
-				var msg = n_mark_as_read(notification);
+				msg = n_mark_as_read(notification);
 
 				resMsg(res, 200, msg);
 				redraw();
@@ -182,10 +212,11 @@ s = http.createServer(basic, function (req, res) {
 			var notifications = [];
 
 			for(i = 0; i < n.length; i++) {
-				var notification = n_fetch(i);
+				notification = n_fetch(i);
 					if(notification && !notification.read)
 						notifications.push(notification);
 			}
+			notifications.sort(dateSort);
 
 			resWriteJSON(res, notifications);
 		}
