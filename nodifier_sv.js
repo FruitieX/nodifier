@@ -200,22 +200,13 @@ s = http.createServer(basic, function (req, res) {
 		});
 	} else { // GET request
 		var resource = url.parse(req.url).pathname;
-		resource = resource.substr(1);
+		resource = resource.substr(1); // remove first slash
 
 		var all = resource.match(url_re_all);
 		if(all) { // fetch all unread notifications
-			var notifications = [];
-
-			for(i = 0; i < n.length; i++) {
-				notification = n_fetch(i);
-					if(notification && !notification.read)
-						notifications.push(notification);
-			}
-			notifications.sort(dateSort);
-
+			var notifications = n_fetchAllUnread();
 			resWriteJSON(res, notifications);
-		}
-		else { // fetch only one notification
+		} else { // fetch only one notification
 			notification = n_fetch(resource);
 
 			if(notification)
@@ -231,5 +222,5 @@ s.listen(config.port);
 
 process.on('uncaughtException', function (err) {
 	console.error(err.stack);
-	console.log("Node NOT Exiting...");
+	console.log("ERROR! Node not exiting.");
 });
