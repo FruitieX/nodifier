@@ -1,18 +1,20 @@
 nodifier
 =========
 
-A very simple CLI program capable of receiving notifications via HTTP POST and
-retreiving stored notifications via HTTP GET.
-Useful e.g. on a secondary monitor to list notifications from various sources.
+A very simple CLI server and client, both written in NodeJS, capable of storing notifications
+via HTTP POST and retreiving stored notifications via HTTP GET.
+
+Useful e.g. on a secondary monitor to list notifications from various sources, or maybe
+you're just tired of picking up your phone to read a notification when you're already sitting
+at your computer.
 
 Server
 ------
-
-## The server speaks HTTP. Here's what it can do:
+The server speaks HTTP. Here's what it can do:
 
 ### POST request
-`(resource is always '/', use 'querystring.stringify(data\_json)')`
-#### Add a notification
+Resource is always `/`, use `querystring.stringify(data_json)` to go from JSON to query string.
+* Add a notification
 ```
 {
 	"method": "newNotification",
@@ -24,14 +26,14 @@ Server
 	"colorfg": "whiteBright"
 }
 ```
-#### Mark notification as read
+* Mark notification as read
 ```
 {
 	"method": "setRead",
 	"id": 42
 }
 ```
-#### Mark notification as unread
+* Mark notification as unread
 ```
 {
 	"method": "setUnread",
@@ -40,9 +42,8 @@ Server
 ```
 
 ### GET request
-#### Request a list of all notifications
-`(resource '/all')`
-Returns something like:
+* Request a list of all notifications
+	* Resource: `/all`, returns something like:
 ```
 [
 	{"text":"spam0","source":"source0","app":"app0","url":"url0","colorbg":"red","colorfg":"white","read":false,"id":0,"date":1392663071818},
@@ -51,9 +52,8 @@ Returns something like:
 ]
 ```
 
-#### Request a specific notification
-`(resource '/<id>')`
-Returns something like:
+* Request a specific notification
+	* Resource: `/<notification-id>`, returns something like:
 ```
 {
 	"text":"spam",
@@ -71,26 +71,25 @@ Returns something like:
 Furthermore the server automatically logs unread notifications to the terminal
 window from where it was ran. (and hides already read notifications, too)
 
-## Setup
+### Setup
 
-1. cp cfg/config.json.example cfg/config.json (TODO: do this
+1. `cp config.json.example config.json` (TODO: do this
    automatically?)
-2. Edit the config file (config.json)
-3. Run nodifier\_sv.js in a terminal where you want notifications to show up
+2. Edit `config.json`.
+3. Run `nodifier_sv.js` in a terminal where you want notifications to show up.
+4. Test with e.g. `plugins/spam/plugin.js`
 
 Now the server is not very useful alone without anything sending notifications
-to it, but there are a few scripts in this repo (under 'plugins/') that do just
-that.  Have a look and/or script your own!
+to it, but there are a few scripts in this repo (under `plugins/`) that do just
+that (such as the above spam script).  Have a look and/or script your own!
 
 Client
 ------
+The client can request all notifications, specific notifications only or mark a
+notification as (un)read.
 
-The client is also a very simple NodeJS program which retreives notifications
-by ID from the server, and lists the previous X amount of notifications or
-launches a specific notification's program/URL.
-
-Setup
------
-
-TODO
-Optional: make an alias/symlink to the command for quick access
+### Setup
+1. Server and client shares the same `config.json` file, so if you did the above steps you should be set.
+2. Run `nodifier_cl.js` in a terminal to test it.
+3. Optional: Make an alias/symlink for quick access:
+`ln -s ~/dev/nodifier/nodifier_cl.js n`
