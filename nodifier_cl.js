@@ -29,7 +29,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 	if (n_id)
 		path = '/' + n_id;
 	else
-		path = '/getprev/' + config.num_notifications;
+		path = '/all';
 
 	var options = {
 		hostname: config.host,
