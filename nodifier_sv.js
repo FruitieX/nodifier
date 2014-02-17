@@ -39,6 +39,8 @@ var pos_with_leading_zeros = function() {
 
 // put notification to array at pos n_pos and increment n_pos
 var n_append = function(data) {
+	delete data.method;
+
 	data.id = pos_with_leading_zeros();
 	data.date = new Date().valueOf();
 	n[n_pos++] = data;
@@ -49,40 +51,92 @@ var n_append = function(data) {
 	}
 };
 
-var n_fetch = function(pos) {
-	pos = parseInt(pos, 10); // remove leading zeros
+var n_mark_as_read = function(notification) {
+	notification.read = true;
+}
 
-	return n[pos];
+var n_mark_as_unread = function(notification) {
+	notification.read = false;
+}
+
+var n_fetch = function(id) {
+	id = parseInt(id, 10); // remove leading zeros
+
+	return n[id];
 };
+
+var resMsg = function(res, statusCode, msg) {
+	res.writeHead(statusCode, msg, {
+		'Content-Type': 'text/html',
+		'Content-Length': Buffer.byteLength(msg, 'utf8')
+	});
+	res.end(msg);
+}
+
+var resWriteJSON = function(res, data) {
+	var data_json = JSON.stringify(data);
+	res.writeHead(200, "OK", {
+		'Content-Type': 'application/json',
+		'Content-Length': Buffer.byteLength(data_json, 'utf8')
+	});
+	res.end(data_json);
+}
 
 s = http.createServer(basic, function (req, res) {
 	if (req.method == 'POST') {
 		req.on('data', function(data) {
 			var data_json = querystring.parse(data.toString());
 
-			var source_color = def_source_color;
-			if(data_json.colorfg)
-				source_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
+			if (!data_json.read)
+				data_json.read = false; // we don't like undefined
 
-			var date_string = new Date().toTimeString().split(' ')[0] + ' ';
+			if (data_json.method === 'newNotification') {
+				var source_color = def_source_color;
+				if(data_json.colorfg)
+					source_color = clc_color.color_from_text(data_json.colorfg, data_json.colorbg);
 
-			var pos_string = pos_with_leading_zeros();
+				var date_string = new Date().toTimeString().split(' ')[0] + ' ';
 
-			// store POST in notifications array, note: make copy of object
-			n_append(JSON.parse(JSON.stringify(data_json)));
+				var pos_string = pos_with_leading_zeros();
 
-			// if the string is wider than our terminal we need to shorten it
-			var source_text_length = 5 + pos_string.length + data_json.source.length + date_string.length;
-			var text_length = data_json.text.length;
-			if(source_text_length + text_length > process.stdout.columns)
-				data_json.text = data_json.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
+				// store POST in notifications array, note: make copy of object
+				n_append(JSON.parse(JSON.stringify(data_json)));
 
-			console.log(date_color(date_string) + id_color(' ' + pos_string + ' ') + source_color(' ' + data_json.source + ' ') + ' ' + data_json.text);
+				// if the string is wider than our terminal we need to shorten it
+				var source_text_length = 5 + pos_string.length + data_json.source.length + date_string.length;
+				var text_length = data_json.text.length;
+				if(source_text_length + text_length > process.stdout.columns)
+					data_json.text = data_json.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
+
+				console.log(date_color(date_string) + id_color(' ' + pos_string + ' ') + source_color(' ' + data_json.source + ' ') + ' ' + data_json.text);
+
+				resMsg(res, 200, "Notification added.");
+			} else if (data_json.method === 'setUnread') {
+				var notification = n[data_json.id];
+				if(!notification) {
+					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
+					return;
+				}
+				n_mark_as_unread(notification);
+
+				resMsg(res, 200, "Notification set as unread.");
+			} else if (data_json.method === 'setRead') {
+				var notification = n[data_json.id];
+				if(!notification) {
+					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
+					return;
+				}
+				n_mark_as_read(notification);
+
+				resMsg(res, 200, "Notification set as read.");
+			} else {
+				resMsg(res, 404, "Unknown method in POST (should be 'newNotification', 'setUnread' or 'setRead')");
+			}
 		});
 
+		// TODO: is this needed?
 		req.on('end', function() {
-			res.writeHead(200, "OK", {'Content-Type': 'text/html'});
-			res.end();
+			resMsg(res, 200, "OK");
 		});
 	} else {
 		var resource = url.parse(req.url).pathname;
@@ -100,7 +154,7 @@ s = http.createServer(basic, function (req, res) {
 
 			for(i = id; i < id + num_notifications && i < N_SIZE; i++) {
 				var notification = n_fetch(i)
-					if(notification)
+					if(notification && !notification.read)
 						notifications.push(notification);
 			}
 
@@ -108,35 +162,20 @@ s = http.createServer(basic, function (req, res) {
 			if (id + num_notifications >= N_SIZE) {
 				for(i = 0; i < num_notifications - (N_SIZE - id); i++) {
 					var notification = n_fetch(i)
-						if(notification)
+						if(notification && !notification.read)
 							notifications.push(notification);
 				}
 			}
 
-			var body = JSON.stringify(notifications);
-
-			res.writeHead(200, "OK", {
-				'Content-Type': 'text/html',
-				'Content-Length': Buffer.byteLength(body, 'utf8')
-			});
-			res.write(body);
-			res.end();
+			resWriteJSON(res, notifications);
 		}
 		else { // fetch only one notification
 			notification = n_fetch(resource);
 
-			if(notification) {
-				var body = JSON.stringify(notification);
-
-				res.writeHead(200, "OK", {
-					'Content-Type': 'text/html',
-					'Content-Length': Buffer.byteLength(body, 'utf8')
-				});
-				res.end(JSON.stringify(notification));
-			} else {
-				res.writeHead(404, "Not found.", {'Content-Type': 'text/html'});
-				res.end("No notification matching ID!");
-			}
+			if(notification)
+				resWriteJSON(res, notification);
+			else
+				resMsg(res, 404, "Notification with id " + resource + " not found.");
 		}
 	}
 });

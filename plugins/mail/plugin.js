@@ -4,7 +4,7 @@ var ImapConnection = require('imap').ImapConnection;
 var MailParser = require('mailparser').MailParser;
 var Seq = require('seq');
 var EventEmitter = require('events').EventEmitter;
-var post = require('../post.js');
+var post = require('../../lib/post.js');
 
 // most of the mail handling is done via a slightly modified version of
 // the mail-notifier library by Jerome Creignou:
@@ -124,7 +124,15 @@ exports.start = function(config) {
 			var subject = mail.subject;
 			var from = mail.headers.from;
 			util.log(config.source + ' - new mail: ' + from + ', Subject "' + subject + '"');
-			post.sendPOST(from + ', Subject: "' + subject + '"', config.source, config.app, config.url, config.colorbg, config.colorfg);
+			post.sendPOST({
+				'method': 'newNotification',
+				'text': from + ', Subject: "' + subject + '"',
+				'source': config.source,
+				'app': config.app,
+				'url': config.url,
+				'colorbg': config.colorbg,
+				'colorfg': config.colorfg
+			});
 		}).start();
 	};
 
