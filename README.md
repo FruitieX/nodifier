@@ -10,7 +10,7 @@ Server
 
 ## The server speaks HTTP. Here's what it can do:
 
-### POST request (resource is always `/`, use `querystring.stringify(data\_json)`)
+### POST request (resource is always '/', use 'querystring.stringify(data\_json)')
 #### Add a notification
 ```
 {
@@ -39,7 +39,7 @@ Server
 ```
 
 ### GET request
-#### Request a list of all notifications (resource `/all`)
+#### Request a list of all notifications (resource '/all')
 Returns something like:
 ```
 [
@@ -49,7 +49,7 @@ Returns something like:
 ]
 ```
 
-#### Request a specific notification (resource `/<id>`)
+#### Request a specific notification (resource '/<id>')
 Returns something like:
 ```
 {
@@ -76,7 +76,7 @@ window from where it was ran. (and hides already read notifications, too)
 3. Run nodifier\_sv.js in a terminal where you want notifications to show up
 
 Now the server is not very useful alone without anything sending notifications
-to it, but there are a few scripts in this repo (under `plugins/`) that do just
+to it, but there are a few scripts in this repo (under 'plugins/') that do just
 that.  Have a look and/or script your own!
 
 Client
