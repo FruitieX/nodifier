@@ -42,13 +42,15 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 		var date_string = new Date(notification.date).toTimeString().split(' ')[0] + ' ';
 
+		var pos_string = notification.id.toString();
+
 		// if the string is wider than our terminal we need to shorten it
-		var source_text_length = 5 + notification.id.length + notification.source.length + date_string.length;
+		var source_text_length = 5 + pos_string.length + notification.source.length + date_string.length;
 		var text_length = notification.text.length;
 		if(source_text_length + text_length > process.stdout.columns)
 			notification.text = notification.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
-		console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + notification.id + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
+		console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
 	};
 
 	var req = http.request(options, function(res) {
