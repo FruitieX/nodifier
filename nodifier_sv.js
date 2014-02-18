@@ -15,13 +15,17 @@ var clc = require('cli-color');
 var clc_color = require('./lib/clc-color');
 var config = require('./config.json');
 
+/* Notification handling */
+
 // array containing JSON notifications
 var n = [];
 // first empty slot in array. already read notifications count as empty
 var n_firstEmpty = 0;
 
-// regex for matching getprev urls, remembers the digit
-var url_re_all = /all.*/;
+// sort according to date (epoch)
+var dateSort = function(a, b) {
+	return a.date - b.date;
+};
 
 // find next empty slot in array, starting from (but not including) start_id
 // if array is full return n.length
@@ -44,6 +48,12 @@ var n_append = function(data_json) {
 var n_fetch = function(id) {
 	return n.filter(function (notification) {
 		return notification.id == id;
+	})[0];
+};
+
+var n_uid_fetch = function(uid) {
+	return n.filter(function (notification) {
+		return notification.uid == uid;
 	})[0];
 };
 
@@ -91,30 +101,7 @@ var n_mark_as_unread = function(notification) {
 	// TODO: report back to plugin
 };
 
-/*
-var n_fetch = function(id) {
-	id = parseInt(id, 10); // remove leading zeros
-
-	return n[id];
-};
-*/
-
-var resMsg = function(res, statusCode, msg) {
-	res.writeHead(statusCode, msg, {
-		'Content-Type': 'text/html',
-		'Content-Length': Buffer.byteLength(msg, 'utf8')
-	});
-	res.end(msg);
-};
-
-var resWriteJSON = function(res, data) {
-	var data_json = JSON.stringify(data);
-	res.writeHead(200, "OK", {
-		'Content-Type': 'application/json',
-		'Content-Length': Buffer.byteLength(data_json, 'utf8')
-	});
-	res.end(data_json);
-};
+/* Drawing */
 
 var drawNotification = function(notification) {
 	var source_color = clc_color.def_source_color;
@@ -135,10 +122,6 @@ var drawNotification = function(notification) {
 	console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
 };
 
-var dateSort = function(a, b) {
-	return a.date - b.date;
-};
-
 var redraw = function() {
 	// clear the terminal
 	process.stdout.write('\u001B[2J\u001B[0;0f');
@@ -155,66 +138,113 @@ var redraw = function() {
 		console.log(clc_color.no_unread_color("No unread notifications."));
 };
 
-s = http.createServer(basic, function (req, res) {
+/* HTTP server */
+
+// regex for matching getprev urls, remembers the digit
+var url_re_all = /all.*/;
+
+var resMsg = function(res, statusCode, msg) {
+	res.writeHead(statusCode, msg, {
+		'Content-Type': 'text/html',
+		'Content-Length': Buffer.byteLength(msg, 'utf8')
+	});
+	res.end(msg);
+};
+
+var resWriteJSON = function(res, data) {
+	var data_json = JSON.stringify(data);
+	res.writeHead(200, "OK", {
+		'Content-Type': 'application/json',
+		'Content-Length': Buffer.byteLength(data_json, 'utf8')
+	});
+	res.end(data_json);
+};
+
+var handlePOST = function(req, res) {
 	var msg, notification;
 
-	if (req.method == 'POST') {
-		req.on('data', function(data) {
-			var data_json = querystring.parse(data.toString());
+	req.on('data', function(data) {
+		var data_json = querystring.parse(data.toString());
 
-			if (!data_json.read)
-				data_json.read = false; // we don't like undefined
+		if (!data_json.read)
+			data_json.read = false; // we don't like undefined
 
-			if (data_json.method === 'newNotification') {
-				// store POST in notifications array, note: make copy of object
-				n_append(data_json);
+		if (data_json.method === 'newNotification') {
+			// store POST in notifications array, note: make copy of object
+			n_append(data_json);
 
-				resMsg(res, 200, "Notification added.");
-				redraw();
-			} else if (data_json.method === 'setUnread') {
-				notification = n_fetch(data_json.id);
-				if(!notification) {
-					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
+			resMsg(res, 200, "Notification added.");
+			redraw();
+		} else if (data_json.method === 'setUnread') {
+			if(data_json.uid) {
+				notification = n_uid_fetch(data_json.uid);
+				if (!notification) {
+					resMsg(res, 404, "Notification with uid " + data_json.uid + " not found.");
 					return;
 				}
-				msg = n_mark_as_unread(notification);
-
-				resMsg(res, 200, msg);
-				redraw();
-			} else if (data_json.method === 'setRead') {
-				notification = n_fetch(data_json.id);
-				if(!notification) {
-					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
-					return;
-				}
-				msg = n_mark_as_read(notification);
-
-				resMsg(res, 200, msg);
-				redraw();
 			} else {
-				resMsg(res, 404, "Unknown method in POST (should be 'newNotification', 'setUnread' or 'setRead')");
+				notification = n_fetch(data_json.id);
+				if (!notification) {
+					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
+					return;
+				}
 			}
-		});
 
-		req.on('end', function() {
-			resMsg(res, 200, "OK");
-		});
-	} else { // GET request
-		var resource = url.parse(req.url).pathname;
-		resource = resource.substr(1); // remove first slash
+			msg = n_mark_as_unread(notification);
+			resMsg(res, 200, msg);
+			redraw();
+		} else if (data_json.method === 'setRead') {
+			if(data_json.uid) {
+				notification = n_uid_fetch(data_json.uid);
+				if (!notification) {
+					resMsg(res, 404, "Notification with uid " + data_json.uid + " not found.");
+					return;
+				}
+			} else {
+				notification = n_fetch(data_json.id);
+				if (!notification) {
+					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
+					return;
+				}
+			}
 
-		var all = resource.match(url_re_all);
-		if(all) { // fetch all unread notifications
-			var notifications = n_fetchAllUnread();
-			resWriteJSON(res, notifications);
-		} else { // fetch only one notification
-			notification = n_fetch(resource);
-
-			if(notification)
-				resWriteJSON(res, notification);
-			else
-				resMsg(res, 404, "Notification with id " + resource + " not found.");
+			msg = n_mark_as_read(notification);
+			resMsg(res, 200, msg);
+			redraw();
+		} else {
+			resMsg(res, 404, "Unknown method in POST (should be 'newNotification', 'setUnread' or 'setRead')");
 		}
+	});
+
+	req.on('end', function() {
+		resMsg(res, 200, "OK");
+	});
+};
+
+var handleGET = function(req, res) {
+	var resource = url.parse(req.url).pathname;
+	resource = resource.substr(1); // remove first slash
+	var notification;
+
+	var all = resource.match(url_re_all);
+	if(all) { // fetch all unread notifications
+		var notifications = n_fetchAllUnread();
+		resWriteJSON(res, notifications);
+	} else { // fetch only one notification
+		notification = n_fetch(resource);
+
+		if(notification)
+			resWriteJSON(res, notification);
+		else
+			resMsg(res, 404, "Notification with id " + resource + " not found.");
+	}
+};
+
+s = http.createServer(basic, function (req, res) {
+	if (req.method == 'POST') {
+		handlePOST(req, res);
+	} else { // GET request
+		handleGET(req, res);
 	}
 });
 
