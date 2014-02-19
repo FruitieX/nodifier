@@ -1,6 +1,7 @@
 var fs = require('fs');
 var util = require('util');
-var ImapConnection = require('imap').ImapConnection;
+var Imap = require('imap');
+var inspect = require('util').inspect;
 var MailParser = require('mailparser').MailParser;
 var Seq = require('seq');
 var EventEmitter = require('events').EventEmitter;
@@ -13,32 +14,78 @@ var post = require('../../lib/post.js');
 exports.start = function(config) {
 	var next_uid;
 
-	function Notifier(opts) {
-		EventEmitter.call(this);
-		var self = this;
-		self.options = opts;
-		self.connected = false;
-		self.imap = new ImapConnection({
-			username: opts.username,
-			password: opts.password,
-			host: opts.host,
-			port: opts.port,
-			secure: opts.secure
-		});
-		self.imap.on('end',function(){
-			self.connected = false;
-			self.emit('end');
-		});
-		self.imap.on('error',function(err){
-			self.emit('end');
-			util.log(config.source + ' - ERROR! ' + err + ' attempting recorrect...');
-		});
-	}
-	util.inherits(Notifier, EventEmitter);
+	var imap = new Imap({
+		user: config.user,
+		password: config.password,
+		host: config.host,
+		port: config.port,
+		tls: config.tls,
+		tlsOptions: { rejectUnauthorized: false },
+		keepalive: true
+	});
 
-	Notifier.prototype.start = function(){
-		var self = this;
-		Seq()
+	imap.once('ready', function() {
+		imap.openBox('INBOX', true, function(err, box) {
+			console.log('box opened.');
+
+			imap.on('mail', function(numNewMsgs) {
+				console.log('new mail ', inspect(numNewMsgs));
+			});
+
+			imap.on('update', function(seqno, info) {
+				console.log('update ', config.source, ' ', seqno);
+			});
+
+			imap.on('expunge', function(seqno) {
+				console.log('expunge ', seqno);
+			});
+
+		});
+			/*
+			if (err) throw err;
+			var f = imap.seq.fetch('1:3', {
+				bodies: 'HEADER.FIELDS (FROM TO SUBJECT DATE)',
+				struct: true
+			});
+			f.on('message', function(msg, seqno) {
+				console.log('msg #%d', seqno);
+				var prefix = '(#' + seqno + ') ';
+				msg.on('body', function(stream, info) {
+					var buffer = '';
+					stream.on('data', function(chunk) {
+						buffer += chunk.toString('utf8');
+					});
+					stream.once('end', function() {
+						console.log(prefix + 'Parsed header: %s', inspect(Imap.parseHeader(buffer)));
+					});
+				});
+				msg.once('attributes', function(attrs) {
+					console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
+				});
+				msg.once('end', function() {
+					console.log(prefix + 'Finished');
+				});
+			});
+			f.once('error', function(err) {
+				console.log('Fetch error: ' + err);
+			});
+			f.once('end', function() {
+				console.log('Done fetching all messages!');
+				imap.end();
+			});
+			*/
+	});
+
+	imap.once('error', function(err) {
+		console.log(err);
+	});
+
+	imap.once('end', function() {
+		console.log('Connection ended');
+	});
+	imap.connect();
+};
+			/*
 			.seq(function(){ self.imap.connect(this); })
 			.seq(function(){
 				self.connected = true;
@@ -46,13 +93,14 @@ exports.start = function(config) {
 			}).seq(function(){
 				util.log(config.source + ' - successfully opened mail box');
 				self.imap.on('mail', function(id){ self.scan(); });
+				self.imap.on('update', function(id) { console.log(id); });
 				self.scan();
 				if(!next_uid)
 					next_uid = self.imap._state.box._uidnext;
 			});
-		return this;
-	};
+			*/
 
+	/*
 	Notifier.prototype.scan = function(){
 		var self = this;
 		Seq()
@@ -60,8 +108,9 @@ exports.start = function(config) {
 				self.imap.search(['UNSEEN'],this);
 			})
 		.seq(function(searchResults){
-			// remove all messages up to next_uid
 			var i;
+
+			// remove all messages up to next_uid
 			for (i = 0; i < searchResults.length; i++) {
 				if(searchResults[i] < next_uid) {
 					searchResults.splice(i--, 1);
@@ -78,19 +127,16 @@ exports.start = function(config) {
 				util.log(config.source + ' - no new mail in INBOX');
 				return;
 			} else {
-				var fetch = self.imap.fetch(searchResults,
-					{
-						request:{
-							headers:false,
-							body: "full"
-						}
-					});
+				var fetch = self.imap.fetch(searchResults, {
+					'bodies': 'HEADER.FIELDS (FROM TO SUBJECT DATE)'
+				});
 				fetch.on('message', function(msg) {
 					var mp = new MailParser();
 					mp.on('end',function(mail){
 						self.emit('mail',mail);
 					});
 					msg.on('data', function(chunk) {
+						console.log(chunk.toString());
 						mp.write(chunk.toString());
 					});
 					msg.on('end', function() {
@@ -122,11 +168,12 @@ exports.start = function(config) {
 
 		mailListener.on('mail', function(mail) {
 			var subject = mail.subject;
-			var from = mail.headers.from;
-			util.log(config.source + ' - new mail: ' + from + ', Subject "' + subject + '"');
+			var text = mail.headers.from + ', Subject: "' + subject + '"';
+			util.log(config.source + ' - new mail: ' + text);
 			post.sendPOST({
 				'method': 'newNotification',
-				'text': from + ', Subject: "' + subject + '"',
+				'uid': config.source + mail.headers['message-id'],
+				'text': text,
 				'source': config.source,
 				'app': config.app,
 				'url': config.url,
@@ -139,4 +186,4 @@ exports.start = function(config) {
 	var mailListener = new Notifier(config);
 
 	setupListener(mailListener);
-};
+	*/

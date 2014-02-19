@@ -1,9 +1,9 @@
 {
-	"username": "imap-username",
+	"user": "imap-username",
 	"password": "imap-password",
 	"host": "imap-host",
 	"port": 993,
-	"secure": true,
+	"tls": true,
 	"source": "Gmail",
 	"app": "browser",
 	"url": "https://mail.google.com",

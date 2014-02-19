@@ -4,8 +4,8 @@
 	"description" : "Mail plugin for notifyer",
 	"main" : "plugin.js",
 	"dependencies" : {
-		"imap": "~0.3.1",
-		"mailparser": "~0.4",
-		"seq": "~0.3.5"
+		"imap": ">=0.8.9",
+		"mailparser": ">=0.4.1",
+		"seq": ">=0.3.5"
 	}
 }
