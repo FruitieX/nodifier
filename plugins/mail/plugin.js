@@ -11,6 +11,14 @@ var post = require('../../lib/post.js');
 // the mail-notifier library by Jerome Creignou:
 // https://github.com/jcreigno/nodejs-mail-notifier
 
+function dechex (number) {
+	if (number < 0) {
+		number = 0xFFFFFFFF + number + 1;
+	}
+
+	return parseInt(number, 10).toString(16);
+}
+
 exports.start = function(config) {
 	var next_uid;
 
@@ -31,6 +39,25 @@ exports.start = function(config) {
 
 			imap.on('mail', function(numNewMsgs) {
 				console.log('new mail ', inspect(numNewMsgs));
+				imap.search(['UNSEEN'], function(err, results) {
+					if(err) throw err;
+					var f = imap.fetch(results, { bodies: '' });
+					f.on('message', function(msg, seqno) {
+						console.log('Message #%d', seqno);
+						inspect(msg);
+						var prefix = '(#' + seqno +') ';
+						msg.on('body', function(stream, info) {
+							console.log(prefix + 'Body');
+							inspect(results);
+						});
+						msg.once('attributes', function(attrs) {
+							console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
+						});
+						msg.once('end', function() {
+							console.log(prefix + 'Finished');
+						});
+					})
+				});
 			});
 
 			imap.on('update', function(seqno, info) {
