@@ -21,7 +21,8 @@ exports.start = function(config) {
 		port: config.port,
 		tls: config.tls,
 		tlsOptions: { rejectUnauthorized: false },
-		keepalive: true
+		keepalive: true,
+		debug: console.log
 	});
 
 	imap.once('ready', function() {
