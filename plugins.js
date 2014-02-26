@@ -9,7 +9,7 @@ var gmail = require('./plugins/mail/plugin').start(
 
 var email = require('./plugins/mail/plugin').start(
 	// config file
-	require('./plugins/mail/email.json')
+	require('./plugins/mail/gmail.json')
 );
 
 process.on('uncaughtException', function (err) {
