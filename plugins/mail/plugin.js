@@ -5,7 +5,6 @@ var inspect = require('util').inspect;
 var MailParser = require('mailparser').MailParser;
 var Seq = require('seq');
 var crypto = require('crypto');
-var biguint = require('biguint-format');
 var EventEmitter = require('events').EventEmitter;
 var post = require('../../lib/post.js');
 

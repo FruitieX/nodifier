@@ -6,7 +6,6 @@
 	"dependencies" : {
 		"imap": ">=0.8.9",
 		"mailparser": ">=0.4.1",
-		"crypto": ">=0.0.3",
-		"biguint-format": ">=0.2.0"
+		"crypto": ">=0.0.3"
 	}
 }
