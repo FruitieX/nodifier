@@ -4,6 +4,8 @@ var Imap = require('imap');
 var inspect = require('util').inspect;
 var MailParser = require('mailparser').MailParser;
 var Seq = require('seq');
+var crypto = require('crypto');
+var biguint = require('biguint-format');
 var EventEmitter = require('events').EventEmitter;
 var post = require('../../lib/post.js');
 
@@ -11,17 +13,26 @@ var post = require('../../lib/post.js');
 // the mail-notifier library by Jerome Creignou:
 // https://github.com/jcreigno/nodejs-mail-notifier
 
-function dechex (number) {
-	if (number < 0) {
-		number = 0xFFFFFFFF + number + 1;
-	}
+function dec2hex(str) { // .toString(16) only works up to 2^53
+    var dec = str.toString().split(''), sum = [], hex = [], i, s;
 
-	return parseInt(number, 10).toString(16);
+    while(dec.length) {
+        s = 1 * dec.shift();
+        for(i = 0; s || i < sum.length; i++) {
+            s += (sum[i] || 0) * 10;
+            sum[i] = s % 16;
+            s = (s - sum[i]) / 16;
+        }
+    }
+
+    while(sum.length) {
+        hex.push(sum.pop().toString(16));
+    }
+
+    return hex.join('');
 }
 
 exports.start = function(config) {
-	var next_uid;
-
 	var imap = new Imap({
 		user: config.user,
 		password: config.password,
@@ -30,47 +41,89 @@ exports.start = function(config) {
 		tls: config.tls,
 		tlsOptions: { rejectUnauthorized: false },
 		keepalive: true,
-		debug: console.log
+		//debug: console.log
 	});
 
-	var unread = [];
+	var unread = {};
 
-	var searchUnseen = function(imap, firstrun) {
-		imap.search(['UNSEEN'], function(err, results) {
+	// new unread mail arrived
+	var newUnread = function(from, subject, uid, threadId, labels) {
+		var text = from + ', Subject: "' + subject + '"';
+		var hash = crypto.randomBytes(20).toString('hex');
+		console.log(hash);
+
+		unread[hash] = uid;
+
+		post.sendPOST({
+			'method': 'newNotification',
+			'uid': hash,
+			'text': text,
+			'source': config.source,
+			'app': config.app,
+			'url': 'https://mail.google.com/mail/u/0/#inbox/' + threadId,
+			'colorbg': config.colorbg,
+			'colorfg': config.colorfg
+		});
+	};
+
+	// mark mail as read, then forget about it
+	var setRead = function(hash) {
+		var uid = unread[hash];
+		imap.setFlags([uid], function() {
+			console.log("Set message with UID " + uid + " as read.");
+			delete unread[hash];
+		});
+	};
+
+	/* Searches for new messages from next_uid:*
+	 * Updates next_uid if new messages were found */
+
+	var next_uid = 1;
+	var searchUnseen = function(firstrun) {
+		console.log('searching: ' + next_uid);
+		imap.search(['UNSEEN', next_uid.toString() + ':*'], function(err, results) {
+			console.log(results);
 			if(err) throw err;
-			var f = imap.fetch(results, { bodies: '' });
-			f.on('message', function(msg, seqno) {
-				//console.log('Message #%d', seqno);
-				//inspect(msg);
-				console.log(msg);
-				var prefix = '(#' + seqno +') ';
-				msg.on('body', function(stream, info) {
-					var buffer = '';
-					stream.on('data', function(chunk) {
-						buffer += chunk.toString('utf8');
+			if(results.length) {
+				var f = imap.fetch(results, { bodies: '' });
+				f.on('message', function(msg, seqno) {
+					//console.log('Message #%d', seqno);
+					//inspect(msg);
+					console.log(msg);
+					var prefix = '(#' + seqno +') ';
+
+					var from, subject, uid, threadId, labels;
+					msg.on('body', function(stream, info) {
+						var buffer = '';
+						stream.on('data', function(chunk) {
+							buffer += chunk.toString('utf8');
+						});
+						stream.on('end', function() {
+							var header = Imap.parseHeader(buffer);
+							from = header.from;
+							subject = header.subject;
+						});
 					});
-					stream.on('end', function() {
-						var header = Imap.parseHeader(buffer);
-						console.log('From: %s', header.from);
-						console.log('Subject: %s', header.subject);
+					msg.once('attributes', function(attrs) {
+						if(attrs.uid >= next_uid)
+							next_uid = attrs.uid + 1;
+						uid = attrs.uid;
+						threadId = dec2hex(attrs['x-gm-thrid']);
+						labels = attrs['x-gm-labels'];
+					});
+					msg.once('end', function() {
+						console.log(prefix + 'Finished');
+						newUnread(from, subject, uid, threadId, labels);
 					});
 				});
-				msg.once('attributes', function(attrs) {
-					//console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
-					console.log('UID: %s', attrs.uid);
-					console.log('Thread ID: %s', attrs['x-gm-thrid']);
-					console.log('Labels: %s', attrs['x-gm-labels']);
-				});
-				msg.once('end', function() {
-					console.log(prefix + 'Finished');
-				});
-			});
+			}
 		});
 	};
 
 	imap.once('ready', function() {
 		imap.openBox('INBOX', true, function(err, box) {
 			console.log('box opened.');
+			next_uid = box.uidnext;
 
 			imap.on('mail', function(numNewMsgs) {
 				console.log('new mail ', inspect(numNewMsgs));
@@ -84,8 +137,6 @@ exports.start = function(config) {
 			imap.on('expunge', function(seqno) {
 				console.log('expunge ', seqno);
 			});
-
-			searchUnseen(imap, true);
 		});
 			/*
 			if (err) throw err;
