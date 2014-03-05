@@ -57,7 +57,8 @@ exports.start = function(config) {
 			'url': 'https://mail.google.com/mail/u/0/#inbox/' + threadId,
 			'colorbg': config.colorbg,
 			'colorfg': config.colorfg,
-			'response_addr': config.response_addr
+			'response_host': config.response_host,
+			'response_port': config.response_port
 		});
 	};
 

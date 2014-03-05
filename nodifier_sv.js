@@ -73,12 +73,28 @@ var n_fetchAllUnread = function() {
 	return notifications;
 };
 
+var plugin_setReadStatus = function(notification, read) {
+	if(notification.uid && notification.response_host && notification.response_port) {
+		var options = {
+			hostname: notification.response_host,
+			port: notification.response_port,
+			path: '/' + read + '/' + notification.uid,
+			method: 'GET',
+			auth: htpasswd.username + ':' + htpasswd.password
+		};
+
+		var req = http.request(options);
+		req.end();
+	}
+};
+
 var n_mark_as_read = function(notification) {
 	if(!notification.read) {
 		// if notification.id is smaller than n_firstEmpty then update that
 		n_firstEmpty = Math.min(n_firstEmpty, notification.id);
 
 		notification.read = true;
+		plugin_setReadStatus(notification, 'read');
 		return "Notification set as read.";
 	} else {
 		return "Notification already marked as read.";
@@ -94,6 +110,7 @@ var n_mark_as_unread = function(notification) {
 		}
 
 		notification.read = false;
+		plugin_setReadStatus(notification, 'unread');
 		return "Notification set as unread.";
 	} else {
 		return "Notification already marked as unread.";

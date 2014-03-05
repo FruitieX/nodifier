@@ -9,4 +9,6 @@
 	"url": "https://mail.google.com",
 	"colorbg": "red",
 	"colorfg": "whiteBright"
+	"response_host": "awesomehost.com",
+	"response_port": "8081"
 }
