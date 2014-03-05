@@ -33,31 +33,48 @@ exports.start = function(config) {
 		debug: console.log
 	});
 
+	var unread = [];
+
+	var searchUnseen = function(imap, firstrun) {
+		imap.search(['UNSEEN'], function(err, results) {
+			if(err) throw err;
+			var f = imap.fetch(results, { bodies: '' });
+			f.on('message', function(msg, seqno) {
+				//console.log('Message #%d', seqno);
+				//inspect(msg);
+				console.log(msg);
+				var prefix = '(#' + seqno +') ';
+				msg.on('body', function(stream, info) {
+					var buffer = '';
+					stream.on('data', function(chunk) {
+						buffer += chunk.toString('utf8');
+					});
+					stream.on('end', function() {
+						var header = Imap.parseHeader(buffer);
+						console.log('From: %s', header.from);
+						console.log('Subject: %s', header.subject);
+					});
+				});
+				msg.once('attributes', function(attrs) {
+					//console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
+					console.log('UID: %s', attrs.uid);
+					console.log('Thread ID: %s', attrs['x-gm-thrid']);
+					console.log('Labels: %s', attrs['x-gm-labels']);
+				});
+				msg.once('end', function() {
+					console.log(prefix + 'Finished');
+				});
+			});
+		});
+	};
+
 	imap.once('ready', function() {
 		imap.openBox('INBOX', true, function(err, box) {
 			console.log('box opened.');
 
 			imap.on('mail', function(numNewMsgs) {
 				console.log('new mail ', inspect(numNewMsgs));
-				imap.search(['UNSEEN'], function(err, results) {
-					if(err) throw err;
-					var f = imap.fetch(results, { bodies: '' });
-					f.on('message', function(msg, seqno) {
-						console.log('Message #%d', seqno);
-						inspect(msg);
-						var prefix = '(#' + seqno +') ';
-						msg.on('body', function(stream, info) {
-							console.log(prefix + 'Body');
-							inspect(results);
-						});
-						msg.once('attributes', function(attrs) {
-							console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
-						});
-						msg.once('end', function() {
-							console.log(prefix + 'Finished');
-						});
-					})
-				});
+				searchUnseen(imap);
 			});
 
 			imap.on('update', function(seqno, info) {
@@ -68,6 +85,7 @@ exports.start = function(config) {
 				console.log('expunge ', seqno);
 			});
 
+			searchUnseen(imap, true);
 		});
 			/*
 			if (err) throw err;
