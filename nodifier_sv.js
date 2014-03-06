@@ -114,7 +114,7 @@ var n_mark_as_read = function(notifications) {
 			if(notifications.length > 1)
 				msg = "Notifications set as read.";
 			else
-				msg = "Notification(s) set as read.";
+				msg = "Notification set as read.";
 		} else if (msg === "") {
 			if(notifications.length > 1)
 				msg = "All notifications already marked as read.";
@@ -146,7 +146,7 @@ var n_mark_as_unread = function(notifications) {
 			if(notifications.length > 1)
 				msg = "Notifications set as unread.";
 			else
-				msg = "Notification(s) set as unread.";
+				msg = "Notification set as unread.";
 		} else if (msg === "") {
 			if(notifications.length > 1)
 				msg = "All notifications already marked as unread.";
