@@ -96,7 +96,7 @@ var plugin_setReadStatus = function(notification, read) {
 	}
 };
 
-var n_mark_as_read = function(notifications) {
+var n_mark_as_read = function(notifications, noSendResponse) {
 	var msg = "";
 
 	// check if arg is object, then make it into an array
@@ -110,7 +110,9 @@ var n_mark_as_read = function(notifications) {
 			n_firstEmpty = Math.min(n_firstEmpty, notifications[i].id);
 
 			notifications[i].read = true;
-			plugin_setReadStatus(notifications[i], 'read');
+			if(!noSendResponse)
+				plugin_setReadStatus(notifications[i], 'read');
+
 			if(notifications.length > 1)
 				msg = "Notifications set as read.";
 			else
@@ -126,7 +128,7 @@ var n_mark_as_read = function(notifications) {
 	return msg;
 };
 
-var n_mark_as_unread = function(notifications) {
+var n_mark_as_unread = function(notifications, noSendResponse) {
 	var msg = "";
 
 	// check if arg is object, then make it into an array
@@ -142,7 +144,8 @@ var n_mark_as_unread = function(notifications) {
 			}
 
 			notifications[i].read = false;
-			plugin_setReadStatus(notifications[i], 'unread');
+			if(!noSendResponse)
+				plugin_setReadStatus(notifications[i], 'unread');
 			if(notifications.length > 1)
 				msg = "Notifications set as unread.";
 			else
@@ -247,7 +250,7 @@ var handlePOST = function(req, res) {
 				}
 			}
 
-			msg = n_mark_as_unread(notification);
+			msg = n_mark_as_unread(notification, data_json.noSendResponse);
 			resMsg(res, 200, msg);
 			redraw();
 		} else if (data_json.method === 'setRead') {
@@ -266,7 +269,7 @@ var handlePOST = function(req, res) {
 			}
 
 			console.log(notification);
-			msg = n_mark_as_read(notification);
+			msg = n_mark_as_read(notification, data_json.noSendResponse);
 			resMsg(res, 200, msg);
 			redraw();
 		} else {

@@ -65,23 +65,27 @@ exports.start = function(config) {
 	// mark mail as read, then forget about it
 	var setRead = function(hash) {
 		var uid = unread[hash];
-		imap.setFlags([uid], 'SEEN', function(err) {
-			if(err) throw err;
-			console.log("Set message with UID " + uid + " as read.");
-			read[hash] = unread[hash];
-			delete unread[hash];
-		});
+		if(uid) {
+			imap.setFlags([uid], 'SEEN', function(err) {
+				if(err) throw err;
+				console.log("Set message with UID " + uid + " as read.");
+				read[hash] = unread[hash];
+				delete unread[hash];
+			});
+		}
 	};
 
 	// mark mail as unread
 	var setUnread = function(hash) {
 		var uid = read[hash];
-		imap.delFlags([uid], 'SEEN', function(err) {
-			if(err) throw err;
-			console.log("Set message with UID " + uid + " as unread.");
-			unread[hash] = read[hash];
-			delete read[hash];
-		});
+		if(uid) {
+			imap.delFlags([uid], 'SEEN', function(err) {
+				if(err) throw err;
+				console.log("Set message with UID " + uid + " as unread.");
+				unread[hash] = read[hash];
+				delete read[hash];
+			});
+		}
 	};
 
 	/* Sync (un)read message statuses with IMAP server
@@ -98,7 +102,8 @@ exports.start = function(config) {
 				if(imap_unread.indexOf(unread[hash]) === -1) {
 					post.sendPOST({
 						'method': 'setRead',
-						'uid': hash
+						'uid': hash,
+						'noSendResponse': true
 					});
 					read[hash] = unread[hash];
 					delete unread[hash];
