@@ -7,6 +7,7 @@ var Seq = require('seq');
 var crypto = require('crypto');
 var EventEmitter = require('events').EventEmitter;
 var post = require('../../lib/post.js');
+var url = require('url');
 
 exports.start = function(config) {
 	var imap = new Imap({
@@ -65,9 +66,20 @@ exports.start = function(config) {
 	// mark mail as read, then forget about it
 	var setRead = function(hash) {
 		var uid = unread[hash];
-		imap.setFlags([uid], function() {
+		imap.setFlags([uid], 'SEEN', function(err) {
+			if(err) throw err;
 			console.log("Set message with UID " + uid + " as read.");
-			delete unread[hash];
+			//delete unread[hash];
+		});
+	};
+
+	// mark mail as unread
+	var setUnread = function(hash) {
+		var uid = unread[hash];
+		imap.delFlags([uid], 'SEEN', function(err) {
+			if(err) throw err;
+			console.log("Set message with UID " + uid + " as unread.");
+			//delete unread[hash];
 		});
 	};
 
@@ -111,7 +123,7 @@ exports.start = function(config) {
 	};
 
 	imap.once('ready', function() {
-		imap.openBox('INBOX', true, function(err, box) {
+		imap.openBox('INBOX', false, function(err, box) {
 			console.log('box opened.');
 			next_uid = box.uidnext;
 
@@ -138,4 +150,43 @@ exports.start = function(config) {
 		console.log('Connection ended');
 	});
 	imap.connect();
+
+	var url_read = /(.*read)\/(.*)/;
+	var handleGET = function(req, res) {
+		var resource = url.parse(req.url).pathname;
+		resource = resource.substr(1);
+
+		var url_matches = resource.match(url_read);
+
+		var hash;
+		if(url_matches[1] == 'read') {
+			hash = url_matches[2];
+			setRead(hash);
+		} else if (url_matches[1] == 'unread') {
+			hash = url_matches[2];
+			setUnread(hash);
+		}
+
+		var msg = "ok";
+		res.writeHead(200, msg, {
+			'Content-Type': 'text/html',
+			'Content-Length': Buffer.byteLength(msg, 'utf8')
+		});
+		res.end(msg);
+	};
+
+	/* HTTP server for reporting read/unread statuses to plugin */
+	var http = require('http');
+	var auth = require('http-auth');
+	var htpasswd = require('./../../htpasswd.json');
+	var basic = auth.basic({
+		realm: "nodifier"
+	}, function (username, password, callback) {
+		callback(username === htpasswd.username && password === htpasswd.password);
+	});
+
+	s = http.createServer(basic, function (req, res) {
+		handleGET(req, res);
+	});
+	s.listen(config.response_port);
 };
