@@ -151,10 +151,13 @@ exports.start = function(config) {
 		});
 	};
 
-	imap.once('ready', function() {
+	imap.on('ready', function() {
 		imap.openBox('INBOX', false, function(err, box) {
 			console.log('box opened.');
-			next_uid = box.uidnext;
+
+			// if this is a reconnect, don't reset next_uid
+			if(next_uid == 1)
+				next_uid = box.uidnext;
 
 			imap.on('mail', function(numNewMsgs) {
 				console.log('new mail ', inspect(numNewMsgs));
@@ -180,7 +183,8 @@ exports.start = function(config) {
 	});
 
 	imap.once('end', function() {
-		console.log('Connection ended');
+		console.log('Connection ended, reconnecting...');
+		imap.connect();
 	});
 	imap.connect();
 
