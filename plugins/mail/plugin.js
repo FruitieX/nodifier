@@ -39,6 +39,7 @@ exports.start = function(config) {
 	}
 
 	var unread = {};
+	var read = {};
 
 	// new unread mail arrived
 	var newUnread = function(from, subject, uid, threadId, labels) {
@@ -67,17 +68,42 @@ exports.start = function(config) {
 		imap.setFlags([uid], 'SEEN', function(err) {
 			if(err) throw err;
 			console.log("Set message with UID " + uid + " as read.");
-			//delete unread[hash];
+			read[hash] = unread[hash];
+			delete unread[hash];
 		});
 	};
 
 	// mark mail as unread
 	var setUnread = function(hash) {
-		var uid = unread[hash];
+		var uid = read[hash];
 		imap.delFlags([uid], 'SEEN', function(err) {
 			if(err) throw err;
 			console.log("Set message with UID " + uid + " as unread.");
-			//delete unread[hash];
+			unread[hash] = read[hash];
+			delete read[hash];
+		});
+	};
+
+	/* Sync (un)read message statuses with IMAP server
+	 * Because gmail servers don't push updates :(
+	 */
+	var syncUnread = function() {
+		imap.search(['UNSEEN'], function(err, imap_unread) {
+			if(err) throw err;
+			//console.log('syncresults: ' + results);
+			for(var hash in unread) {
+				// currently only handle marking as read, marking as
+				// unread is hard because we might have deleted a
+				// notification on the server! TODO
+				if(imap_unread.indexOf(unread[hash]) === -1) {
+					post.sendPOST({
+						'method': 'setRead',
+						'uid': hash
+					});
+					read[hash] = unread[hash];
+					delete unread[hash];
+				}
+			}
 		});
 	};
 
@@ -85,7 +111,7 @@ exports.start = function(config) {
 	 * Updates next_uid if new messages were found */
 
 	var next_uid = 1;
-	var searchUnseen = function(firstrun) {
+	var searchNew = function(firstrun) {
 		imap.search(['UNSEEN', next_uid.toString() + ':*'], function(err, results) {
 			if(err) throw err;
 			if(results.length) {
@@ -127,7 +153,7 @@ exports.start = function(config) {
 
 			imap.on('mail', function(numNewMsgs) {
 				console.log('new mail ', inspect(numNewMsgs));
-				searchUnseen(imap);
+				searchNew(imap);
 			});
 
 			imap.on('update', function(seqno, info) {
@@ -137,6 +163,10 @@ exports.start = function(config) {
 			imap.on('expunge', function(seqno) {
 				console.log('expunge ', seqno);
 			});
+
+			setInterval(function() {
+				syncUnread();
+			}, config.unreadSyncInterval * 1000);
 		});
 	});
 
