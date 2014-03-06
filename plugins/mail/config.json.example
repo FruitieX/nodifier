@@ -6,7 +6,7 @@
 	"tls": true,
 	"source": "Gmail",
 	"app": "browser",
-	"url": "https://mail.google.com",
+	"url": "https://mail.google.com/mail/u/0/#inbox/",
 	"colorbg": "red",
 	"colorfg": "whiteBright"
 	"response_host": "awesomehost.com",

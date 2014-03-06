@@ -54,7 +54,7 @@ exports.start = function(config) {
 			'text': text,
 			'source': config.source,
 			'app': config.app,
-			'url': 'https://mail.google.com/mail/u/0/#inbox/' + threadId,
+			'url': config.url + threadId,
 			'colorbg': config.colorbg,
 			'colorfg': config.colorfg,
 			'response_host': config.response_host,
