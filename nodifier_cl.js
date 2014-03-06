@@ -28,11 +28,21 @@ var launchApp = function(app, url) {
 };
 
 if (process.argv[2] === 'u') { // mark notification as unread
+	if(!process.argv[3]) {
+		console.log("Please provide notification ID!");
+		process.exit(1);
+	}
+
 	post.sendPOST({
 		'method': 'setUnread',
 		'id': process.argv[3]
 	});
 } else if (process.argv[2] === 'r') { // mark notification as unread
+	if(!process.argv[3]) {
+		console.log("Please provide notification ID!");
+		process.exit(1);
+	}
+
 	post.sendPOST({
 		'method': 'setRead',
 		'id': process.argv[3]
