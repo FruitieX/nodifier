@@ -179,7 +179,7 @@ var drawNotification = function(notification) {
 	if(source_text_length + text.length > process.stdout.columns)
 		text = text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
-	console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
+	console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + text);
 };
 
 var redraw = function() {

@@ -7,7 +7,7 @@ var cnt = 0;
 setInterval(function() {
 	post.sendPOST({
 		'method': 'newNotification',
-		'text': 'spamäåö123' + cnt,
+		'text': 'spamäåö123456789atheoutheachumcramcrhkrcehachuechacmecuaocemuchaechucehaocumechoaceuhcmkch.phehlowhwhell' + cnt,
 		'source': 'source' + cnt,
 		'app': 'app' + cnt,
 		'url': 'url' + cnt,
