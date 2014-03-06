@@ -2,4 +2,7 @@
 	"host": "example.com",
 	"port": "8888",
 	"autoMarkRead": true
+	"apps": {
+		"browser": "chromium"
+	}
 }

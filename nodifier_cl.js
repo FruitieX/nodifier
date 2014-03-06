@@ -9,6 +9,23 @@ var htpasswd = require('./htpasswd.json');
 var post = require('./lib/post.js');
 
 var path;
+
+var spawn = require('child_process').spawn;
+var launchApp = function(app, url) {
+	var command = config.apps[app];
+	if(!command) {
+		console.log("Unknown app: " + app + "!");
+		return;
+	}
+
+	var child = spawn(command, [url], {
+		detached: true,
+		stdio: [ 'ignore', 'ignore', 'ignore' ]
+	});
+
+	child.unref();
+};
+
 if (process.argv[2] === 'u') { // mark notification as unread
 	post.sendPOST({
 		'method': 'setUnread',
@@ -76,6 +93,10 @@ if (process.argv[2] === 'u') { // mark notification as unread
 							'method': 'setRead',
 							'id': n_id
 						}, true);
+					}
+
+					if(json_data.app) {
+						launchApp(json_data.app, json_data.url);
 					}
 				}
 				else { // requested all notifications
