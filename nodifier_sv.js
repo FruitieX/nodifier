@@ -45,10 +45,18 @@ var n_append = function(data_json) {
 	n_firstEmpty = n_findNextEmpty(n_firstEmpty);
 };
 
+var range_re = /(.*)\.\.(.*)/;
 var n_fetch = function(id) {
-	return n.filter(function (notification) {
-		return notification.id == id;
-	})[0];
+	var range = id.match(range_re);
+	if(range) {
+		return n.filter(function (notification) {
+			return (notification.id >= range[1] && notification.id <= range[2]);
+		});
+	} else {
+		return n.filter(function (notification) {
+			return notification.id == id;
+		})[0];
+	}
 };
 
 var n_uid_fetch = function(uid) {
@@ -62,7 +70,7 @@ var n_fetchAllUnread = function() {
 
 	// populate notifications array with unread messages
 	for(i = 0; i < n.length; i++) {
-		notification = n_fetch(i);
+		notification = n_fetch(i.toString());
 		if(notification && !notification.read)
 			notifications.push(notification);
 	}
@@ -88,34 +96,66 @@ var plugin_setReadStatus = function(notification, read) {
 	}
 };
 
-var n_mark_as_read = function(notification) {
-	if(!notification.read) {
-		// if notification.id is smaller than n_firstEmpty then update that
-		n_firstEmpty = Math.min(n_firstEmpty, notification.id);
+var n_mark_as_read = function(notifications) {
+	var msg = "";
 
-		notification.read = true;
-		plugin_setReadStatus(notification, 'read');
-		return "Notification set as read.";
-	} else {
-		return "Notification already marked as read.";
+	// check if arg is object, then make it into an array
+	if(Object.prototype.toString.call(notifications) === '[object Object]') {
+		notifications = [notifications];
 	}
-	// TODO: report back to plugin
+
+	for (var i = 0; i < notifications.length; i++) {
+		if(!notifications[i].read) {
+			// if notification.id is smaller than n_firstEmpty then update that
+			n_firstEmpty = Math.min(n_firstEmpty, notifications[i].id);
+
+			notifications[i].read = true;
+			plugin_setReadStatus(notifications[i], 'read');
+			if(notifications.length > 1)
+				msg = "Notifications set as read.";
+			else
+				msg = "Notification(s) set as read.";
+		} else if (msg === "") {
+			if(notifications.length > 1)
+				msg = "All notifications already marked as read.";
+			else
+				msg = "Notification already marked as read.";
+		}
+	}
+
+	return msg;
 };
 
-var n_mark_as_unread = function(notification) {
-	if(notification.read) {
-		// if this notification was the first empty slot, update it
-		if(n_firstEmpty === notification.id) {
-			n_firstEmpty = n_findNextEmpty(notification.id);
-		}
+var n_mark_as_unread = function(notifications) {
+	var msg = "";
 
-		notification.read = false;
-		plugin_setReadStatus(notification, 'unread');
-		return "Notification set as unread.";
-	} else {
-		return "Notification already marked as unread.";
+	// check if arg is object, then make it into an array
+	if(Object.prototype.toString.call(notifications) === '[object Object]') {
+		notifications = [notifications];
 	}
-	// TODO: report back to plugin
+
+	for (var i = 0; i < notifications.length; i++) {
+		if(notifications[i].read) {
+			// if this notification was the first empty slot, update it
+			if(n_firstEmpty === notifications[i].id) {
+				n_firstEmpty = n_findNextEmpty(notifications[i].id);
+			}
+
+			notifications[i].read = false;
+			plugin_setReadStatus(notifications[i], 'unread');
+			if(notifications.length > 1)
+				msg = "Notifications set as unread.";
+			else
+				msg = "Notification(s) set as unread.";
+		} else if (msg === "") {
+			if(notifications.length > 1)
+				msg = "All notifications already marked as unread.";
+			else
+				msg = "Notification already marked as unread.";
+		}
+	}
+
+	return msg;
 };
 
 /* Drawing */
@@ -225,6 +265,7 @@ var handlePOST = function(req, res) {
 				}
 			}
 
+			console.log(notification);
 			msg = n_mark_as_read(notification);
 			resMsg(res, 200, msg);
 			redraw();
@@ -241,17 +282,17 @@ var handlePOST = function(req, res) {
 var handleGET = function(req, res) {
 	var resource = url.parse(req.url).pathname;
 	resource = resource.substr(1); // remove first slash
-	var notification;
 
+	var notifications;
 	var all = resource.match(url_re_all);
 	if(all) { // fetch all unread notifications
-		var notifications = n_fetchAllUnread();
+		notifications = n_fetchAllUnread();
 		resWriteJSON(res, notifications);
-	} else { // fetch only one notification
-		notification = n_fetch(resource);
+	} else { // fetch one notification or a range of notifications
+		notifications = n_fetch(resource);
 
-		if(notification)
-			resWriteJSON(res, notification);
+		if(notifications)
+			resWriteJSON(res, notifications);
 		else
 			resMsg(res, 404, "Notification with id " + resource + " not found.");
 	}

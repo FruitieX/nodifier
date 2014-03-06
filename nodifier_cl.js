@@ -10,6 +10,7 @@ var post = require('./lib/post.js');
 
 var path;
 
+var range_re = /(.*)\.\.(.*)/;
 var spawn = require('child_process').spawn;
 var launchApp = function(app, url) {
 	var command = config.apps[app];
@@ -85,23 +86,34 @@ if (process.argv[2] === 'u') { // mark notification as unread
 				}
 
 				var json_data = JSON.parse(data);
+				var notifications = [];
+				var i;
 
-				if (n_id) {// requested only a specific notification
-					printNotification(json_data, false);
+				if (n_id) { // requested a specific notification or a range
+					var range = n_id.match(range_re);
+					if(!range)
+						notifications = [json_data];
+					else
+						notifications = json_data;
+
+					for(i = 0; i < notifications.length; i++) {
+						printNotification(notifications[i], false);
+
+						if(notifications[i].app) {
+							launchApp(notifications[i].app, notifications[i].url);
+						}
+					}
+
 					if(config.autoMarkRead) {
 						post.sendPOST({
 							'method': 'setRead',
 							'id': n_id
 						}, true);
 					}
-
-					if(json_data.app) {
-						launchApp(json_data.app, json_data.url);
-					}
 				}
 				else { // requested all notifications
 					if(json_data.length) {
-						for(var i = 0; i < json_data.length; i++) {
+						for(i = 0; i < json_data.length; i++) {
 							if(json_data[i])
 								printNotification(json_data[i], true);
 						}

@@ -15,4 +15,4 @@ setInterval(function() {
 		'colorfg': 'white'
 	});
 	cnt++;
-}, 1000);
+}, 200);
