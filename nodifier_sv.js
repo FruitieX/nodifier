@@ -268,7 +268,6 @@ var handlePOST = function(req, res) {
 				}
 			}
 
-			console.log(notification);
 			msg = n_mark_as_read(notification, data_json.noSendResponse);
 			resMsg(res, 200, msg);
 			redraw();
