@@ -188,7 +188,8 @@ var drawNotification = function(notification) {
 	if(notification.colorfg)
 		source_color = clc_color.color_from_text(notification.colorfg, notification.colorbg);
 
-	var date_string = new Date(notification.date).toTimeString().split(' ')[0] + ' ';
+	var date_arr = new Date(notification.date).toString().split(' ');
+	var date_string = date_arr[1] + ' ' + date_arr[2] + ' ' + date_arr[4].substr(0, 5) + ' ';
 
 	var pos_string = notification.id.toString();
 
