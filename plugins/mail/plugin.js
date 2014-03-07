@@ -42,7 +42,9 @@ exports.start = function(config) {
 
 	// new unread mail arrived
 	var newUnread = function(from, subject, uid, threadId, labels) {
-		var text = from + ', Subject: "' + subject + '"';
+		var from_re = /(.*) <.*@.*>/;
+		from = from.toString().match(from_re)[1];
+		var text = from + ': "' + subject + '"';
 
 		var notification = {
 			'method': 'newNotification',
@@ -194,6 +196,9 @@ exports.start = function(config) {
 			setInterval(function() {
 				syncFromIMAP();
 			}, config.unreadSyncInterval * 1000);
+
+			// initial sync
+			syncFromIMAP();
 		});
 	});
 
