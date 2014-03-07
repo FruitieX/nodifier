@@ -39,6 +39,14 @@ var n_findNextEmpty = function(start_id) {
 var n_append = function(data_json) {
 	delete data_json.method;
 
+	// duplicate uid, ignore
+	if(data_json.uid) {
+		for(var i = 0; i < n.length; i++) {
+			if(n[i].uid === data_json.uid && n[i].source === data_json.source)
+				return;
+		}
+	}
+
 	data_json.id = n_firstEmpty;
 	data_json.date = new Date().valueOf();
 	n[n_firstEmpty] = data_json;
