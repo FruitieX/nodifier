@@ -64,6 +64,7 @@ exports.start = function(config) {
 
 	// notify server wants to mark mail as read
 	var setRead = function(uid) {
+		uid = parseInt(uid);
 		imap.setFlags([uid], 'SEEN', function(err) {
 			if(err) throw err;
 			console.log("Set message with UID " + uid + " as read.");
@@ -78,6 +79,7 @@ exports.start = function(config) {
 
 	// notify server wants to mark mail as unread
 	var setUnread = function(uid) {
+		uid = parseInt(uid);
 		imap.delFlags([uid], 'SEEN', function(err) {
 			if(err) throw err;
 			console.log("Set message with UID " + uid + " as unread.");
