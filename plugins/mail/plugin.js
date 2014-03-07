@@ -162,7 +162,7 @@ exports.start = function(config) {
 			// now do this vice-versa:
 			// search for mails that we have marked as unread, but IMAP
 			// server has marked as read. get rid of these notifications
-			for(i in unread) {
+			for(i = unread.length - 1; i >= 0; i--) {
 				// found a mail not in the search results
 				if(results.indexOf(unread[i]) === -1) {
 					post.sendPOST({
