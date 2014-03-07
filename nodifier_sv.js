@@ -43,7 +43,14 @@ var n_append = function(data_json) {
 	if(data_json.uid) {
 		for(var i = 0; i < n.length; i++) {
 			if(n[i].uid === data_json.uid && n[i].source === data_json.source)
-				return;
+				// old matching notification was set as read, overwrite
+				if(n[i].read) {
+					n[i].invalidated = true;
+					break;
+				// else don't overwrite old matching unread notification
+				} else {
+					return;
+				}
 		}
 	}
 
@@ -145,6 +152,9 @@ var n_mark_as_unread = function(notifications, noSendResponse) {
 	}
 
 	for (var i = 0; i < notifications.length; i++) {
+		if(notifications[i].invalidated) {
+			return "ERROR: Tried setting outdated/invalidated notification " + notifications[i].id + " as unread! Quitting...";
+		}
 		if(notifications[i].read) {
 			// if this notification was the first empty slot, update it
 			if(n_firstEmpty === notifications[i].id) {
