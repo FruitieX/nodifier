@@ -66,8 +66,16 @@ var range_re = /(.*)\.\.(.*)/;
 var n_fetch = function(id) {
 	var range = id.match(range_re);
 	if(range) {
+		var min = range[1] || 0;
+		var max = range[2] || 9999999999999;
+
+		if (min > max) {
+			var temp = min;
+			min = max;
+			max = temp;
+		}
 		return n.filter(function (notification) {
-			return (notification.id >= range[1] && notification.id <= range[2]);
+			return (notification.id >= min && notification.id <= max);
 		});
 	} else {
 		return n.filter(function (notification) {
