@@ -55,7 +55,9 @@ var n_append = function(data_json) {
 	}
 
 	data_json.id = n_firstEmpty;
-	data_json.date = new Date().valueOf();
+	// plugin did not provide timestamp, create one from current time
+	if(!data_json.date)
+		data_json.date = new Date().valueOf();
 	n[n_firstEmpty] = data_json;
 	n_firstEmpty = n_findNextEmpty(n_firstEmpty);
 };
