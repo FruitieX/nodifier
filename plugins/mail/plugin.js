@@ -43,7 +43,9 @@ exports.start = function(config) {
 	// new unread mail arrived
 	var newUnread = function(from, subject, uid, threadId, labels) {
 		var from_re = /(.*) <.*@.*>/;
-		from = from.toString().match(from_re)[1];
+		if(from.toString().match(from_re)
+			from = from.toString().match(from_re)[1];
+
 		var text = from + ': "' + subject + '"';
 
 		var notification = {
