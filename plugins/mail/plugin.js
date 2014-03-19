@@ -178,7 +178,15 @@ exports.start = function(config) {
 		});
 	};
 
+	var reconnectTimer;
+	var reconnectLoop = function() {
+		imap.connect();
+
+		reconnectTimer = setTimeout(reconnectLoop, 5000);
+	};
+
 	imap.on('ready', function() {
+		clearTimeout(reconnectTimer);
 		imap.openBox('INBOX', false, function(err, box) {
 			console.log('box opened.');
 
@@ -210,10 +218,10 @@ exports.start = function(config) {
 
 	imap.on('end', function() {
 		console.log('Connection ended, reconnecting...');
-		imap.connect();
+		reconnectLoop();
 	});
 
-	imap.connect();
+	reconnectLoop();
 
 	/* HTTP server for reporting read/unread statuses to plugin */
 	var http = require('http');
