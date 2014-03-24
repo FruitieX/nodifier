@@ -182,6 +182,7 @@ exports.start = function(config) {
 	var reconnectLoop = function() {
 		imap.connect();
 
+		clearTimeout(reconnectTimer);
 		reconnectTimer = setTimeout(reconnectLoop, 5000);
 	};
 
@@ -213,11 +214,13 @@ exports.start = function(config) {
 	});
 
 	imap.on('error', function(err) {
-		console.log(err);
+		imap.end();
+		reconnectLoop();
 	});
 
 	imap.on('end', function() {
 		console.log('Connection ended, reconnecting...');
+		imap.end();
 		reconnectLoop();
 	});
 
