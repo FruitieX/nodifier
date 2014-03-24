@@ -214,6 +214,8 @@ exports.start = function(config) {
 	});
 
 	imap.on('error', function(err) {
+		console.log(err);
+		console.log('Error, reconnecting...');
 		imap.end();
 		reconnectLoop();
 	});
