@@ -8,16 +8,20 @@ var post = require('../../lib/post.js');
 var url = require('url');
 
 exports.start = function(config) {
-	var imap = new Imap({
-		user: config.user,
-		password: config.password,
-		host: config.host,
-		port: config.port,
-		tls: config.tls,
-		tlsOptions: { rejectUnauthorized: false },
-		keepalive: true,
-		//debug: console.log
-	});
+	var imap;
+
+	var reinitImap = function() {
+		return new Imap({
+				user: config.user,
+				password: config.password,
+				host: config.host,
+				port: config.port,
+				tls: config.tls,
+				tlsOptions: { rejectUnauthorized: false },
+				keepalive: true,
+				debug: console.log
+			});
+	};
 
 	function dec2hex(str) { // .toString(16) only works up to 2^53
 		var dec = str.toString().split(''), sum = [], hex = [], i, s;
@@ -180,6 +184,7 @@ exports.start = function(config) {
 
 	var reconnectTimer;
 	var reconnectLoop = function() {
+		imap = reinitImap();
 		imap.connect();
 
 		clearTimeout(reconnectTimer);
