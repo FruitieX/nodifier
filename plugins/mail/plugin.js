@@ -52,6 +52,7 @@ exports.start = function(config) {
 			'response_port': config.response_port
 		};
 
+		console.log('Sent new notification for unread mail UID: ' + uid);
 		unread.push(uid);
 
 		post.sendPOST(notification);
