@@ -96,9 +96,14 @@ notification as (un)read.
 
 Plugins
 -------
-### Included plugins for mail notifier and simple program for adding a TODO as a notification.
-### znc-push, using URI service. Setup example:
+* Included plugins for mail notifier and simple program for adding a TODO as a notification.
+* znc-push, using URI service. Setup example:
 ```
-set message\_uri http://fruitiex.org:1234/?method=newNotification&text={message}&source={context}&colorbg=green&colorfg=black&app=irc
+set service url
+set message_uri http://fruitiex.org:1234/?method=newNotification&text={context}:{nick} {message}&source=irc&colorbg=green&colorfg=black&app=irc
+set message_uri_post yes
+set username http_auth_username
+set secret http_auth_password
+set highlight your_nick
 ```
-NOTE: znc-push doesn't seem to handle Basic HTTP auth correctly yet without modifying source. Also not sure if it can send POST requests without modifying source. Will fix. :)
+NOTE: znc-push doesn't seem to handle Basic HTTP auth and POST requests correctly yet without modifying source. I've forked znc-push and committed a fix at: https://github.com/FruitieX/znc-push
