@@ -80,7 +80,7 @@ var n_store_read = function(data_json) {
 	var uid_dupe_found = false;
 	if(data_json.uid) {
 		var i;
-		for(i = 0; i < n.length; i++) {
+		for(i = 0; i < read_n.length; i++) {
 			if(read_n[i].uid === data_json.uid && read_n[i].source === data_json.source) {
 				// TODO: for now keep date same so we don't mess up sorting!
 				data_json.date = read_n[i].date;
