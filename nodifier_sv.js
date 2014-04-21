@@ -238,7 +238,6 @@ var drawNotification = function(notification, id) {
 };
 
 var redraw = function() {
-	return;
 	// clear the terminal
 	process.stdout.write('\u001B[2J\u001B[0;0f');
 
