@@ -42,6 +42,7 @@ var n_store_unread = function(data_json) {
 		data_json.date = new Date().valueOf();
 
 	// replace old notification if duplicate UID with matching source found
+	var uid_dupe_found = false;
 	if(data_json.uid) {
 		var i;
 		for(i = 0; i < n.length; i++) {
@@ -49,6 +50,7 @@ var n_store_unread = function(data_json) {
 				// TODO: for now keep date same so we don't mess up sorting!
 				data_json.date = n[i].date;
 				n[i] = data_json;
+				uid_dupe_found = true;
 			}
 		}
 		// look in read array too, if duplicate UID found there, remove it
@@ -56,7 +58,7 @@ var n_store_unread = function(data_json) {
 			if(read_n[i].uid === data_json.uid && read_n[i].source === data_json.source)
 				read_n.splice(i, 1);
 		}
-	} else {
+	} else if (!uid_dupe_found) {
 		var id = n_findId(data_json.date, n);
 
 		// insert notification to "n" n at pos "id"
@@ -73,6 +75,7 @@ var n_store_read = function(data_json) {
 		data_json.date = new Date().valueOf();
 
 	// replace old notification if duplicate UID with matching source found
+	var uid_dupe_found = false;
 	if(data_json.uid) {
 		var i;
 		for(i = 0; i < n.length; i++) {
@@ -80,6 +83,7 @@ var n_store_read = function(data_json) {
 				// TODO: for now keep date same so we don't mess up sorting!
 				data_json.date = read_n[i].date;
 				read_n[i] = data_json;
+				uid_dupe_found = true;
 			}
 		}
 		// look in unread array too, if duplicate UID found there, remove it
@@ -87,7 +91,7 @@ var n_store_read = function(data_json) {
 			if(n[i].uid === data_json.uid && n[i].source === data_json.source)
 				n.splice(i, 1);
 		}
-	} else {
+	} else if (!uid_dupe_found) {
 		// insert notification at end of read_n array
 		read_n.push(data_json);
 
