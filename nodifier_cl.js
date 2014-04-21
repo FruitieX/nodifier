@@ -50,7 +50,9 @@ if (process.argv[2] === 'u') { // mark notification as unread
 } else { // get notification
 	var n_id = process.argv[2];
 
-	if (n_id)
+	if (n_id === "lr") // list read
+		path = '/read';
+	else if (n_id)
 		path = '/' + n_id;
 	else
 		path = '/all';
@@ -63,7 +65,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 		auth: htpasswd.username + ':' + htpasswd.password
 	};
 
-	var printNotification = function(notification, shorten) {
+	var printNotification = function(notification, id, shorten) {
 		var source_color = clc_color.def_source_color;
 		if(notification.colorfg)
 			source_color = clc_color.color_from_text(notification.colorfg, notification.colorbg);
@@ -71,7 +73,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 		var date_arr = new Date(notification.date).toString().split(' ');
 		var date_string = date_arr[1] + ' ' + date_arr[2] + ' ' + date_arr[4].substr(0, 5) + ' ';
 
-		var pos_string = notification.id.toString();
+		var pos_string = id.toString();
 
 		// if the string is wider than our terminal we need to shorten it
 		var source_text_length = 5 + pos_string.length + notification.source.length + date_string.length;
@@ -100,7 +102,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 				var notifications = [];
 				var i;
 
-				if (n_id) { // requested a specific notification or a range
+				if (n_id && n_id !== "lr") { // requested a specific notification or a range
 					var range = n_id.match(range_re);
 					if(!range)
 						notifications = [json_data];
@@ -108,7 +110,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 						notifications = json_data;
 
 					for(i = 0; i < notifications.length; i++) {
-						printNotification(notifications[i], false);
+						printNotification(notifications[i], i, false);
 
 						if(notifications[i].app) {
 							launchApp(notifications[i].app, notifications[i].url);
@@ -126,7 +128,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 					if(json_data.length) {
 						for(i = 0; i < json_data.length; i++) {
 							if(json_data[i])
-								printNotification(json_data[i], true);
+								printNotification(json_data[i], i, true);
 						}
 					} else {
 						console.log(clc_color.no_unread_color("No unread notifications."));

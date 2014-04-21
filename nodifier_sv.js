@@ -17,53 +17,89 @@ var config = require('./config.json');
 
 /* Notification handling */
 
-// array containing JSON notifications
-var n = [];
-// first empty slot in array. already read notifications count as empty
-var n_firstEmpty = 0;
+var n = []; // array containing unread notifications
+var read_n = []; // array containing read notifications
+var read_n_limit = 50; // keep only this many read notifications
 
-// sort according to date (epoch)
-var dateSort = function(a, b) {
-	return a.date - b.date;
-};
-
-// find next empty slot in array, starting from (but not including) start_id
-// if array is full return n.length
-var n_findNextEmpty = function(start_id) {
-	for (var i = start_id + 1; i <= n.length; i++)
-		if(!n[i] || n[i].read)
+// find index for new notification based on its timestamp
+// assumes 'array' is sorted in ascending order according to .date fields
+var n_findId = function(date, array) {
+	for (var i = 0; i < array.length; i++) {
+		if(array[i].date >= date)
 			return i;
-};
-
-// store notification in the first empty slot and update n_firstEmpty
-var n_append = function(data_json) {
-	delete data_json.method;
-
-	// duplicate uid, ignore
-	if(data_json.uid) {
-		for(var i = 0; i < n.length; i++) {
-			if(n[i].uid === data_json.uid && n[i].source === data_json.source)
-				// old matching notification was set as read, overwrite
-				if(n[i].read) {
-					n[i].invalidated = true;
-					break;
-				// else don't overwrite old matching unread notification
-				} else {
-					return;
-				}
-		}
 	}
 
-	data_json.id = n_firstEmpty;
+	return array.length;
+};
+
+// store unread notification in correct slot according to timestamp
+var n_store_unread = function(data_json) {
+	delete data_json.method;
+	data_json.read = false;
+
 	// plugin did not provide timestamp, create one from current time
 	if(!data_json.date)
 		data_json.date = new Date().valueOf();
-	n[n_firstEmpty] = data_json;
-	n_firstEmpty = n_findNextEmpty(n_firstEmpty);
+
+	// replace old notification if duplicate UID with matching source found
+	if(data_json.uid) {
+		var i;
+		for(i = 0; i < n.length; i++) {
+			if(n[i].uid === data_json.uid && n[i].source === data_json.source) {
+				// TODO: for now keep date same so we don't mess up sorting!
+				data_json.date = n[i].date;
+				n[i] = data_json;
+			}
+		}
+		// look in read array too, if duplicate UID found there, remove it
+		for(i = read_n.length - 1; i >= 0; i--) {
+			if(read_n[i].uid === data_json.uid && read_n[i].source === data_json.source)
+				read_n.splice(i, 1);
+		}
+	} else {
+		var id = n_findId(data_json.date, n);
+
+		// insert notification to "n" n at pos "id"
+		n.splice(id, 0, data_json);
+	}
+};
+
+var n_store_read = function(data_json) {
+	delete data_json.method;
+	data_json.read = true;
+
+	// plugin did not provide timestamp, create one from current time
+	if(!data_json.date)
+		data_json.date = new Date().valueOf();
+
+	// replace old notification if duplicate UID with matching source found
+	if(data_json.uid) {
+		var i;
+		for(i = 0; i < n.length; i++) {
+			if(read_n[i].uid === data_json.uid && read_n[i].source === data_json.source) {
+				// TODO: for now keep date same so we don't mess up sorting!
+				data_json.date = read_n[i].date;
+				read_n[i] = data_json;
+			}
+		}
+		// look in unread array too, if duplicate UID found there, remove it
+		for(i = n.length - 1; i >= 0; i--) {
+			if(n[i].uid === data_json.uid && n[i].source === data_json.source)
+				n.splice(i, 1);
+		}
+	} else {
+		// insert notification at end of read_n array
+		read_n.push(data_json);
+
+		// if read_n is full, pop from start
+		if(read_n.length == read_n_limit) {
+			read_n.splice(0, 1);
+		}
+	}
 };
 
 var range_re = /(.*)\.\.(.*)/;
-var n_fetch = function(id) {
+var n_fetch = function(id, array) {
 	var range = id.match(range_re);
 	if(range) {
 		var min = range[1] || 0;
@@ -74,36 +110,20 @@ var n_fetch = function(id) {
 			min = max;
 			max = temp;
 		}
-		return n.filter(function (notification) {
-			return (notification.id >= min && notification.id <= max);
+		return array.filter(function (notification, i) {
+			return (i >= min && i <= max);
 		});
 	} else {
-		return n.filter(function (notification) {
-			return notification.id == id;
+		return array.filter(function (notification, i) {
+			return i == id;
 		})[0];
 	}
 };
 
-var n_uid_fetch = function(uid) {
-	return n.filter(function (notification) {
+var n_uid_fetch = function(uid, array) {
+	return array.filter(function (notification) {
 		return notification.uid == uid;
 	})[0];
-};
-
-var n_fetchAllUnread = function() {
-	var notifications = [];
-
-	// populate notifications array with unread messages
-	for(i = 0; i < n.length; i++) {
-		notification = n_fetch(i.toString());
-		if(notification && !notification.read)
-			notifications.push(notification);
-	}
-
-	// sort it
-	notifications.sort(dateSort);
-
-	return notifications;
 };
 
 var plugin_setReadStatus = function(notification, read) {
@@ -121,7 +141,9 @@ var plugin_setReadStatus = function(notification, read) {
 	}
 };
 
-var n_mark_as_read = function(notifications, noSendResponse) {
+// mark notifications as (un)read
+// move notifications between "n" and "read_n" arrays accordingly
+var n_mark_as = function(notifications, noSendResponse, state) {
 	var msg = "";
 
 	// check if arg is object, then make it into an array
@@ -129,61 +151,57 @@ var n_mark_as_read = function(notifications, noSendResponse) {
 		notifications = [notifications];
 	}
 
-	for (var i = 0; i < notifications.length; i++) {
-		if(!notifications[i].read) {
-			// if notification.id is smaller than n_firstEmpty then update that
-			n_firstEmpty = Math.min(n_firstEmpty, notifications[i].id);
+	// keep track if any notification was actually changed
+	var update = false;
 
-			notifications[i].read = true;
+	var i;
+	var notification;
+
+	// update read boolean field of every given notification
+	for (i = 0; i < notifications.length; i++) {
+		if((state === "read" && !notifications[i].read) || (state === "unread" && notifications[i].read)) {
+			// toggle read status
+			notifications[i].read = !notifications[i].read;
+			update = true;
+
+			// if plugin supports updating read status, send update
 			if(!noSendResponse)
-				plugin_setReadStatus(notifications[i], 'read');
+				plugin_setReadStatus(notifications[i], state);
 
-			if(notifications.length > 1)
-				msg = "Notifications set as read.";
-			else
-				msg = "Notification set as read.";
-		} else if (msg === "") {
-			if(notifications.length > 1)
-				msg = "All notifications already marked as read.";
-			else
-				msg = "Notification already marked as read.";
 		}
 	}
 
-	return msg;
-};
-
-var n_mark_as_unread = function(notifications, noSendResponse) {
-	var msg = "";
-
-	// check if arg is object, then make it into an array
-	if(Object.prototype.toString.call(notifications) === '[object Object]') {
-		notifications = [notifications];
-	}
-
-	for (var i = 0; i < notifications.length; i++) {
-		if(notifications[i].invalidated) {
-			return "ERROR: Tried setting outdated/invalidated notification " + notifications[i].id + " as unread! Quitting...";
-		}
-		if(notifications[i].read) {
-			// if this notification was the first empty slot, update it
-			if(n_firstEmpty === notifications[i].id) {
-				n_firstEmpty = n_findNextEmpty(notifications[i].id);
+	if(update) {
+		// loop through unread notifications
+		// see if we can find any that were marked as read
+		// remove and move these to "read_n"
+		if(state === "read") {
+			for(i = n.length - 1; i >= 0; i--) {
+				if(n[i].read) {
+					notification = n[i];
+					n.splice(i, 1);
+					n_store_read(notification);
+				}
 			}
-
-			notifications[i].read = false;
-			if(!noSendResponse)
-				plugin_setReadStatus(notifications[i], 'unread');
-			if(notifications.length > 1)
-				msg = "Notifications set as unread.";
-			else
-				msg = "Notification set as unread.";
-		} else if (msg === "") {
-			if(notifications.length > 1)
-				msg = "All notifications already marked as unread.";
-			else
-				msg = "Notification already marked as unread.";
+		} else if (state === "unread") {
+			for(i = read_n.length - 1; i >= 0; i--) {
+				if(!read_n[i].read) {
+					notification = read_n[i];
+					read_n.splice(i, 1);
+					n_store_unread(notification);
+				}
+			}
 		}
+
+		if(notifications.length > 1)
+			msg = "Notifications set as " + state + ".";
+		else
+			msg = "Notification set as " + state + ".";
+	} else {
+		if(notifications.length > 1)
+			msg = "All notifications already marked as " + state + ".";
+		else
+			msg = "Notification already marked as " + state + ".";
 	}
 
 	return msg;
@@ -191,7 +209,7 @@ var n_mark_as_unread = function(notifications, noSendResponse) {
 
 /* Drawing */
 
-var drawNotification = function(notification) {
+var drawNotification = function(notification, id) {
 	var source_color = clc_color.def_source_color;
 	if(notification.colorfg)
 		source_color = clc_color.color_from_text(notification.colorfg, notification.colorbg);
@@ -199,7 +217,7 @@ var drawNotification = function(notification) {
 	var date_arr = new Date(notification.date).toString().split(' ');
 	var date_string = date_arr[1] + ' ' + date_arr[2] + ' ' + date_arr[4].substr(0, 5) + ' ';
 
-	var pos_string = notification.id.toString();
+	var pos_string = id.toString();
 
 	// make a copy of the string before we potentially shorten
 	var text = notification.text;
@@ -215,14 +233,14 @@ var redraw = function() {
 	// clear the terminal
 	process.stdout.write('\u001B[2J\u001B[0;0f');
 
-	var notifications = n_fetchAllUnread();
+	var notifications = n;
 	var len = notifications.length;
 
 	// draw it
 	if (len)
 		// TODO: figure out how to disable the prompt so we get one line more...
 		for(var i = 0; i < len; i++)
-			drawNotification(notifications[i]);
+			drawNotification(notifications[i], i);
 	else
 		console.log(clc_color.no_unread_color("No unread notifications."));
 };
@@ -231,6 +249,7 @@ var redraw = function() {
 
 // regex for matching getprev urls, remembers the digit
 var url_re_all = /all.*/;
+var url_re_read = /read.*/;
 
 var resMsg = function(res, statusCode, msg) {
 	res.writeHead(statusCode, msg, {
@@ -250,54 +269,51 @@ var resWriteJSON = function(res, data) {
 };
 
 var handlePOST = function(req, res) {
-	var msg, notification;
+	var msg, notifications;
 
 	req.on('data', function(data) {
 		var data_json = querystring.parse(data.toString());
 
-		if (!data_json.read)
-			data_json.read = false; // we don't like undefined
-
 		if (data_json.method === 'newNotification') {
 			// store POST in notifications array, note: make copy of object
-			n_append(data_json);
+			n_store_unread(data_json);
 
 			resMsg(res, 200, "Notification added.");
 			redraw();
 		} else if (data_json.method === 'setUnread') {
 			if(data_json.uid) {
-				notification = n_uid_fetch(data_json.uid);
-				if (!notification) {
+				notifications = n_uid_fetch(data_json.uid, read_n);
+				if (!notifications) {
 					resMsg(res, 404, "Notification with uid " + data_json.uid + " not found.");
 					return;
 				}
 			} else {
-				notification = n_fetch(data_json.id);
-				if (!notification) {
+				notifications = n_fetch(data_json.id, read_n);
+				if (!notifications) {
 					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
 					return;
 				}
 			}
 
-			msg = n_mark_as_unread(notification, data_json.noSendResponse);
+			msg = n_mark_as(notifications, data_json.noSendResponse, "unread");
 			resMsg(res, 200, msg);
 			redraw();
 		} else if (data_json.method === 'setRead') {
 			if(data_json.uid) {
-				notification = n_uid_fetch(data_json.uid);
-				if (!notification) {
+				notifications = n_uid_fetch(data_json.uid, n);
+				if (!notifications) {
 					resMsg(res, 404, "Notification with uid " + data_json.uid + " not found.");
 					return;
 				}
 			} else {
-				notification = n_fetch(data_json.id);
-				if (!notification) {
+				notifications = n_fetch(data_json.id, n);
+				if (!notifications) {
 					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
 					return;
 				}
 			}
 
-			msg = n_mark_as_read(notification, data_json.noSendResponse);
+			msg = n_mark_as(notifications, data_json.noSendResponse, "read");
 			resMsg(res, 200, msg);
 			redraw();
 		} else {
@@ -316,11 +332,15 @@ var handleGET = function(req, res) {
 
 	var notifications;
 	var all = resource.match(url_re_all);
+	var read = resource.match(url_re_read);
 	if(all) { // fetch all unread notifications
-		notifications = n_fetchAllUnread();
+		notifications = n;
+		resWriteJSON(res, notifications);
+	} else if (read) {
+		notifications = read_n;
 		resWriteJSON(res, notifications);
 	} else { // fetch one notification or a range of notifications
-		notifications = n_fetch(resource);
+		notifications = n_fetch(resource, n);
 
 		if(notifications)
 			resWriteJSON(res, notifications);
