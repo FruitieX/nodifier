@@ -58,7 +58,9 @@ var n_store_unread = function(data_json) {
 			if(read_n[i].uid === data_json.uid && read_n[i].source === data_json.source)
 				read_n.splice(i, 1);
 		}
-	} else if (!uid_dupe_found) {
+	}
+
+	if (!uid_dupe_found) {
 		var id = n_findId(data_json.date, n);
 
 		// insert notification to "n" n at pos "id"
@@ -91,7 +93,9 @@ var n_store_read = function(data_json) {
 			if(n[i].uid === data_json.uid && n[i].source === data_json.source)
 				n.splice(i, 1);
 		}
-	} else if (!uid_dupe_found) {
+	}
+
+	if (!uid_dupe_found) {
 		// insert notification at end of read_n array
 		read_n.push(data_json);
 
@@ -234,6 +238,7 @@ var drawNotification = function(notification, id) {
 };
 
 var redraw = function() {
+	return;
 	// clear the terminal
 	process.stdout.write('\u001B[2J\u001B[0;0f');
 
