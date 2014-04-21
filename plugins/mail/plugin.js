@@ -172,6 +172,9 @@ exports.start = function(config) {
 
 	var reconnectTimer;
 	var reconnectLoop = function() {
+		if(imap)
+			imap.end();
+
 		imap = new Imap({
 			user: config.user,
 			password: config.password,
@@ -182,6 +185,9 @@ exports.start = function(config) {
 			keepalive: true,
 			debug: console.log
 		});
+
+		clearTimeout(reconnectTimer);
+		reconnectTimer = setTimeout(reconnectLoop, 10000);
 
 		imap.on('ready', function() {
 			clearTimeout(reconnectTimer);
@@ -224,9 +230,6 @@ exports.start = function(config) {
 		});
 
 		imap.connect();
-
-		clearTimeout(reconnectTimer);
-		reconnectTimer = setTimeout(reconnectLoop, 5000);
 	};
 
 	reconnectLoop();
