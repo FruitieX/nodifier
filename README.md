@@ -93,3 +93,12 @@ notification as (un)read.
 2. Run `nodifier_cl.js` in a terminal to test it.
 3. Optional: Make an alias/symlink for quick access:
 `ln -s ~/dev/nodifier/nodifier_cl.js n`
+
+Plugins
+-------
+### Included plugins for mail notifier and simple program for adding a TODO as a notification.
+### znc-push, using URI service. Setup example:
+```
+set message\_uri http://fruitiex.org:1234/?method=newNotification&text={message}&source={context}&colorbg=green&colorfg=black&app=irc
+```
+NOTE: znc-push doesn't seem to handle Basic HTTP auth correctly yet without modifying source. Also not sure if it can send POST requests without modifying source. Will fix. :)
