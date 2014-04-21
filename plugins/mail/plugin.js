@@ -8,16 +8,7 @@ var post = require('../../lib/post.js');
 var url = require('url');
 
 exports.start = function(config) {
-	var imap = new Imap({
-		user: config.user,
-		password: config.password,
-		host: config.host,
-		port: config.port,
-		tls: config.tls,
-		tlsOptions: { rejectUnauthorized: false },
-		keepalive: true,
-		//debug: console.log
-	});
+	var imap;
 
 	function dec2hex(str) { // .toString(16) only works up to 2^53
 		var dec = str.toString().split(''), sum = [], hex = [], i, s;
@@ -180,51 +171,62 @@ exports.start = function(config) {
 
 	var reconnectTimer;
 	var reconnectLoop = function() {
+		imap = new Imap({
+			user: config.user,
+			password: config.password,
+			host: config.host,
+			port: config.port,
+			tls: config.tls,
+			tlsOptions: { rejectUnauthorized: false },
+			keepalive: true,
+			debug: console.log
+		});
+
+		imap.on('ready', function() {
+			clearTimeout(reconnectTimer);
+			imap.openBox('INBOX', false, function(err, box) {
+				console.log('box opened.');
+
+				imap.on('mail', function(numNewMsgs) {
+					console.log('new mail ', inspect(numNewMsgs));
+					syncFromIMAP();
+				});
+
+				imap.on('update', function(seqno, info) {
+					console.log('update ', config.source, ' ', seqno);
+				});
+
+				imap.on('expunge', function(seqno) {
+					console.log('expunge ', seqno);
+				});
+
+				setInterval(function() {
+					syncFromIMAP();
+				}, config.unreadSyncInterval * 1000);
+
+				// initial sync
+				syncFromIMAP();
+			});
+		});
+
+		imap.on('error', function(err) {
+			console.log(err);
+			console.log('Error, reconnecting...');
+			imap.end();
+			reconnectLoop();
+		});
+
+		imap.on('end', function() {
+			console.log('Connection ended, reconnecting...');
+			imap.end();
+			reconnectLoop();
+		});
+
 		imap.connect();
 
 		clearTimeout(reconnectTimer);
 		reconnectTimer = setTimeout(reconnectLoop, 5000);
 	};
-
-	imap.on('ready', function() {
-		clearTimeout(reconnectTimer);
-		imap.openBox('INBOX', false, function(err, box) {
-			console.log('box opened.');
-
-			imap.on('mail', function(numNewMsgs) {
-				console.log('new mail ', inspect(numNewMsgs));
-				syncFromIMAP();
-			});
-
-			imap.on('update', function(seqno, info) {
-				console.log('update ', config.source, ' ', seqno);
-			});
-
-			imap.on('expunge', function(seqno) {
-				console.log('expunge ', seqno);
-			});
-
-			setInterval(function() {
-				syncFromIMAP();
-			}, config.unreadSyncInterval * 1000);
-
-			// initial sync
-			syncFromIMAP();
-		});
-	});
-
-	imap.on('error', function(err) {
-		console.log(err);
-		console.log('Error, reconnecting...');
-		imap.end();
-		reconnectLoop();
-	});
-
-	imap.on('end', function() {
-		console.log('Connection ended, reconnecting...');
-		imap.end();
-		reconnectLoop();
-	});
 
 	reconnectLoop();
 
