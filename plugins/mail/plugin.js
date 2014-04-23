@@ -231,16 +231,21 @@ exports.start = function(config) {
 	};
 
 	/* HTTP server for reporting read/unread statuses to plugin */
-	var http = require('http');
+	var https = require('https');
 	var auth = require('http-auth');
-	var htpasswd = require('./../../htpasswd.json');
+	var htpasswd = require('../../htpasswd.json');
 	var basic = auth.basic({
 		realm: "nodifier"
 	}, function (username, password, callback) {
 		callback(username === htpasswd.username && password === htpasswd.password);
 	});
 
-	s = http.createServer(basic, function (req, res) {
+	var options = {
+		key: fs.readFileSync(config['../../ssl-key']),
+		cert: fs.readFileSync(config['../../ssl-cert'])
+	};
+
+	s = https.createServer(basic, options, function (req, res) {
 		handleGET(req, res);
 	});
 

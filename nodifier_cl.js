@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var http = require('http');
+var https = require('https');
 var clc = require('cli-color');
 var clc_color = require('./lib/clc-color');
 
@@ -84,7 +84,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 		console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
 	};
 
-	var req = http.request(options, function(res) {
+	var req = https.request(options, function(res) {
 		var contentLength = parseInt(res.headers['content-length']);
 		var data = "";
 

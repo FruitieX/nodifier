@@ -1,7 +1,9 @@
 {
 	"host": "example.com",
 	"port": "8888",
-	"autoMarkRead": true
+	"autoMarkRead": true,
+	"ssl-key": "nodifier-key.pem",
+	"ssl-cert": "nodifier-cert.pem",
 	"apps": {
 		"browser": "chromium"
 	}

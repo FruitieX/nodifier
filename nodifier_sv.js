@@ -8,12 +8,18 @@ var basic = auth.basic({
 	callback(username === htpasswd.username && password === htpasswd.password);
 });
 
-var http = require('http');
+var https = require('https');
 var url = require('url');
 var querystring = require('querystring');
 var clc = require('cli-color');
 var clc_color = require('./lib/clc-color');
 var config = require('./config.json');
+var fs = require('fs');
+
+var options = {
+	key: fs.readFileSync(config['ssl-key']),
+	cert: fs.readFileSync(config['ssl-cert'])
+};
 
 /* Notification handling */
 
@@ -144,7 +150,7 @@ var plugin_setReadStatus = function(notification, read) {
 			auth: htpasswd.username + ':' + htpasswd.password
 		};
 
-		var req = http.request(options);
+		var req = https.request(options);
 		req.end();
 	}
 };
@@ -357,7 +363,7 @@ var handleGET = function(req, res) {
 	}
 };
 
-s = http.createServer(basic, function (req, res) {
+s = https.createServer(basic, options, function (req, res) {
 	if (req.method == 'POST') {
 		handlePOST(req, res);
 	} else { // GET request
