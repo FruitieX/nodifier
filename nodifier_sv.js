@@ -148,6 +148,7 @@ var plugin_setReadStatus = function(notification, read) {
 			port: notification.response_port,
 			path: '/' + read + '/' + notification.uid,
 			method: 'GET',
+			rejectUnauthorized: false,
 			auth: htpasswd.username + ':' + htpasswd.password
 		};
 
