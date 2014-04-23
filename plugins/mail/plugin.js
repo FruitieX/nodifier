@@ -173,7 +173,7 @@ exports.start = function(config) {
 	var reconnectTimer;
 	var reconnectLoop = function() {
 		if(imap)
-			imap.end();
+			imap.destroy();
 
 		imap = new Imap({
 			user: config.user,
@@ -219,20 +219,16 @@ exports.start = function(config) {
 		imap.on('error', function(err) {
 			console.log(err);
 			console.log('Error, reconnecting...');
-			imap.end();
 			reconnectLoop();
 		});
 
 		imap.on('end', function() {
 			console.log('Connection ended, reconnecting...');
-			imap.end();
 			reconnectLoop();
 		});
 
 		imap.connect();
 	};
-
-	reconnectLoop();
 
 	/* HTTP server for reporting read/unread statuses to plugin */
 	var http = require('http');
@@ -273,4 +269,6 @@ exports.start = function(config) {
 		});
 		res.end(msg);
 	};
+
+	reconnectLoop();
 };
