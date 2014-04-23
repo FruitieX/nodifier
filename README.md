@@ -104,7 +104,7 @@ Plugins
 * znc-push, using URI service. Setup example:
 ```
 set service url
-set message_uri http://domain.org:1234/?method=newNotification&text={context}:{nick} {message}&source=irc&colorbg=green&colorfg=black&app=irc
+set message_uri https://domain.org:1234/?method=newNotification&text={context}:{nick} {message}&source=irc&colorbg=green&colorfg=black&app=irc
 set message_uri_post yes
 set username http_auth_username
 set secret http_auth_password
