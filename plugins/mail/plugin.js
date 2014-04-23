@@ -241,8 +241,8 @@ exports.start = function(config) {
 	});
 
 	var options = {
-		key: fs.readFileSync(config['../../ssl-key']),
-		cert: fs.readFileSync(config['../../ssl-cert'])
+		key: fs.readFileSync(config['mailplugin-ssl-key']),
+		cert: fs.readFileSync(config['mailplugin-ssl-cert'])
 	};
 
 	s = https.createServer(basic, options, function (req, res) {
