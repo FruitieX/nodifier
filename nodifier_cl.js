@@ -76,6 +76,8 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 		var pos_string = id.toString();
 
+		// get rid of weird characters
+		notification.text.replace('\t',' ');
 		// if the string is wider than our terminal we need to shorten it
 		var source_text_length = 5 + pos_string.length + notification.source.length + date_string.length;
 		var text_length = notification.text.length;

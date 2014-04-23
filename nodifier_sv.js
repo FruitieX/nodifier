@@ -237,6 +237,8 @@ var drawNotification = function(notification, id) {
 
 	// make a copy of the string before we potentially shorten
 	var text = notification.text;
+	// get rid of weird characters
+	text.replace('\t',' ');
 	// if the string is wider than our terminal we need to shorten it
 	var source_text_length = 5 + pos_string.length + notification.source.length + date_string.length;
 	if(source_text_length + text.length > process.stdout.columns)
