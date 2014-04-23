@@ -62,6 +62,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 		port: config.port,
 		path: path,
 		method: 'GET',
+		rejectUnauthorized: false,
 		auth: htpasswd.username + ':' + htpasswd.password
 	};
 
