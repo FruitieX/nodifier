@@ -73,11 +73,12 @@ window from where it was ran. (and hides already read notifications, too)
 
 ### Setup
 
-1. `cp config.json.example config.json` (TODO: do this
+1. Generate SSL keys with `./gen_keys.sh`
+2. `cp config.json.example config.json` (TODO: do this
    automatically?)
-2. Edit `config.json`.
-3. Run `nodifier_sv.js` in a terminal where you want notifications to show up.
-4. Test with e.g. `plugins/spam/plugin.js`
+3. Edit `config.json`.
+4. Run `nodifier_sv.js` in a terminal where you want notifications to show up.
+5. Test with e.g. `plugins/spam/plugin.js`
 
 Now the server is not very useful alone without anything sending notifications
 to it, but there are a few scripts in this repo (under `plugins/`) that do just
