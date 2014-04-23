@@ -11,5 +11,7 @@
 	"colorfg": "whiteBright"
 	"response_host": "awesomehost.com",
 	"response_port": "8081",
-	"unreadSyncInterval": "60"
+	"unreadSyncInterval": "60",
+	"mailplugin-ssl-key": "mailplugin-key.pem",
+	"mailplugin-ssl-cert": "mailplugin-cert.pem"
 }

@@ -15,10 +15,11 @@ var clc = require('cli-color');
 var clc_color = require('./lib/clc-color');
 var config = require('./config.json');
 var fs = require('fs');
+var path = require('path');
 
 var options = {
-	key: fs.readFileSync(config['ssl-key']),
-	cert: fs.readFileSync(config['ssl-cert'])
+	key: fs.readFileSync(path.resolve(__dirname, config['ssl-key'])),
+	cert: fs.readFileSync(path.resolve(__dirname, config['ssl-cert']))
 };
 
 /* Notification handling */

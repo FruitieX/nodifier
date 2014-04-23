@@ -6,6 +6,7 @@ var crypto = require('crypto');
 var EventEmitter = require('events').EventEmitter;
 var post = require('../../lib/post.js');
 var url = require('url');
+var path = require('path');
 
 exports.start = function(config) {
 	var imap;
@@ -241,8 +242,8 @@ exports.start = function(config) {
 	});
 
 	var options = {
-		key: fs.readFileSync(config['../../ssl-key']),
-		cert: fs.readFileSync(config['../../ssl-cert'])
+		key: fs.readFileSync(path.resolve(__dirname, config['mailplugin-ssl-key'])),
+		cert: fs.readFileSync(path.resolve(__dirname, config['mailplugin-ssl-cert']))
 	};
 
 	s = https.createServer(basic, options, function (req, res) {
