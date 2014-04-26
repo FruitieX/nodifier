@@ -144,9 +144,9 @@ to go from JSON to query string.
 	"context": "gmail",
 	"contextbg": "red",
 	"contextfg": "whiteBright",
-	"uid" "1234567890foo"
+	"uid" "1234567890foo",
 	"openwith": "browser",
-	"url": "http://awesome-mail-provider.com/inbox/847295819",
+	"url": "http://awesome-mail-provider.com/inbox/847295819"
 }
 ```
 * Mark notification with `id` equal to `42` as read:
