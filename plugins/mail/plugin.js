@@ -33,7 +33,7 @@ exports.start = function(config) {
 	var unread = [];
 
 	// new unread mail arrived
-	var newUnread = function(from, subject, uid, threadId, labels) {
+	var newUnread = function(from, subject, uid, threadId, labels, context, contextfg, contextbg) {
 		var from_re = /(.*) <.*@.*>/;
 		if(from.toString().match(from_re))
 			from = from.toString().match(from_re)[1];
@@ -45,10 +45,13 @@ exports.start = function(config) {
 			'uid': uid,
 			'text': text,
 			'source': config.source,
-			'app': config.app,
+			'context': context,
+			'openwith': config.openwith,
 			'url': config.url + threadId,
-			'colorbg': config.colorbg,
-			'colorfg': config.colorfg,
+			'sourcebg': config.sourcebg,
+			'sourcefg': config.sourcefg,
+			'contextbg': contextbg,
+			'contextfg': contextfg,
 			'response_host': config.response_host,
 			'response_port': config.response_port
 		};
@@ -96,7 +99,7 @@ exports.start = function(config) {
 			f.on('message', function(msgs, seqno) {
 				//var prefix = '(#' + seqno +') ';
 
-				var from, subject, uid, threadId, labels;
+				var from, subject, uid, threadId, labels, context, contextbg, contextfg;
 				msgs.on('body', function(stream, info) {
 					var buffer = '';
 					stream.on('data', function(chunk) {
@@ -106,6 +109,17 @@ exports.start = function(config) {
 						var header = Imap.parseHeader(buffer);
 						from = header.from;
 						subject = header.subject;
+
+						// attempt finding a "context" value for notification based on "to" address
+						var to = header.to;
+						for (var address in config.contexts) {
+							if(to.indexOf(address) !== -1) {
+								context = config.contexts[address].context;
+								contextfg = config.contexts[address].contextfg;
+								contextbg = config.contexts[address].contextbg;
+								break;
+							}
+						}
 					});
 				});
 				msgs.once('attributes', function(attrs) {
@@ -114,7 +128,7 @@ exports.start = function(config) {
 					labels = attrs['x-gm-labels'];
 				});
 				msgs.once('end', function() {
-					newUnread(from, subject, uid, threadId, labels);
+					newUnread(from, subject, uid, threadId, labels, context, contextfg, contextbg);
 				});
 			});
 		}

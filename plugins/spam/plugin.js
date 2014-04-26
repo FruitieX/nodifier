@@ -9,6 +9,7 @@ setInterval(function() {
 		'method': 'newNotification',
 		'text': 'spamäåö123456789atheoutheachumcramcrhkrcehachuechacmecuaocemuchaechucehaocumechoaceuhcmkch.phehlowhwhell' + cnt,
 		'source': 'source' + cnt,
+		'context': 'context' + cnt,
 		'app': 'app' + cnt,
 		'url': 'url' + cnt,
 		'colorbg': 'red',

@@ -5,13 +5,30 @@
 	"port": 993,
 	"tls": true,
 	"source": "Gmail",
-	"app": "browser",
+	"openwith": "browser",
 	"url": "https://mail.google.com/mail/u/0/#inbox/",
-	"colorbg": "red",
-	"colorfg": "whiteBright"
+	"sourcebg": "red",
+	"sourcefg": "whiteBright"
 	"response_host": "awesomehost.com",
 	"response_port": "8081",
 	"unreadSyncInterval": "60",
 	"mailplugin-ssl-key": "mailplugin-key.pem",
-	"mailplugin-ssl-cert": "mailplugin-cert.pem"
+	"mailplugin-ssl-cert": "mailplugin-cert.pem",
+	"contexts": {
+		"mymail@gmail.com": {
+			"context: "gmail1",
+			"contextbg": "green",
+			"contextfg": "whiteBright"
+		},
+		"other@gmail.com": {
+			"context: "gmail2",
+			"contextbg": "white",
+			"contextfg": "black"
+		},
+		"mymail@work.com": {
+			"context: "work",
+			"contextbg": "red",
+			"contextfg": "black"
+		}
+	}
 }
