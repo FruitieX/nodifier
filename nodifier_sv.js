@@ -148,7 +148,7 @@ var n_id_fetch = function(id, array) {
 var n_search_fetch = function(uid, source, context, array) {
 	return array.filter(function (notification) {
 		return (!uid || (notification.uid == uid)) && (!source || (notification.source == source)) && (!context || (notification.context == context));
-	})[0];
+	});
 };
 
 var plugin_setReadStatus = function(notification, read) {
