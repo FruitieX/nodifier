@@ -58,9 +58,9 @@ Either limit can be left out to match indices before/after:
 * `37..`: Matches every index from `37` and up.
 
 Handy aliases for your shell:
-`alias n="~/path/to/nodifier_cl.js"`
-`alias nr="n r"`
-`alias nu="n u"`
+* `alias n="~/path/to/nodifier_cl.js"`
+* `alias nr="n r"`
+* `alias nu="n u"`
 
 Server - `nodifier_sv.js`
 -------------------------
@@ -139,9 +139,9 @@ unknown ones.
 
 ### POST request (adding/manipulating notifications)
 Resource is always `/`, with a querystring to describe the notification, e.g:
-`/?method=setRead&source=irc&context=foo`. I use JSON here for clarity
-purposes.  Use `querystring.stringify(data_json)` to go from JSON to query
-string.
+```/?method=setRead&source=irc&context=foo```
+I use JSON here for clarity purposes.  Use `querystring.stringify(data_json)`
+to go from JSON to query string.
 
 * Add a notification
 ```
