@@ -252,10 +252,10 @@ var drawNotification = function(notification, id) {
 
 	var pre_text = date_string + ' ' + pos_string + ' ' + source_string + context_string + ' ';
 	var text_length = text.length;
-	if(shorten && pre_text.length + text_length > process.stdout.columns)
+	if(pre_text.length + text_length > process.stdout.columns)
 		text = text.substr(0, process.stdout.columns - pre_text.length - 3) + '...';
 
-	process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + notification.text);
+	process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + text);
 };
 
 var redraw = function() {
