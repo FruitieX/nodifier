@@ -45,7 +45,7 @@ Client - `nodifier_cl.js`
 ### Supported commands:
 If the client is ran without any arguments, all notifications will be listed
 
-Command		| Explanation
+Argument	| Explanation
 ------------|------------------
 `lr`		| List read (old) notifications
 `<id>`		| List a notification with matching `id`, if the notification specifies program to launch it will be launched. If `autoMarkRead` is enabled, the notification will be marked as read. Supports ranges.
