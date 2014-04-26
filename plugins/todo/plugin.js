@@ -18,6 +18,6 @@ post.sendPOST({
 	'method': 'newNotification',
 	'text': str,
 	'source': 'todo',
-	'colorbg': 'blue',
-	'colorfg': 'black'
+	'sourcebg': 'blue',
+	'sourcefg': 'black'
 });

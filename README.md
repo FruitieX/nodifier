@@ -19,11 +19,14 @@ Resource is always `/`, use `querystring.stringify(data_json)` to go from JSON t
 {
 	"method": "newNotification",
 	"text": "lorem ipsum",
-	"source": "mymail",
+	"source": "mail",
+	"sourcebg": "green",
+	"sourcefg": "black"
+	"context": "gmail",
+	"contextbg": "red",
+	"contextfg": "whiteBright"
 	"app": "web",
 	"url": "http://awesome-mail-provider.com/inbox/847295819",
-	"colorbg": "red",
-	"colorfg": "whiteBright"
 }
 ```
 * Mark notification as read
@@ -46,9 +49,9 @@ Resource is always `/`, use `querystring.stringify(data_json)` to go from JSON t
 	* Resource: `/all`, returns something like:
 ```
 [
-	{"text":"spam0","source":"source0","app":"app0","url":"url0","colorbg":"red","colorfg":"white","read":false,"id":0,"date":1392663071818},
-	{"text":"spam1","source":"source1","app":"app1","url":"url1","colorbg":"red","colorfg":"white","read":false,"id":1,"date":1392663072816},
-	{"text":"spam2","source":"source2","app":"app2","url":"url2","colorbg":"red","colorfg":"white","read":false,"id":2,"date":1392663073816}
+	{"text":"spam0","source":"source0","app":"app0","url":"url0","sourcebg":"red","sourcefg":"white","read":false,"id":0,"date":1392663071818},
+	{"text":"spam1","source":"source1","app":"app1","url":"url1","sourcebg":"red","sourcefg":"white","read":false,"id":1,"date":1392663072816},
+	{"text":"spam2","source":"source2","app":"app2","url":"url2","sourcebg":"red","sourcefg":"white","read":false,"id":2,"date":1392663073816}
 ]
 ```
 
@@ -58,10 +61,10 @@ Resource is always `/`, use `querystring.stringify(data_json)` to go from JSON t
 {
 	"text":"spam",
 	"source":"source0",
+	"sourcebg":"green",
+	"sourcefg":"black",
 	"app":"app0",
 	"url":"url0",
-	"colorbg":"green",
-	"colorfg":"black",
 	"read":false,
 	"id":0,
 	"date":1392663071818
@@ -104,7 +107,7 @@ Plugins
 * znc-push, using URI service. Setup example:
 ```
 set service url
-set message_uri https://domain.org:1234/?method=newNotification&text={nick} {message}&colorbg=green&colorfg=black&source=irc&context={context}&openwith=irc
+set message_uri https://domain.org:8888/?method=newNotification&text={nick} {message}&sourcebg=green&sourcefg=black&source=irc&context={context}&contextbg=yellow&contextfg=black&openwith=irc
 set message_uri_post yes
 set username http_auth_username
 set secret http_auth_password
