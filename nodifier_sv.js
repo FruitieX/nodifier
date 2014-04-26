@@ -42,9 +42,9 @@ var n_findId = function(date, array) {
 // store unread notification in correct slot according to timestamp
 var n_store_unread = function(data_json) {
 	// get rid of weird characters
-	data_json.text.replace('\t',' '); // convert tabs to single spaces
-	data_json.text.replace(/^\s*/, ""); // get rid of leading spaces
-	data_json.text.replace(/\s*$/, ""); // get rid of trailing spaces
+	data_json.text = data_json.text.replace('\t',' '); // convert tabs to single spaces
+	data_json.text = data_json.text.replace(/^\s*/, ""); // get rid of leading spaces
+	data_json.text = data_json.text.replace(/\s*$/, ""); // get rid of trailing spaces
 
 	delete data_json.method;
 	data_json.read = false;
@@ -83,8 +83,9 @@ var n_store_unread = function(data_json) {
 var n_store_read = function(data_json) {
 	delete data_json.method;
 	data_json.read = true;
-	data_json.text.replace(/^\s*/, ""); // get rid of leading spaces
-	data_json.text.replace(/\s*$/, ""); // get rid of trailing spaces
+	data_json.text = data_json.text.replace('\t',' '); // convert tabs to single spaces
+	data_json.text = data_json.text.replace(/^\s*/, ""); // get rid of leading spaces
+	data_json.text = data_json.text.replace(/\s*$/, ""); // get rid of trailing spaces
 
 	// plugin did not provide timestamp, create one from current time
 	if(!data_json.date)
