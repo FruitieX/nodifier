@@ -9,11 +9,13 @@ setInterval(function() {
 		'method': 'newNotification',
 		'text': 'spamäåö123456789atheoutheachumcramcrhkrcehachuechacmecuaocemuchaechucehaocumechoaceuhcmkch.phehlowhwhell' + cnt,
 		'source': 'source' + cnt,
+		'sourcebg': 'red',
+		'sourcefg': 'white',
 		'context': 'context' + cnt,
-		'app': 'app' + cnt,
-		'url': 'url' + cnt,
-		'colorbg': 'red',
-		'colorfg': 'white'
+		'contextbg': 'blue',
+		'contextfg': 'white',
+		'openwith': 'openwith' + cnt,
+		'url': 'url' + cnt
 	});
 	cnt++;
 }, 200);
