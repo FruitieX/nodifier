@@ -82,15 +82,20 @@ if (process.argv[2] === 'u') { // mark notification as unread
 		// get rid of weird characters
 		notification.text.replace('\t',' ');
 
-		// TODO: check if both source and context actually given
 		// find length of string before notification.text, shorten notification.text if
 		// wider than our terminal
-		var pre_text = date_string + ' ' + pos_string + ' ' + ' ' + notification.source + ' ' + ' ' + notification.context + ' ' + ' ';
+		var source_string, context_string;
+		if(notification.source)
+			source_string = ' ' + notification.source + ' ';
+		if(notification.context)
+			context_string = ' ' + notification.context + ' ';
+
+		var pre_text = date_string + ' ' + pos_string + ' ' + source_string + context_string + ' ';
 		var text_length = notification.text.length;
 		if(shorten && pre_text.length + text_length > process.stdout.columns)
 			notification.text = notification.text.substr(0, process.stdout.columns - pre_text.length - 3) + '...';
 
-		console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + context_color(' ' + notification.context + ' ') + ' ' + notification.text);
+		console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + notification.text);
 	};
 
 	var req = https.request(options, function(res) {
