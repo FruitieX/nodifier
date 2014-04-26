@@ -108,8 +108,15 @@ Plugins
 ```
 set service url
 set message_uri https://domain.org:8888/?method=newNotification&text={nick} {message}&sourcebg=green&sourcefg=black&source=irc&context={context}&contextbg=yellow&contextfg=black&openwith=irc
+set message_uri_markasread https://domain.org:8888/?method=setRead&source=irc&context={context}
+set mark_asread yes
 set message_uri_post yes
 set username http_auth_username
 set secret http_auth_password
 set highlight your_nick
 ```
+
+Upstream znc-push currently puts a lot of extra stuff in `{message}`, and has
+no support for `message_uri_markasread`. I've fixed/added these things in my
+fork of znc-push, and maintain all changes inside my server branch over at:
+`https://github.com/FruitieX/znc-push/tree/fruitiex/server`
