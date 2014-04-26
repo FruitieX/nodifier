@@ -1,6 +1,8 @@
 nodifier
 =========
 
+![Screenshot](/screenshot.png?raw=true "Screenshot")
+
 A very simple CLI server and client, both written in NodeJS, capable of storing notifications
 via HTTP POST and retreiving stored notifications via HTTP GET.
 
