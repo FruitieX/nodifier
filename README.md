@@ -75,7 +75,8 @@ that (such as the above spam script).  Have a look and/or script your own!
 
 Plugins
 -------
-### Included, these make use of your `htpasswd.json` and `config.json` (via `lib/post.js`)
+### Included plugins
+These plugins make use of your `htpasswd.json` and `config.json` (via `lib/post.js`)
 * Mail notifier
 * Simple program for adding a TODO as a notification
 * Test plugin
@@ -139,7 +140,9 @@ unknown ones.
 
 ### POST request (adding/manipulating notifications)
 Resource is always `/`, with a querystring to describe the notification, e.g:
-```/?method=setRead&source=irc&context=foo```
+```
+/?method=setRead&source=irc&context=foo
+```
 I use JSON here for clarity purposes.  Use `querystring.stringify(data_json)`
 to go from JSON to query string.
 
