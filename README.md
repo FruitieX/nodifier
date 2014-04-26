@@ -118,7 +118,7 @@ out:
 `id`						| Only used for `setRead` and `setUnread` methods. Supports ranges. Is used as search criteria.
 `openwith`					| Specify which program the notification should be opened with.
 `url`						| Specify an argument to be passed to the `openwith` program.
-`response_host`				| Specify which hostname the plugin listens on. If given, the server will send a GET to given hostname on `response_port`, resource is: `/read/<uid>` or `/unread/<uid>`.
+`response_host`				| Specify which hostname the plugin listens on. If given, the server will send a GET to given hostname on `response_port` when a notification is marked as read/unread, resource is: `/read/<uid>` or `/unread/<uid>`.
 `response_port`				| Specify which port the plugin listens on.
 `noSendResponse`			| If set to `true`, the server will not send read/unread updates to the plugin even if `response_host` and `response_port` are given.
 
