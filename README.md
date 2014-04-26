@@ -3,14 +3,75 @@ nodifier
 
 ![Screenshot](/screenshot.png?raw=true "Screenshot")
 
-A very simple CLI server and client, both written in NodeJS, capable of storing notifications
-via HTTP POST and retreiving stored notifications via HTTP GET.
+nodifier is a simple notification server complete with a client, both written in NodeJS. Standalone programs known as plugins can add new notifications to the server, eg. e-mails and IRC highlights. You can easily write your own by having a look at the API below!
 
-Useful e.g. on a secondary monitor to list notifications from various sources, or maybe
-you're just tired of picking up your phone to read a notification when you're already sitting
-at your computer.
+### Features:
+* Simple HTTPS REST API. Notifications sent as JSON.
+* The nodifier client can be used to list (un)read notifications, mark one or several as (un)read, and open a program associated with a notification.
+* The nodifier server prints unread notifications to STDOUT whenever the list changes, making it useful on a secondary monitor.
+* Plugins can associate notifications with a program and an URI to pass as an argument to that program. This way you can e.g. open a web browser directly to the URL of a received e-mail.
+* Plugins can be told when a notification has been read, and can then e.g. mark an e-mail as read. Works vice-versa, too.
+* Free Open Source Software! (MIT License)
+
+
+Client
+------
+The client can request all notifications, specific notifications only or mark a
+notification as (un)read.
+
+
+### Setup
+1. Server and client shares the same `config.json` file, so if you did the above steps you should be set.
+2. Run `nodifier_cl.js` in a terminal to test it.
+3. Optional: Make an alias/symlink for quick access:
+`ln -s ~/dev/nodifier/nodifier_cl.js n`
+
+### Supported commands:
+
 
 Server
+------
+
+Furthermore the server automatically logs unread notifications to the terminal
+window from where it was ran. (and hides already read notifications, too)
+
+### Setup
+
+1. Generate SSL keys with `./gen_keys.sh`
+2. `cp config.json.example config.json` (TODO: do this
+   automatically?)
+3. Edit `config.json`.
+4. Run `nodifier_sv.js` in a terminal where you want notifications to show up.
+5. Test with e.g. `plugins/spam/plugin.js`
+
+Now the server is not very useful alone without anything sending notifications
+to it, but there are a few scripts in this repo (under `plugins/`) that do just
+that (such as the above spam script).  Have a look and/or script your own!
+
+Plugins
+-------
+### Included
+* Mail notifier
+* Simple program for adding a TODO as a notification
+### Other projects
+* znc-push, using URI service. Setup example:
+```
+set service url
+set message_uri https://domain.org:8888/?method=newNotification&text={nick} {message}&sourcebg=green&sourcefg=black&source=irc&context={context}&contextbg=yellow&contextfg=black&openwith=irc
+set message_uri_markasread https://domain.org:8888/?method=setRead&source=irc&context={context}
+set mark_asread yes
+set message_uri_post yes
+set username http_auth_username
+set secret http_auth_password
+set highlight your_nick
+```
+
+Upstream znc-push currently puts a lot of extra stuff in `{message}`, and has
+no support for `message_uri_markasread`. I've fixed/added these things in my
+fork of znc-push, and maintain all changes inside my server branch over at:
+`https://github.com/FruitieX/znc-push/tree/fruitiex/server`
+
+API
 ------
 The server speaks HTTP. Here's what it can do:
 
@@ -73,52 +134,3 @@ Resource is always `/`, use `querystring.stringify(data_json)` to go from JSON t
 }
 ```
 
-Furthermore the server automatically logs unread notifications to the terminal
-window from where it was ran. (and hides already read notifications, too)
-
-### Setup
-
-1. Generate SSL keys with `./gen_keys.sh`
-2. `cp config.json.example config.json` (TODO: do this
-   automatically?)
-3. Edit `config.json`.
-4. Run `nodifier_sv.js` in a terminal where you want notifications to show up.
-5. Test with e.g. `plugins/spam/plugin.js`
-
-Now the server is not very useful alone without anything sending notifications
-to it, but there are a few scripts in this repo (under `plugins/`) that do just
-that (such as the above spam script).  Have a look and/or script your own!
-
-Client
-------
-The client can request all notifications, specific notifications only or mark a
-notification as (un)read.
-
-### Setup
-1. Server and client shares the same `config.json` file, so if you did the above steps you should be set.
-2. Run `nodifier_cl.js` in a terminal to test it.
-3. Optional: Make an alias/symlink for quick access:
-`ln -s ~/dev/nodifier/nodifier_cl.js n`
-
-Plugins
--------
-### Included
-* Mail notifier
-* Simple program for adding a TODO as a notification
-### Other projects
-* znc-push, using URI service. Setup example:
-```
-set service url
-set message_uri https://domain.org:8888/?method=newNotification&text={nick} {message}&sourcebg=green&sourcefg=black&source=irc&context={context}&contextbg=yellow&contextfg=black&openwith=irc
-set message_uri_markasread https://domain.org:8888/?method=setRead&source=irc&context={context}
-set mark_asread yes
-set message_uri_post yes
-set username http_auth_username
-set secret http_auth_password
-set highlight your_nick
-```
-
-Upstream znc-push currently puts a lot of extra stuff in `{message}`, and has
-no support for `message_uri_markasread`. I've fixed/added these things in my
-fork of znc-push, and maintain all changes inside my server branch over at:
-`https://github.com/FruitieX/znc-push/tree/fruitiex/server`
