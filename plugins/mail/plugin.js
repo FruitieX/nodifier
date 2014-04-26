@@ -123,7 +123,7 @@ exports.start = function(config) {
 						for (var label in labels) {
 							// loop over labels in config
 							for (var cfglabel in config.label_contexts) {
-								if(label === cfglabel) {
+								if(labels[label] === cfglabel) {
 									context = config.label_contexts[cfglabel].context;
 									contextfg = config.label_contexts[cfglabel].contextfg;
 									contextbg = config.label_contexts[cfglabel].contextbg;
