@@ -23,16 +23,15 @@ Take a look at the `config.json.example` file. This file is shared between
 server and client. These can of course run on separate hosts. Fill in the
 details of your server and other options you want, then save as `config.json`.
 
-#### Options
-* `host`: Hostname of your server
-* `port`: Port your server listens on
-* `autoMarkRead`: When client only requests one notification, should it be
-  marked as read? (true/false)
-* `numReadToKeep`: How many read notifications will be remembered.
-* `ssl-key`: Relative path to the server SSL key
-* `ssl-cert`: Relative path to the server SSL certificate
-* `programs`: For safety, a list of applications a notification can be
-  associated with and what command should be ran
+Option			| Explanation
+----------------|--------------
+`host`			| Hostname of your server
+`port`			| Port your server listens on
+`autoMarkRead`	| When client only requests one notification, should it be marked as read? (true/false)
+`numReadToKeep`	| How many read notifications will be remembered.
+`ssl-key`		| Relative path to the server SSL key
+`ssl-cert`		| Relative path to the server SSL certificate
+`programs`		| For safety, a list of applications a notification can be associated with and what command should be ran
 
 ### htpasswd.json
 This configuration file contains the credentials that will be used for basic
@@ -44,14 +43,14 @@ See `htpasswd.json.example` for an example, then save it as `htpasswd.json`.
 Client - `nodifier_cl.js`
 -------------------------
 ### Supported commands:
-* If the client is ran without any arguments, all notifications will be listed
-* `lr`: List read (old) notifications
-* `<id>`: List a notification with matching `id`, if the notification specifies
-  program to launch it will be launched. If `autoMarkRead` is enabled, the
-  notification will be marked as read. Supports ranges.
-* `r <id>`: Mark `id` as read, supports ranges
-* `u <id>`: Mark `id` from list of read notifications as unread, supports
-  ranges
+If the client is ran without any arguments, all notifications will be listed
+
+Command		| Explanation
+------------|------------------
+`lr`		| List read (old) notifications
+`<id>`		| List a notification with matching `id`, if the notification specifies program to launch it will be launched. If `autoMarkRead` is enabled, the notification will be marked as read. Supports ranges.
+`r <id>`	| Mark `id` as read, supports ranges
+`u <id>`	| Mark `id` from list of read notifications as unread, supports ranges
 
 Ranges can be specified as such, both limits are inclusive: `37..42`
 Either limit can be left out to match indices before/after:
