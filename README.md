@@ -16,13 +16,14 @@ plugins by having a look at the API below!
 * Plugins can be told when a notification has been read, and can then e.g. mark an e-mail as read. Works vice-versa, too.
 * Free Open Source Software! (MIT License)
 
-Config - `config.json`
-----------------------
+Configs
+-------
+### config.json
 Take a look at the `config.json.example` file. This file is shared between
 server and client. These can of course run on separate hosts. Fill in the
 details of your server and other options you want, then save as `config.json`.
 
-### Options
+#### Options
 * `host`: Hostname of your server
 * `port`: Port your server listens on
 * `autoMarkRead`: When client only requests one notification, should it be
@@ -33,8 +34,7 @@ details of your server and other options you want, then save as `config.json`.
 * `programs`: For safety, a list of applications a notification can be
   associated with and what command should be ran
 
-Config - `htpasswd.json`
-------------------------
+### htpasswd.json
 This configuration file contains the credentials that will be used for basic
 HTTP authentication. Recommended to choose a strong random password, you don't
 need to remember it either as the client and server uses the same file.
