@@ -104,7 +104,7 @@ API
 ------
 The server speaks HTTPS and uses basic HTTP authentication. Here's a list of
 notification properties that the server cares about, most of which can be left
-empty:
+out:
 
  Property					| Explanation 
 ----------------------------|------------------- 
@@ -115,7 +115,7 @@ empty:
 `context`					| This is displayed right of the source string, and can be used to further categorize notifications. Can be used as a search criteria.
 `contextbg` and `contextfg`	| Color of context string. See list of possible values at: `lib/clc-color.js`
 `uid`						| Can be set by plugin to uniquely identify notifications even if their indices change. Only one notification with the same UID, source and context is allowed, old ones are replaced. UID will be sent along read/unread updates to plugin. Can be used as a search criteria.
-`id`						| Only used for `setRead` and `setUnread` methods. Supports ranges.
+`id`						| Only used for `setRead` and `setUnread` methods. Supports ranges. Is used as search criteria.
 `openwith`					| Specify which program the notification should be opened with.
 `url`						| Specify an argument to be passed to the `openwith` program.
 `response_host`				| Specify which hostname the plugin listens on. If given, the server will send a GET to given hostname on `response_port`, resource is: `/read/<uid>` or `/unread/<uid>`.
@@ -188,4 +188,13 @@ to go from JSON to query string.
 {
 	"text":"spam","source":"source0","sourcebg":"green","sourcefg":"black","app":"app0","url":"url0","read":false,"id":0,"date":1392663071818
 }
+```
+
+* Request a range of notifications
+	* Resource: `/<min-id>..<max-id>`, returns something like:
+```
+[
+	{"text":"spam0","source":"source0","app":"app0","url":"url0","sourcebg":"red","sourcefg":"white","read":false,"id":0,"date":1392663071818},
+	{"text":"spam1","source":"source1","app":"app1","url":"url1","sourcebg":"red","sourcefg":"white","read":false,"id":1,"date":1392663072816}
+]
 ```
