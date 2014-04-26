@@ -26,7 +26,7 @@ var options = {
 
 var n = []; // array containing unread notifications
 var read_n = []; // array containing read notifications
-var read_n_limit = 50; // keep only this many read notifications
+var read_n_limit = config.numReadToKeep; // keep only this many read notifications
 
 // find index for new notification based on its timestamp
 // assumes 'array' is sorted in ascending order according to .date fields

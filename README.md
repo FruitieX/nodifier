@@ -27,6 +27,7 @@ details of your server and other options you want, then save as `config.json`.
 * `port`: Port your server listens on
 * `autoMarkRead`: When client only requests one notification, should it be
   marked as read? (true/false)
+* `numReadToKeep`: How many read notifications will be remembered.
 * `ssl-key`: Relative path to the server SSL key
 * `ssl-cert`: Relative path to the server SSL certificate
 * `programs`: For safety, a list of applications a notification can be
