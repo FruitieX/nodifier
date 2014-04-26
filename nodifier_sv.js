@@ -62,7 +62,7 @@ var n_store_unread = function(data_json) {
 		}
 		// look in read array too, if duplicate UID found there, remove it
 		for(i = read_n.length - 1; i >= 0; i--) {
-			if(read_n[i].uid === data_json.uid && (!data_json.source || (read_n[i].source === data_json.source)) && (!data_json.context || (read_n[i].context === data_json.context))) {
+			if(read_n[i].uid === data_json.uid && (!data_json.source || (read_n[i].source === data_json.source)) && (!data_json.context || (read_n[i].context === data_json.context)))
 				read_n.splice(i, 1);
 		}
 	}
@@ -97,7 +97,7 @@ var n_store_read = function(data_json) {
 		}
 		// look in unread array too, if duplicate UID found there, remove it
 		for(i = n.length - 1; i >= 0; i--) {
-			if(n[i].uid === data_json.uid && (!data_json.source || (n[i].source === data_json.source)) && (!data_json.context || (n[i].context === data_json.context))) {
+			if(n[i].uid === data_json.uid && (!data_json.source || (n[i].source === data_json.source)) && (!data_json.context || (n[i].context === data_json.context)))
 				n.splice(i, 1);
 		}
 	}
