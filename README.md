@@ -103,37 +103,24 @@ fork of znc-push, and maintain all changes inside my server branch over at:
 API
 ------
 The server speaks HTTPS and uses basic HTTP authentication. Here's a list of
-notification properties that the server cares about, many can be left empty:
-* `method`: What the server should do with this notification. Valid values are:
-  `newNotification`, `setRead`, `setUnread`. Must be set when using POST, does
-  nothing when using GET.
-* `text`: Text of the notification. Only makes sense with `newNotification`.
-* `source`: (optional) This is displayed right of the notification ID in the
-  server/client and is used to categorize notifications. Can be used as a
-  search criteria.
-* `sourcebg` and `sourcefg`: (optional) Color of source string. See list of
-  possible values at: `lib/clc-color.js`
-* `context`: (optional) This is displayed right of the source string, and can
-  be used to further categorize notifications. Can be used as a search
-  criteria.
-* `contextbg` and `contextfg`: (optional) Color of context string. See list of
-  possible values at: `lib/clc-color.js`
-* `uid`: (optional) Can be set by plugin to uniquely identify notifications
-  even if their indices change. Only one notification with the same UID, source
-  and context is allowed, old ones are replaced. UID will be sent along
-  read/unread updates to plugin. Can be used as a search criteria.
-* `id`: (optional) Only used for `setRead` and `setUnread` methods. Supports
-  ranges.
-* `openwith`: (optional) Specify which program the notification should be
-  opened with.
-* `url`: (optional) Specify an argument to be passed to the `openwith` program.
-* `response_host`: (optional) Specify which hostname the plugin listens on. If
-  given, the server will send a GET to given hostname on `response_port`,
-  resource is: `/read/<uid>` or `/unread/<uid>`.
-* `response_port`: (optional) Specify which port the plugin listens on.
-* `noSendResponse`: (optional) If set to `true`, the server will not send
-  read/unread updates to the plugin even if `response_host` and `response_port`
-  are given.
+notification properties that the server cares about, most of which can be left
+empty:
+
+ Property					| Explanation 
+----------------------------|------------------- 
+`method`					| What the server should do with this notification. Valid values are: `newNotification`, `setRead`, `setUnread`. Must be set when using POST, does nothing when using GET.
+`text`						| Text of the notification. Only makes sense with `newNotification`.
+`source`					| This is displayed right of the notification ID in the server/client and is used to categorize notifications. Can be used as a search criteria.
+`sourcebg` and `sourcefg`	| Color of source string. See list of possible values at: `lib/clc-color.js`
+`context`					| This is displayed right of the source string, and can be used to further categorize notifications. Can be used as a search criteria.
+`contextbg` and `contextfg`	| Color of context string. See list of possible values at: `lib/clc-color.js`
+`uid`						| Can be set by plugin to uniquely identify notifications even if their indices change. Only one notification with the same UID, source and context is allowed, old ones are replaced. UID will be sent along read/unread updates to plugin. Can be used as a search criteria.
+`id`						| Only used for `setRead` and `setUnread` methods. Supports ranges.
+`openwith`					| Specify which program the notification should be opened with.
+`url`						| Specify an argument to be passed to the `openwith` program.
+`response_host`				| Specify which hostname the plugin listens on. If given, the server will send a GET to given hostname on `response_port`, resource is: `/read/<uid>` or `/unread/<uid>`.
+`response_port`				| Specify which port the plugin listens on.
+`noSendResponse`			| If set to `true`, the server will not send read/unread updates to the plugin even if `response_host` and `response_port` are given.
 
 Notifications can include any properties, the server will just pass on any
 unknown ones.
@@ -162,23 +149,21 @@ to go from JSON to query string.
 	"url": "http://awesome-mail-provider.com/inbox/847295819",
 }
 ```
-* Mark notification(s) as read
-Mark notification with `id` equal to `42` as read:
+* Mark notification with `id` equal to `42` as read:
 ```
 {
 	"method": "setRead",
 	"id": 42
 }
 ```
-Mark all notifications with `source` set to `mail` as read:
+* Mark all notifications with `source` set to `mail` as read:
 ```
 {
 	"method": "setRead",
 	"source": "mail"
 }
 ```
-* Mark notification(s) as unread
-Mark notification with uid `123abc` as unread:
+* Mark notification with uid `123abc` as unread:
 ```
 {
 	"method": "setUnread",
