@@ -16,17 +16,17 @@
 	"mailplugin-ssl-cert": "mailplugin-cert.pem",
 	"contexts": {
 		"mymail@gmail.com": {
-			"context: "gmail1",
+			"context": "gmail1",
 			"contextbg": "green",
 			"contextfg": "whiteBright"
 		},
 		"other@gmail.com": {
-			"context: "gmail2",
+			"context": "gmail2",
 			"contextbg": "white",
 			"contextfg": "black"
 		},
 		"mymail@work.com": {
-			"context: "work",
+			"context": "work",
 			"contextbg": "red",
 			"contextfg": "black"
 		}
