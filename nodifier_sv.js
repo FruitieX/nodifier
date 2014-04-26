@@ -53,7 +53,7 @@ var n_store_unread = function(data_json) {
 	if(data_json.uid) {
 		var i;
 		for(i = 0; i < n.length; i++) {
-			if(n[i].uid === data_json.uid && n[i].source === data_json.source) {
+			if(n[i].uid === data_json.uid && (!data_json.source || (n[i].source === data_json.source)) && (!data_json.context || (n[i].context === data_json.context))) {
 				// TODO: for now keep date same so we don't mess up sorting!
 				data_json.date = n[i].date;
 				n[i] = data_json;
@@ -62,7 +62,7 @@ var n_store_unread = function(data_json) {
 		}
 		// look in read array too, if duplicate UID found there, remove it
 		for(i = read_n.length - 1; i >= 0; i--) {
-			if(read_n[i].uid === data_json.uid && read_n[i].source === data_json.source)
+			if(read_n[i].uid === data_json.uid && (!data_json.source || (read_n[i].source === data_json.source)) && (!data_json.context || (read_n[i].context === data_json.context))) {
 				read_n.splice(i, 1);
 		}
 	}
@@ -88,7 +88,7 @@ var n_store_read = function(data_json) {
 	if(data_json.uid) {
 		var i;
 		for(i = 0; i < read_n.length; i++) {
-			if(read_n[i].uid === data_json.uid && read_n[i].source === data_json.source) {
+			if(read_n[i].uid === data_json.uid && (!data_json.source || (read_n[i].source === data_json.source)) && (!data_json.context || (read_n[i].context === data_json.context))) {
 				// TODO: for now keep date same so we don't mess up sorting!
 				data_json.date = read_n[i].date;
 				read_n[i] = data_json;
@@ -97,7 +97,7 @@ var n_store_read = function(data_json) {
 		}
 		// look in unread array too, if duplicate UID found there, remove it
 		for(i = n.length - 1; i >= 0; i--) {
-			if(n[i].uid === data_json.uid && n[i].source === data_json.source)
+			if(n[i].uid === data_json.uid && (!data_json.source || (n[i].source === data_json.source)) && (!data_json.context || (n[i].context === data_json.context))) {
 				n.splice(i, 1);
 		}
 	}
@@ -227,8 +227,11 @@ var n_mark_as = function(notifications, noSendResponse, state) {
 
 var drawNotification = function(notification, id) {
 	var source_color = clc_color.def_source_color;
-	if(notification.colorfg)
-		source_color = clc_color.color_from_text(notification.colorfg, notification.colorbg);
+	if(notification.sourcefg || notification.sourcebg)
+		source_color = clc_color.color_from_text(notification.sourcefg, notification.sourcebg);
+	var context_color = clc_color.def_context_color;
+	if(notification.contextfg || notification.contextbg)
+		context_color = clc_color.color_from_text(notification.contextfg, notification.contextbg);
 
 	var date_arr = new Date(notification.date).toString().split(' ');
 	var date_string = date_arr[1] + ' ' + date_arr[2] + ' ' + date_arr[4].substr(0, 5) + ' ';
@@ -239,12 +242,15 @@ var drawNotification = function(notification, id) {
 	var text = notification.text;
 	// get rid of weird characters
 	text.replace('\t',' ');
-	// if the string is wider than our terminal we need to shorten it
-	var source_text_length = 5 + pos_string.length + notification.source.length + date_string.length;
-	if(source_text_length + text.length > process.stdout.columns)
-		text = text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
-	console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + text);
+	// TODO: check if both source and context actually given
+	// find length of string before text, shorten text if wider than our terminal
+	var pre_text = date_string + ' ' + pos_string + ' ' + ' ' + notification.source + ' ' + ' ' + notification.context + ' ' + ' ';
+	var text_length = text.length;
+	if(shorten && pre_text.length + text_length > process.stdout.columns)
+		text = text.substr(0, process.stdout.columns - pre_text.length - 3) + '...';
+
+	process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + context_color(' ' + notification.context + ' ') + ' ' + notification.text);
 };
 
 var redraw = function() {
@@ -256,9 +262,13 @@ var redraw = function() {
 
 	// draw it
 	if (len)
-		// TODO: figure out how to disable the prompt so we get one line more...
-		for(var i = 0; i < len; i++)
+		for(var i = 0; i < len; i++) {
 			drawNotification(notifications[i], i);
+			if (i != len - 1)
+				process.stdout.write('\n');
+			else
+				process.stdout.write('\r');
+		}
 	else
 		console.log(clc_color.no_unread_color("No unread notifications."));
 };

@@ -4,7 +4,7 @@
 	"autoMarkRead": true,
 	"ssl-key": "nodifier-key.pem",
 	"ssl-cert": "nodifier-cert.pem",
-	"apps": {
+	"programs": {
 		"browser": "chromium"
 	}
 }

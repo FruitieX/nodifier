@@ -12,10 +12,10 @@ var path;
 
 var range_re = /(.*)\.\.(.*)/;
 var spawn = require('child_process').spawn;
-var launchApp = function(app, url) {
-	var command = config.apps[app];
+var launchProgram = function(program, url) {
+	var command = config.programs[program];
 	if(!command) {
-		console.log("Unknown app: " + app + "!");
+		console.log("Unknown program: " + program + "!");
 		return;
 	}
 
@@ -68,8 +68,11 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 	var printNotification = function(notification, id, shorten) {
 		var source_color = clc_color.def_source_color;
-		if(notification.colorfg)
-			source_color = clc_color.color_from_text(notification.colorfg, notification.colorbg);
+		if(notification.sourcefg || notification.sourcebg)
+			source_color = clc_color.color_from_text(notification.sourcefg, notification.sourcebg);
+		var context_color = clc_color.def_context_color;
+		if(notification.contextfg || notification.contextbg)
+			context_color = clc_color.color_from_text(notification.contextfg, notification.contextbg);
 
 		var date_arr = new Date(notification.date).toString().split(' ');
 		var date_string = date_arr[1] + ' ' + date_arr[2] + ' ' + date_arr[4].substr(0, 5) + ' ';
@@ -78,13 +81,16 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 		// get rid of weird characters
 		notification.text.replace('\t',' ');
-		// if the string is wider than our terminal we need to shorten it
-		var source_text_length = 5 + pos_string.length + notification.source.length + date_string.length;
-		var text_length = notification.text.length;
-		if(shorten && source_text_length + text_length > process.stdout.columns)
-			notification.text = notification.text.substr(0, process.stdout.columns - source_text_length - 3) + '...';
 
-		console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + ' ' + notification.text);
+		// TODO: check if both source and context actually given
+		// find length of string before notification.text, shorten notification.text if
+		// wider than our terminal
+		var pre_text = date_string + ' ' + pos_string + ' ' + ' ' + notification.source + ' ' + ' ' + notification.context + ' ' + ' ';
+		var text_length = notification.text.length;
+		if(shorten && pre_text.length + text_length > process.stdout.columns)
+			notification.text = notification.text.substr(0, process.stdout.columns - pre_text.length - 3) + '...';
+
+		console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(' ' + notification.source + ' ') + context_color(' ' + notification.context + ' ') + ' ' + notification.text);
 	};
 
 	var req = https.request(options, function(res) {
@@ -115,8 +121,8 @@ if (process.argv[2] === 'u') { // mark notification as unread
 					for(i = 0; i < notifications.length; i++) {
 						printNotification(notifications[i], i, false);
 
-						if(notifications[i].app) {
-							launchApp(notifications[i].app, notifications[i].url);
+						if(notifications[i].openwith) {
+							launchProgram(notifications[i].openwith, notifications[i].url);
 						}
 					}
 
