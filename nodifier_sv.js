@@ -122,7 +122,7 @@ var n_store_read = function(data_json) {
 };
 
 var range_re = /(.*)\.\.(.*)/;
-var n_fetch = function(id, array) {
+var n_id_fetch = function(id, array) {
 	var range = id.match(range_re);
 	if(range) {
 		var min = range[1] || 0;
@@ -143,9 +143,11 @@ var n_fetch = function(id, array) {
 	}
 };
 
-var n_uid_fetch = function(uid, array) {
+// fetch notifications with matching uid, source, context
+// (if any of these fields are left undefined, the field will not be included in search)
+var n_search_fetch = function(uid, source, context, array) {
 	return array.filter(function (notification) {
-		return notification.uid == uid;
+		return (!uid || (notification.uid == uid)) && (!source || (notification.source == source)) && (!context || (notification.context == context));
 	})[0];
 };
 
@@ -320,36 +322,28 @@ var handlePOST = function(req, res) {
 			resMsg(res, 200, "Notification added.");
 			redraw();
 		} else if (data_json.method === 'setUnread') {
-			if(data_json.uid) {
-				notifications = n_uid_fetch(data_json.uid, read_n);
-				if (!notifications) {
-					resMsg(res, 404, "Notification with uid " + data_json.uid + " not found.");
-					return;
-				}
+			if (data_json.uid || data_json.source || data_json.context) {
+				notifications = n_search_fetch(data_json.uid, data_json.source, data_json.context, n);
 			} else {
-				notifications = n_fetch(data_json.id, read_n);
-				if (!notifications) {
-					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
-					return;
-				}
+				notifications = n_id_fetch(data_json.id, read_n);
+			}
+			if (!notifications) {
+				resMsg(res, 404, "Notification not found.");
+				return;
 			}
 
 			msg = n_mark_as(notifications, data_json.noSendResponse, "unread");
 			resMsg(res, 200, msg);
 			redraw();
 		} else if (data_json.method === 'setRead') {
-			if(data_json.uid) {
-				notifications = n_uid_fetch(data_json.uid, n);
-				if (!notifications) {
-					resMsg(res, 404, "Notification with uid " + data_json.uid + " not found.");
-					return;
-				}
+			if (data_json.uid || data_json.source || data_json.context) {
+				notifications = n_search_fetch(data_json.uid, data_json.source, data_json.context, n);
 			} else {
-				notifications = n_fetch(data_json.id, n);
-				if (!notifications) {
-					resMsg(res, 404, "Notification with id " + data_json.id + " not found.");
-					return;
-				}
+				notifications = n_id_fetch(data_json.id, n);
+			}
+			if (!notifications) {
+				resMsg(res, 404, "Notification not found.");
+				return;
 			}
 
 			msg = n_mark_as(notifications, data_json.noSendResponse, "read");
@@ -379,7 +373,7 @@ var handleGET = function(req, res) {
 		notifications = read_n;
 		resWriteJSON(res, notifications);
 	} else { // fetch one notification or a range of notifications
-		notifications = n_fetch(resource, n);
+		notifications = n_id_fetch(resource, n);
 
 		if(notifications)
 			resWriteJSON(res, notifications);
