@@ -4,28 +4,28 @@
 	"host": "imap-host",
 	"port": 993,
 	"tls": true,
-	"source": "Gmail",
 	"openwith": "browser",
 	"url": "https://mail.google.com/mail/u/0/#inbox/",
-	"sourcebg": "red",
+	"source": "mail",
+	"sourcebg": "black",
 	"sourcefg": "whiteBright"
 	"response_host": "awesomehost.com",
 	"response_port": "8081",
 	"unreadSyncInterval": "60",
 	"mailplugin-ssl-key": "mailplugin-key.pem",
 	"mailplugin-ssl-cert": "mailplugin-cert.pem",
-	"contexts": {
-		"mymail@gmail.com": {
-			"context": "gmail1",
-			"contextbg": "green",
+	"label_contexts": {
+		"default": {
+			"context": "gmail",
+			"contextbg": "red",
 			"contextfg": "whiteBright"
 		},
-		"other@gmail.com": {
-			"context": "gmail2",
+		"Spam": {
+			"context": "spam",
 			"contextbg": "white",
 			"contextfg": "black"
 		},
-		"mymail@work.com": {
+		"Work": {
 			"context": "work",
 			"contextbg": "red",
 			"contextfg": "black"

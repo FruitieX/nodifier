@@ -44,12 +44,12 @@ exports.start = function(config) {
 			'method': 'newNotification',
 			'uid': uid,
 			'text': text,
-			'source': config.source,
-			'context': context,
 			'openwith': config.openwith,
 			'url': config.url + threadId,
+			'source': config.source,
 			'sourcebg': config.sourcebg,
 			'sourcefg': config.sourcefg,
+			'context': context,
 			'contextbg': contextbg,
 			'contextfg': contextfg,
 			'response_host': config.response_host,
@@ -109,23 +109,34 @@ exports.start = function(config) {
 						var header = Imap.parseHeader(buffer);
 						from = header.from;
 						subject = header.subject;
-
-						// attempt finding a "context" value for notification based on "to" address
-						var to = header.to;
-						for (var address in config.contexts) {
-							if(to.indexOf(address) !== -1) {
-								context = config.contexts[address].context;
-								contextfg = config.contexts[address].contextfg;
-								contextbg = config.contexts[address].contextbg;
-								break;
-							}
-						}
 					});
 				});
 				msgs.once('attributes', function(attrs) {
 					uid = attrs.uid;
 					threadId = dec2hex(attrs['x-gm-thrid']);
 					labels = attrs['x-gm-labels'];
+					console.log(labels);
+
+					// attempt finding a "context" value for notification based on labels
+					if(labels) {
+						// loop over labels in mail
+						for (var label in labels) {
+							// loop over labels in config
+							for (var cfglabel in config.label_contexts) {
+								if(label === cfglabel) {
+									context = config.label_contexts[cfglabel].context;
+									contextfg = config.label_contexts[cfglabel].contextfg;
+									contextbg = config.label_contexts[cfglabel].contextbg;
+									break;
+								}
+							}
+						}
+					}
+					if(!context) {
+						context = config.label_contexts["default"].context;
+						contextfg = config.label_contexts["default"].contextfg;
+						contextbg = config.label_contexts["default"].contextbg;
+					}
 				});
 				msgs.once('end', function() {
 					newUnread(from, subject, uid, threadId, labels, context, contextfg, contextbg);
