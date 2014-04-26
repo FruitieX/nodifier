@@ -12,7 +12,7 @@ plugins by having a look at the API below!
 * Simple HTTPS REST API. Notifications sent as JSON.
 * The nodifier client can be used to list (un)read notifications, mark one or several as (un)read, and open a program associated with a notification.
 * The nodifier server prints unread notifications to STDOUT whenever the list changes, making it useful on a secondary monitor.
-* Plugins can associate notifications with a program and an URI to pass as an argument to that program. This way you can e.g. open a web browser directly to the URL of a received e-mail.
+* Plugins can associate notifications with a program and an URI to pass as an argument to that program. This way you can e.g. open a web browser directly to the webmail URL of a received e-mail.
 * Plugins can be told when a notification has been read, and can then e.g. mark an e-mail as read. Works vice-versa, too.
 * Free Open Source Software! (MIT License)
 
