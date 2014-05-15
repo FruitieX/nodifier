@@ -52,6 +52,8 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 	if (n_id === "lr") // list read
 		path = '/read';
+	else if (n_id === "l") // 'listen' for notifications
+		path = '/all';
 	else if (n_id)
 		path = '/' + n_id;
 	else
@@ -95,59 +97,71 @@ if (process.argv[2] === 'u') { // mark notification as unread
 		console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + notification.text);
 	};
 
-	var req = https.request(options, function(res) {
-		var contentLength = parseInt(res.headers['content-length']);
-		var data = "";
+	var makeReq = function() {
+		var req = https.request(options, function(res) {
+			var contentLength = parseInt(res.headers['content-length']);
+			var data = "";
 
-		res.on('data', function(chunk) {
-			data += chunk;
+			res.on('data', function(chunk) {
+				data += chunk;
 
-			// do we have all data?
-			if (Buffer.byteLength(data, 'utf8') >= contentLength) {
-				if(res.statusCode !== 200) {
-					console.log('Response: ' + data);
-					return;
-				}
+				// do we have all data?
+				if (Buffer.byteLength(data, 'utf8') >= contentLength) {
+					if(res.statusCode !== 200) {
+						console.log('Response: ' + data);
+						return;
+					}
 
-				var json_data = JSON.parse(data);
-				var notifications = [];
-				var i;
+					var json_data = JSON.parse(data);
+					var notifications = [];
+					var i;
 
-				if (n_id && n_id !== "lr") { // requested a specific notification or a range
-					var range = n_id.match(range_re);
-					if(!range)
-						notifications = [json_data];
-					else
-						notifications = json_data;
+					if (n_id && n_id !== "lr" && n_id !== "l") { // requested a specific notification or a range
+						var range = n_id.match(range_re);
+						if(!range)
+							notifications = [json_data];
+						else
+							notifications = json_data;
 
-					for(i = 0; i < notifications.length; i++) {
-						printNotification(notifications[i], i, false);
+						for(i = 0; i < notifications.length; i++) {
+							printNotification(notifications[i], i, false);
 
-						if(notifications[i].openwith) {
-							launchProgram(notifications[i].openwith, notifications[i].url);
+							if(notifications[i].openwith) {
+								launchProgram(notifications[i].openwith, notifications[i].url);
+							}
+						}
+
+						if(config.autoMarkRead) {
+							post.sendPOST({
+								'method': 'setRead',
+								'id': n_id
+							}, true);
 						}
 					}
+					else { // requested all notifications
+						if(n_id === "l") { // poll for more notifications after 10 seconds
+							// TODO: something smarter than polling here
 
-					if(config.autoMarkRead) {
-						post.sendPOST({
-							'method': 'setRead',
-							'id': n_id
-						}, true);
-					}
-				}
-				else { // requested all notifications
-					if(json_data.length) {
-						for(i = 0; i < json_data.length; i++) {
-							if(json_data[i])
-								printNotification(json_data[i], i, true);
+							// clear the terminal
+							process.stdout.write('\u001B[2J\u001B[0;0f');
+							setTimeout(function() {
+								makeReq();
+							}, 10 * 1000);
 						}
-					} else {
-						console.log(clc_color.no_unread_color("No unread notifications."));
+						if(json_data.length) {
+							for(i = 0; i < json_data.length; i++) {
+								if(json_data[i])
+									printNotification(json_data[i], i, true);
+							}
+						} else {
+							console.log(clc_color.no_unread_color("No unread notifications."));
+						}
 					}
 				}
-			}
+			});
 		});
-	});
 
-	req.end();
+		req.end();
+	};
+	makeReq();
 }
