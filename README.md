@@ -11,7 +11,7 @@ plugins by having a look at the API below!
 ### Features:
 * Simple HTTPS REST API. Notifications sent as JSON.
 * The nodifier client can be used to list (un)read notifications, mark one or several as (un)read, and open a program associated with a notification.
-* The nodifier server prints unread notifications to STDOUT whenever the list changes, making it useful on a secondary monitor.
+* The nodifier client can be put into 'listen' mode, where it prints unread notifications to STDOUT whenever the list changes, making it useful on a secondary monitor. When in listen mode the client uses HTTP long polling.
 * Plugins can associate notifications with a program and an URI to pass as an argument to that program. This way you can e.g. open a web browser directly to the webmail URL of a received e-mail.
 * Plugins can be told when a notification has been read, and can then e.g. mark an e-mail as read. Works vice-versa, too.
 * Free Open Source Software! (MIT License)
@@ -51,6 +51,7 @@ Argument	| Explanation
 `<id>`		| List a notification with matching `id`, if the notification specifies program to launch it will be launched. If `autoMarkRead` is enabled, the notification will be marked as read. Supports ranges.
 `r <id>`	| Mark `id` as read, supports ranges
 `u <id>`	| Mark `id` from list of read notifications as unread, supports ranges
+`l`			| Run the client in 'listen' mode, continuously printing new notifications to console
 
 Ranges can be specified as such, both limits are inclusive: `37..42`
 Either limit can be left out to match indices before/after:
@@ -66,7 +67,7 @@ Server - `nodifier_sv.js`
 -------------------------
 ### Setup
 1. Generate SSL keys with `./gen_keys.sh`
-2. Run `nodifier_sv.js` in a terminal where you want notifications to show up.
+2. Run `nodifier_sv.js`
 3. Test with e.g. `plugins/spam/plugin.js`
 
 Now the server is not very useful alone without anything sending notifications
