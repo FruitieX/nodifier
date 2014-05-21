@@ -15,7 +15,7 @@ var spawn = require('child_process').spawn;
 var launchProgram = function(program, url) {
 	var command = config.programs[program];
 	if(!command) {
-		process.stdout.write("Unknown program: " + program + "!");
+		console.log("Unknown program: " + program + "!");
 		return;
 	}
 
@@ -27,19 +27,9 @@ var launchProgram = function(program, url) {
 	child.unref();
 };
 
-var onquit = function() {
-	process.stdout.write('\n');
-	// show cursor again
-	process.stdout.write('\x1b[?25h');
-	process.exit();
-};
-// hide cursor
-process.stdout.write('\x1b[?25l');
-process.on('SIGINT', onquit); process.on('exit', onquit);
-
 if (process.argv[2] === 'u') { // mark notification as unread
 	if(!process.argv[3]) {
-		process.stdout.write("Please provide notification ID!");
+		console.log("Please provide notification ID!");
 		process.exit(1);
 	}
 
@@ -49,7 +39,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 	});
 } else if (process.argv[2] === 'r') { // mark notification as unread
 	if(!process.argv[3]) {
-		process.stdout.write("Please provide notification ID!");
+		console.log("Please provide notification ID!");
 		process.exit(1);
 	}
 
@@ -62,8 +52,28 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 	if (n_id === "lr") // list read
 		path = '/read';
-	else if (n_id === "l") // 'listen' for notifications
+	else if (n_id === "l") { // 'listen' for notifications
 		path = '/all';
+
+		var onquit = function() {
+			process.stdout.write('\n');
+			// show cursor again
+			process.stdout.write('\x1b[?25h');
+			process.exit();
+		};
+		// hide cursor
+		process.stdout.write('\x1b[?25l');
+		process.on('SIGINT', onquit); process.on('exit', onquit);
+
+		var stdin = process.stdin;
+		stdin.setRawMode(true);
+		stdin.resume();
+		stdin.setEncoding( 'utf8' );
+
+		stdin.on('data', function(key) {
+			if(key == 'q' || key == '\u0003') onquit();
+		});
+	}
 	else if (n_id)
 		path = '/' + n_id;
 	else
@@ -121,7 +131,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 				// do we have all data?
 				if (Buffer.byteLength(data, 'utf8') >= contentLength) {
 					if(res.statusCode !== 200) {
-						process.stdout.write('Response: ' + data);
+						console.log('Response: ' + data);
 						return;
 					}
 
@@ -138,7 +148,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 						for(i = 0; i < notifications.length; i++) {
 							printNotification(notifications[i], i, false);
-							if (i != notifications.length -1)
+							if (n_id !== "l" || i != notifications.length -1)
 								process.stdout.write('\n');
 							else
 								process.stdout.write('\r');
@@ -168,7 +178,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 						if(json_data.length) {
 							for(i = 0; i < json_data.length; i++) {
 								printNotification(json_data[i], i, true);
-								if (i != json_data.length -1)
+								if (n_id !== "l" || i != json_data.length -1)
 									process.stdout.write('\n');
 								else
 									process.stdout.write('\r');
