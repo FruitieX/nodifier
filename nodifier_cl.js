@@ -85,7 +85,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 		if(shorten && pre_text.length + text_length > process.stdout.columns)
 			notification.text = notification.text.substr(0, process.stdout.columns - pre_text.length - 3) + '...';
 
-		console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + notification.text);
+		process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + notification.text);
 	};
 
 	var makeReq = function(customPath) {
@@ -128,6 +128,10 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 						for(i = 0; i < notifications.length; i++) {
 							printNotification(notifications[i], i, false);
+							if (i != notifications.length -1)
+								process.stdout.write('\n');
+							else
+								process.stdout.write('\r');
 
 							if(notifications[i].openwith) {
 								launchProgram(notifications[i].openwith, notifications[i].url);
@@ -153,8 +157,11 @@ if (process.argv[2] === 'u') { // mark notification as unread
 						}
 						if(json_data.length) {
 							for(i = 0; i < json_data.length; i++) {
-								if(json_data[i])
-									printNotification(json_data[i], i, true);
+								printNotification(json_data[i], i, true);
+								if (i != json_data.length -1)
+									process.stdout.write('\n');
+								else
+									process.stdout.write('\r');
 							}
 						} else {
 							console.log(clc_color.no_unread_color("No unread notifications."));
