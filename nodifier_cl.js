@@ -15,7 +15,7 @@ var spawn = require('child_process').spawn;
 var launchProgram = function(program, url) {
 	var command = config.programs[program];
 	if(!command) {
-		console.log("Unknown program: " + program + "!");
+		process.stdout.write("Unknown program: " + program + "!");
 		return;
 	}
 
@@ -27,9 +27,19 @@ var launchProgram = function(program, url) {
 	child.unref();
 };
 
+var onquit = function() {
+	process.stdout.write('\n');
+	// show cursor again
+	process.stdout.write('\x1b[?25h');
+	process.exit();
+};
+// hide cursor
+process.stdout.write('\x1b[?25l');
+process.on('SIGINT', onquit); process.on('exit', onquit);
+
 if (process.argv[2] === 'u') { // mark notification as unread
 	if(!process.argv[3]) {
-		console.log("Please provide notification ID!");
+		process.stdout.write("Please provide notification ID!");
 		process.exit(1);
 	}
 
@@ -39,7 +49,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 	});
 } else if (process.argv[2] === 'r') { // mark notification as unread
 	if(!process.argv[3]) {
-		console.log("Please provide notification ID!");
+		process.stdout.write("Please provide notification ID!");
 		process.exit(1);
 	}
 
@@ -111,7 +121,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 				// do we have all data?
 				if (Buffer.byteLength(data, 'utf8') >= contentLength) {
 					if(res.statusCode !== 200) {
-						console.log('Response: ' + data);
+						process.stdout.write('Response: ' + data);
 						return;
 					}
 
