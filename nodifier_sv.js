@@ -12,7 +12,6 @@ var https = require('https');
 var url = require('url');
 var querystring = require('querystring');
 var clc = require('cli-color');
-var clc_color = require('./lib/clc-color');
 var config = require('./config.json');
 var fs = require('fs');
 var path = require('path');
@@ -233,63 +232,11 @@ var n_mark_as = function(notifications, noSendResponse, state) {
 	return msg;
 };
 
-/* Drawing */
-
-var drawNotification = function(notification, id) {
-	var source_color = clc_color.def_source_color;
-	if(notification.sourcefg || notification.sourcebg)
-		source_color = clc_color.color_from_text(notification.sourcefg, notification.sourcebg);
-	var context_color = clc_color.def_context_color;
-	if(notification.contextfg || notification.contextbg)
-		context_color = clc_color.color_from_text(notification.contextfg, notification.contextbg);
-
-	var date_arr = new Date(notification.date).toString().split(' ');
-	var date_string = date_arr[1] + ' ' + date_arr[2] + ' ' + date_arr[4].substr(0, 5) + ' ';
-
-	var pos_string = id.toString();
-
-	// make a copy of the string before we potentially shorten
-	var text = notification.text;
-
-	// find length of string before text, shorten text if wider than our terminal
-	var source_string, context_string;
-	if(notification.source)
-		source_string = ' ' + notification.source + ' ';
-	if(notification.context)
-		context_string = ' ' + notification.context + ' ';
-
-	var pre_text = date_string + ' ' + pos_string + ' ' + source_string + context_string + ' ';
-	var text_length = text.length;
-	if(pre_text.length + text_length > process.stdout.columns)
-		text = text.substr(0, process.stdout.columns - pre_text.length - 3) + '...';
-
-	process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + text);
-};
-
-var redraw = function() {
-	// clear the terminal
-	process.stdout.write('\u001B[2J\u001B[0;0f');
-
-	var notifications = n;
-	var len = notifications.length;
-
-	// draw it
-	if (len)
-		for(var i = 0; i < len; i++) {
-			drawNotification(notifications[i], i);
-			if (i != len - 1)
-				process.stdout.write('\n');
-			else
-				process.stdout.write('\r');
-		}
-	else
-		console.log(clc_color.no_unread_color("No unread notifications."));
-};
-
 /* HTTP server */
 
 // regex for matching getprev urls, remembers the digit
 var url_re_all = /all.*/;
+var url_re_longpoll = /longpoll.*/;
 var url_re_read = /read.*/;
 
 var resMsg = function(res, statusCode, msg) {
@@ -318,9 +265,9 @@ var handlePOST = function(req, res) {
 		if (data_json.method === 'newNotification') {
 			// store POST in notifications array, note: make copy of object
 			n_store_unread(data_json);
+			resLongpolls();
 
 			resMsg(res, 200, "Notification added.");
-			redraw();
 		} else if (data_json.method === 'setUnread') {
 			if (data_json.uid || data_json.source || data_json.context) {
 				notifications = n_search_fetch(data_json.uid, data_json.source, data_json.context, n);
@@ -333,8 +280,9 @@ var handlePOST = function(req, res) {
 			}
 
 			msg = n_mark_as(notifications, data_json.noSendResponse, "unread");
+			resLongpolls();
+
 			resMsg(res, 200, msg);
-			redraw();
 		} else if (data_json.method === 'setRead') {
 			if (data_json.uid || data_json.source || data_json.context) {
 				notifications = n_search_fetch(data_json.uid, data_json.source, data_json.context, n);
@@ -347,8 +295,9 @@ var handlePOST = function(req, res) {
 			}
 
 			msg = n_mark_as(notifications, data_json.noSendResponse, "read");
+			resLongpolls();
+
 			resMsg(res, 200, msg);
-			redraw();
 		} else {
 			resMsg(res, 404, "Unknown method in POST (should be 'newNotification', 'setUnread' or 'setRead')");
 		}
@@ -359,16 +308,26 @@ var handlePOST = function(req, res) {
 	});
 };
 
+var longpolls = [];
+
+var resLongpolls = function() {
+	while(longpolls.length)
+		resWriteJSON(longpolls.pop(), n);
+};
+
 var handleGET = function(req, res) {
 	var resource = url.parse(req.url).pathname;
 	resource = resource.substr(1); // remove first slash
 
 	var notifications;
 	var all = resource.match(url_re_all);
+	var longpoll = resource.match(url_re_longpoll);
 	var read = resource.match(url_re_read);
 	if(all) { // fetch all unread notifications
 		notifications = n;
 		resWriteJSON(res, notifications);
+	} else if (longpoll) {
+		longpolls.push(res);
 	} else if (read) {
 		notifications = read_n;
 		resWriteJSON(res, notifications);
@@ -390,7 +349,7 @@ s = https.createServer(basic, options, function (req, res) {
 	}
 });
 
-console.log(clc.green('listening on port ' + config.port));
+console.log(clc.green('nodifier server listening on port ' + config.port));
 s.listen(config.port);
 
 process.on('uncaughtException', function (err) {

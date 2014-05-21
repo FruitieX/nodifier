@@ -59,15 +59,6 @@ if (process.argv[2] === 'u') { // mark notification as unread
 	else
 		path = '/all';
 
-	var options = {
-		hostname: config.host,
-		port: config.port,
-		path: path,
-		method: 'GET',
-		rejectUnauthorized: false,
-		auth: htpasswd.username + ':' + htpasswd.password
-	};
-
 	var printNotification = function(notification, id, shorten) {
 		var source_color = clc_color.def_source_color;
 		if(notification.sourcefg || notification.sourcebg)
@@ -97,7 +88,19 @@ if (process.argv[2] === 'u') { // mark notification as unread
 		console.log(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + notification.text);
 	};
 
-	var makeReq = function() {
+	var makeReq = function(customPath) {
+		var options = {
+			hostname: config.host,
+			port: config.port,
+			path: path,
+			method: 'GET',
+			rejectUnauthorized: false,
+			auth: htpasswd.username + ':' + htpasswd.password
+		};
+
+		if(customPath)
+			options.path = customPath;
+
 		var req = https.request(options, function(res) {
 			var contentLength = parseInt(res.headers['content-length']);
 			var data = "";
@@ -140,13 +143,13 @@ if (process.argv[2] === 'u') { // mark notification as unread
 					}
 					else { // requested all notifications
 						if(n_id === "l") { // poll for more notifications after 10 seconds
-							// TODO: something smarter than polling here
-
 							// clear the terminal
 							process.stdout.write('\u001B[2J\u001B[0;0f');
+
+							// do a longpoll request after 1 sec
 							setTimeout(function() {
-								makeReq();
-							}, 10 * 1000);
+								makeReq('/longpoll');
+							}, 1000);
 						}
 						if(json_data.length) {
 							for(i = 0; i < json_data.length; i++) {
