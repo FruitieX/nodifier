@@ -27,6 +27,8 @@ var launchProgram = function(program, url) {
 	child.unref();
 };
 
+var notificationsCache;
+
 if (process.argv[2] === 'u') { // mark notification as unread
 	if(!process.argv[3]) {
 		console.log("Please provide notification ID!");
@@ -73,6 +75,23 @@ if (process.argv[2] === 'u') { // mark notification as unread
 		stdin.on('data', function(key) {
 			if(key == 'q' || key == '\u0003') onquit();
 		});
+
+		process.stdout.on('resize', function() {
+			// clear the terminal
+			process.stdout.write('\u001B[2J\u001B[0;0f');
+
+			if(notificationsCache.length) {
+				for(i = 0; i < notificationsCache.length; i++) {
+					printNotification(notificationsCache[i], i, true);
+					if (n_id !== "l" || i != notificationsCache.length -1)
+						process.stdout.write('\n');
+					else
+						process.stdout.write('\r');
+				}
+			} else {
+				console.log(clc_color.no_unread_color("No unread notifications."));
+			}
+		});
 	}
 	else if (n_id)
 		path = '/' + n_id;
@@ -94,7 +113,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 		// find length of string before notification.text, shorten notification.text if
 		// wider than our terminal
-		var source_string, context_string;
+		var source_string = ''; context_string = '';
 		if(notification.source)
 			source_string = ' ' + notification.source + ' ';
 		if(notification.context)
@@ -102,10 +121,11 @@ if (process.argv[2] === 'u') { // mark notification as unread
 
 		var pre_text = date_string + ' ' + pos_string + ' ' + source_string + context_string + ' ';
 		var text_length = notification.text.length;
+		var text = notification.text
 		if(shorten && pre_text.length + text_length > process.stdout.columns)
-			notification.text = notification.text.substr(0, process.stdout.columns - pre_text.length - 3) + '...';
+			text = text.substr(0, process.stdout.columns - pre_text.length - 3) + '...';
 
-		process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + notification.text);
+		process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + text);
 	};
 
 	var makeReq = function(customPath) {
@@ -145,6 +165,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 							notifications = [json_data];
 						else
 							notifications = json_data;
+						notificationsCache = notifications;
 
 						for(i = 0; i < notifications.length; i++) {
 							printNotification(notifications[i], i, false);
@@ -175,6 +196,7 @@ if (process.argv[2] === 'u') { // mark notification as unread
 								makeReq('/longpoll');
 							}, 1000);
 						}
+						notificationsCache = json_data;
 						if(json_data.length) {
 							for(i = 0; i < json_data.length; i++) {
 								printNotification(json_data[i], i, true);
