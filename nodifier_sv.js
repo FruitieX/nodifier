@@ -192,25 +192,23 @@ var n_mark_as = function(notifications, noSendResponse, state) {
 			plugin_setReadStatus(notifications[i], state);
 	}
 
-	if(update) {
-		// loop through unread notifications
-		// see if we can find any that were marked as read
-		// remove and move these to "read_n"
-		if(state === "read") {
-			for(i = n.length - 1; i >= 0; i--) {
-				if(n[i].read) {
-					notification = n[i];
-					n.splice(i, 1);
-					n_store_read(notification);
-				}
+	// loop through unread notifications
+	// see if we can find any that were marked as read
+	// remove and move these to "read_n"
+	if(state === "read") {
+		for(i = n.length - 1; i >= 0; i--) {
+			if(n[i].read) {
+				notification = n[i];
+				n.splice(i, 1);
+				n_store_read(notification);
 			}
-		} else if (state === "unread") {
-			for(i = read_n.length - 1; i >= 0; i--) {
-				if(!read_n[i].read) {
-					notification = read_n[i];
-					read_n.splice(i, 1);
-					n_store_unread(notification);
-				}
+		}
+	} else if (state === "unread") {
+		for(i = read_n.length - 1; i >= 0; i--) {
+			if(!read_n[i].read) {
+				notification = read_n[i];
+				read_n.splice(i, 1);
+				n_store_unread(notification);
 			}
 		}
 	}
