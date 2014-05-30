@@ -176,24 +176,20 @@ var n_mark_as = function(notifications, noSendResponse, state) {
 		notifications = [notifications];
 	}
 
-	// keep track if any notification was actually changed
-	var update = false;
-
 	var i;
 	var notification;
 
 	// update read boolean field of every given notification
 	for (i = 0; i < notifications.length; i++) {
-		if((state === "read" && !notifications[i].read) || (state === "unread" && notifications[i].read)) {
-			// toggle read status
-			notifications[i].read = !notifications[i].read;
-			update = true;
+		// toggle read status
+		if(state === "read")
+			notifications[i].read = true;
+		else
+			notifications[i].read = false;
 
-			// if plugin supports updating read status, send update
-			if(!noSendResponse)
-				plugin_setReadStatus(notifications[i], state);
-
-		}
+		// if plugin supports updating read status, send update
+		if(!noSendResponse)
+			plugin_setReadStatus(notifications[i], state);
 	}
 
 	if(update) {
@@ -217,19 +213,7 @@ var n_mark_as = function(notifications, noSendResponse, state) {
 				}
 			}
 		}
-
-		if(notifications.length > 1)
-			msg = "Notifications set as " + state + ".";
-		else
-			msg = "Notification set as " + state + ".";
-	} else {
-		if(notifications.length > 1)
-			msg = "All notifications already marked as " + state + ".";
-		else
-			msg = "Notification already marked as " + state + ".";
 	}
-
-	return msg;
 };
 
 /* HTTP server */
@@ -270,7 +254,7 @@ var handlePOST = function(req, res) {
 			resMsg(res, 200, "Notification added.");
 		} else if (data_json.method === 'setUnread') {
 			if (data_json.uid || data_json.source || data_json.context) {
-				notifications = n_search_fetch(data_json.uid, data_json.source, data_json.context, n);
+				notifications = n_search_fetch(data_json.uid, data_json.source, data_json.context, read_n);
 			} else {
 				notifications = n_id_fetch(data_json.id, read_n);
 			}
@@ -279,10 +263,10 @@ var handlePOST = function(req, res) {
 				return;
 			}
 
-			msg = n_mark_as(notifications, data_json.noSendResponse, "unread");
+			n_mark_as(notifications, data_json.noSendResponse, "unread");
 			resLongpolls();
 
-			resMsg(res, 200, msg);
+			resWriteJSON(res, notifications);
 		} else if (data_json.method === 'setRead') {
 			if (data_json.uid || data_json.source || data_json.context) {
 				notifications = n_search_fetch(data_json.uid, data_json.source, data_json.context, n);
@@ -294,10 +278,10 @@ var handlePOST = function(req, res) {
 				return;
 			}
 
-			msg = n_mark_as(notifications, data_json.noSendResponse, "read");
+			n_mark_as(notifications, data_json.noSendResponse, "read");
 			resLongpolls();
 
-			resMsg(res, 200, msg);
+			resWriteJSON(res, notifications);
 		} else {
 			resMsg(res, 404, "Unknown method in POST (should be 'newNotification', 'setUnread' or 'setRead')");
 		}
