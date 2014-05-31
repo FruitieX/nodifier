@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var https = require('https');
+var ws = require('ws');
 var clc = require('cli-color');
 var clc_color = require('./lib/clc-color');
 
