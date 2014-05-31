@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 var config = require('./config.json');
-var clc = require('cli-color');
 
 /* Notification handling */
 
@@ -70,7 +69,9 @@ var storeNotification = function(data_json, read) {
 // if id is given only it will be used. if id is undefined search using other
 // fields. undefined fields not included in search.
 var range_re = /(.*)\.\.(.*)/;
-var searchNotifications = function(id, uid, source, context, array) {
+var searchNotifications = function(id, uid, source, context, read) {
+	var array = read ? readNotifications : unreadNotifications;
+
 	if(id) {
 		var range = id.match(range_re);
 		if(range) {
@@ -144,6 +145,35 @@ var markAs = function(notifications, noSendResponse, read) {
 /* Networking */
 
 var io = require('socket.io')(config.port);
+io.on('connection', function(socket) {
+	var notifications;
+
+	// add new notification
+	socket.on('newNotification', function(n) {
+		storeNotification(n, false);
+	});
+	// search for notifications and mark results as (un)read according to s.read
+	socket.on('markAs', function(s) {
+		notifications = searchNotifications(s.id, s.uid, s.source, s.context, !s.read);
+		markAs(notifications, s.noSendResponse, s.read);
+
+		socket.emit('notifications', notifications);
+	});
+	// get all read notifications
+	socket.on('getRead', function() {
+		socket.emit('notifications', readNotifications);
+	});
+	// get unread notifications by id, or all notifications if no id given
+	socket.on('getUnread', function(id) {
+		if(!id) {
+			notifications = unreadNotifications;
+		} else {
+			notifications = searchNotifications(s.id, s.uid, s.source, s.context, false);
+		}
+
+		socket.emit('notifications', notifications);
+	});
+});
 
 /*
 var fs = require('fs');
@@ -170,118 +200,6 @@ var plugin_setReadStatus = function(notification, read) {
 		req.end();
 	}
 };
-
-
-// regex for matching getprev urls, remembers the digit
-var url_re_all = /all.*/;
-var url_re_longpoll = /longpoll.*/;
-var url_re_read = /read.*/;
-
-var resMsg = function(res, statusCode, msg) {
-	res.writeHead(statusCode, msg, {
-		'Content-Type': 'text/html',
-		'Content-Length': Buffer.byteLength(msg, 'utf8')
-	});
-	res.end(msg);
-};
-
-var resWriteJSON = function(res, data) {
-	var data_json = JSON.stringify(data);
-	res.writeHead(200, "OK", {
-		'Content-Type': 'application/json',
-		'Content-Length': Buffer.byteLength(data_json, 'utf8')
-	});
-	res.end(data_json);
-};
-
-var handlePOST = function(req, res) {
-	var msg, notifications;
-
-	req.on('data', function(data) {
-		var data_json = querystring.parse(data.toString());
-
-		if (data_json.method === 'newNotification') {
-			// store POST in notifications array, note: make copy of object
-			storeNotification(data_json, false);
-			resLongpolls();
-
-			resMsg(res, 200, "Notification added.");
-		} else if (data_json.method === 'setUnread') {
-			if (data_json.uid || data_json.source || data_json.context) {
-				notifications = n_search_fetch(data_json.uid, data_json.source, data_json.context, readNotifications);
-			} else {
-				notifications = n_id_fetch(data_json.id, readNotifications);
-			}
-			if (!notifications) {
-				resMsg(res, 404, "Notification not found.");
-				return;
-			}
-
-			markAs(notifications, data_json.noSendResponse, "unread");
-			resLongpolls();
-
-			resWriteJSON(res, notifications);
-		} else if (data_json.method === 'setRead') {
-			if (data_json.uid || data_json.source || data_json.context) {
-				notifications = n_search_fetch(data_json.uid, data_json.source, data_json.context, unreadNotifications);
-			} else {
-				notifications = n_id_fetch(data_json.id, unreadNotifications);
-			}
-			if (!notifications) {
-				resMsg(res, 404, "Notification not found.");
-				return;
-			}
-
-			markAs(notifications, data_json.noSendResponse, "read");
-			resLongpolls();
-
-			resWriteJSON(res, notifications);
-		} else {
-			resMsg(res, 404, "Unknown method in POST (should be 'newNotification', 'setUnread' or 'setRead')");
-		}
-	});
-
-	req.on('end', function() {
-		resMsg(res, 200, "OK");
-	});
-};
-
-var handleGET = function(req, res) {
-	var resource = url.parse(req.url).pathname;
-	resource = resource.substr(1); // remove first slash
-
-	var notifications;
-	var all = resource.match(url_re_all);
-	var longpoll = resource.match(url_re_longpoll);
-	var read = resource.match(url_re_read);
-	if(all) { // fetch all unread notifications
-		notifications = n;
-		resWriteJSON(res, notifications);
-	} else if (longpoll) {
-		longpolls.push(res);
-	} else if (read) {
-		notifications = readNotifications;
-		resWriteJSON(res, notifications);
-	} else { // fetch one notification or a range of notifications
-		notifications = n_id_fetch(resource, n);
-
-		if(notifications)
-			resWriteJSON(res, notifications);
-		else
-			resMsg(res, 404, "Notification with id " + resource + " not found.");
-	}
-};
-
-s = https.createServer(basic, options, function (req, res) {
-	if (req.method == 'POST') {
-		handlePOST(req, res);
-	} else { // GET request
-		handleGET(req, res);
-	}
-});
-
-console.log(clc.green('nodifier server listening on port ' + config.port));
-s.listen(config.port);
 
 process.on('uncaughtException', function (err) {
 	console.error(err.stack);
