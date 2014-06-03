@@ -78,21 +78,27 @@ var printNotifications = function(notifications, listenMode) {
 	}
 };
 
+var addNotification = function(notification) {
+	notificationsCache.append(notification)
+	notificationsCache.sort(function(a, b) {
+		return a.date - b.date;
+	});
+};
+
 var socket = require('socket.io-client')(config.host + ':' + config.port);
 socket.on('connect', function() {
 	// these commands return a list of notifications and should print it
-	if(new Array('u', 'r', 'lr', 'l', undefined).indexOf(process.argv[2]) !== -1
+	if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
 		|| /(\d).*/.test(process.argv[2])) {
-		socket.on('notifications', function(notifications) {
-			printNotifications(notifications, (process.argv[2] === 'l'));
 
-			if (/(\d).*/.test(process.argv[2]) && notifications)
+		socket.on('notifications', function(notifications) {
+			printNotifications(notifications, false);
+
+			if(/(\d).*/.test(process.argv[2]) && notifications)
 				launchProgram(notifications[0]);
 
 			// non listen modes should exit now
-			if(process.argv[2] !== 'l')
-				process.exit(0);
-			notificationsCache = notifications;
+			process.exit(0);
 		});
 	}
 
@@ -118,6 +124,26 @@ socket.on('connect', function() {
 
 		// 'listen' for notifications
 		case 'l':
+			socket.on('notifications', function(notifications) {
+				notificationsCache = notifications;
+				printNotifications(notifications, true);
+			});
+			socket.on('markAs', function(notifications) {
+				for (var i = 0; i < notifications.length; i++) {
+					if (notifications[i].read) {
+						// notification marked as read, remove
+						notificationsCache.splice(notificationsCache.indexOf(notifications[i], 1));
+					} else {
+						// new notification, add and sort
+						addNotification(notifications[i]);
+					}
+				}
+			});
+			socket.on('newNotification', function(notification) {
+				// new notification, add and sort
+				addNotification(notification);
+			});
+
 			// hide cursor
 			process.stdout.write('\x1b[?25l');
 

@@ -153,8 +153,8 @@ io.sockets.on('connection', function(socket) {
 	socket.on('newNotification', function(n) {
 		storeNotification(n, false);
 
-		// broadcast current notifications to all other connected clients
-		socket.broadcast.emit('notifications', unreadNotifications);
+		// broadcast new notification to all other connected clients
+		socket.broadcast.emit('newNotification', n);
 	});
 	// search for notifications and mark results as (un)read according to s.read
 	socket.on('markAs', function(s) {
@@ -164,8 +164,8 @@ io.sockets.on('connection', function(socket) {
 
 		socket.emit('notifications', notifications);
 
-		// broadcast current notifications to all other connected clients
-		socket.broadcast.emit('notifications', unreadNotifications);
+		// broadcast updated notifications to all other connected clients
+		socket.broadcast.emit('markAs', notifications);
 	});
 	// get all read notifications
 	socket.on('getRead', function() {
@@ -182,32 +182,6 @@ io.sockets.on('connection', function(socket) {
 		socket.emit('notifications', notifications);
 	});
 });
-
-/*
-var fs = require('fs');
-var path = require('path');
-
-var options = {
-	key: fs.readFileSync(path.resolve(__dirname, config['ssl-key'])),
-	cert: fs.readFileSync(path.resolve(__dirname, config['ssl-cert']))
-};
-*/
-// report read status back to plugin
-var plugin_setReadStatus = function(notification, read) {
-	if(notification.uid && notification.response_host && notification.response_port) {
-		var options = {
-			hostname: notification.response_host,
-			port: notification.response_port,
-			path: '/' + read + '/' + notification.uid,
-			method: 'GET',
-			rejectUnauthorized: false,
-			auth: htpasswd.username + ':' + htpasswd.password
-		};
-
-		var req = https.request(options);
-		req.end();
-	}
-};
 
 process.on('uncaughtException', function (err) {
 	console.error(err.stack);
