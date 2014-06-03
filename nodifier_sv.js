@@ -151,6 +151,9 @@ io.on('connection', function(socket) {
 	// add new notification
 	socket.on('newNotification', function(n) {
 		storeNotification(n, false);
+
+		// broadcast current notifications to all other connected clients
+		socket.broadcast.emit('notifications', unreadNotifications);
 	});
 	// search for notifications and mark results as (un)read according to s.read
 	socket.on('markAs', function(s) {
@@ -158,6 +161,9 @@ io.on('connection', function(socket) {
 		markAs(notifications, s.noSendResponse, s.read);
 
 		socket.emit('notifications', notifications);
+
+		// broadcast current notifications to all other connected clients
+		socket.broadcast.emit('notifications', unreadNotifications);
 	});
 	// get all read notifications
 	socket.on('getRead', function() {
