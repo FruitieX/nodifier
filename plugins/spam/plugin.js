@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 // spam plugin, useful for testing
-var post = require('../../lib/post.js');
+var socket = require('../../lib/socketio-send.js');
 
 var cnt = 0;
 setInterval(function() {
-	post.sendPOST({
+	socket.send({
 		'method': 'newNotification',
 		'text': 'spamäåö123456789atheoutheachumcramcrhkrcehachuechacmecuaocemuchaechucehaocumechoaceuhcmkch.phehlowhwhell' + cnt,
 		'source': 'source' + cnt,
