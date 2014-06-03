@@ -166,8 +166,8 @@ io.sockets.on('connection', function(socket) {
 		var id = storeNotification(n, false);
 		updateID();
 
-		// broadcast new notification to all other connected clients
-		socket.broadcast.emit('newNotification', unreadNotifications[id]);
+		// broadcast new notification to all connected clients
+		io.sockets.emit('newNotification', unreadNotifications[id]);
 	});
 	// search for notifications and mark results as (un)read according to s.read
 	socket.on('markAs', function(s) {

@@ -8,7 +8,6 @@ var cnt = 0;
 socket.on('connect', function() {
 	setInterval(function() {
 		socket.emit('newNotification', {
-			'method': 'newNotification',
 			'text': 'spamäåö123456789atheoutheachumcramcrhkrcehachuechacmecuaocemuchaechucehaocumechoaceuhcmkch.phehlowhwhell' + cnt,
 			'source': 'source' + cnt,
 			'sourcebg': 'red',
