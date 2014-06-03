@@ -11,14 +11,14 @@ var path;
 
 var range_re = /(.*)\.\.(.*)/;
 var spawn = require('child_process').spawn;
-var launchProgram = function(program, url) {
-	var command = config.programs[program];
+var launchProgram = function(notification) {
+	var command = config.programs[notification.openwith];
 	if(!command) {
-		console.log("Unknown program: " + program + "!");
+		console.log("Unknown program: " + notification.openwith + "!");
 		return;
 	}
 
-	var child = spawn(command, [url], {
+	var child = spawn(command, [notification.url], {
 		detached: true,
 		stdio: [ 'ignore', 'ignore', 'ignore' ]
 	});
@@ -85,6 +85,9 @@ socket.on('connect', function() {
 		|| /(\d).*/.test(process.argv[2])) {
 		socket.on('notifications', function(notifications) {
 			printNotifications(notifications, (process.argv[2] === 'l'));
+
+			if (/(\d).*/.test(process.argv[2]) && notifications)
+				launchProgram(notifications[0]);
 
 			// non listen modes should exit now
 			if(process.argv[2] !== 'l')
@@ -164,74 +167,3 @@ socket.on('connect', function() {
 			break;
 	}
 });
-
-	/*
-	var req = https.request(options, function(res) {
-		var contentLength = parseInt(res.headers['content-length']);
-		var data = "";
-
-		res.on('data', function(chunk) {
-			data += chunk;
-
-			// do we have all data?
-			if (Buffer.byteLength(data, 'utf8') >= contentLength) {
-				if(res.statusCode !== 200) {
-					console.log('Response: ' + data);
-					return;
-				}
-
-				var json_data = JSON.parse(data);
-				var notifications = [];
-				var i;
-
-				if (n_id && n_id !== "lr" && n_id !== "l") { // requested a specific notification or a range
-					var range = n_id.match(range_re);
-					if(!range)
-						notifications = [json_data];
-					else
-						notifications = json_data;
-					notificationsCache = notifications;
-
-					for(i = 0; i < notifications.length; i++) {
-						printNotification(notifications[i], i, false);
-						if (n_id !== "l" || i != notifications.length -1)
-							process.stdout.write('\n');
-						else
-							process.stdout.write('\r');
-
-						if(notifications[i].openwith) {
-							launchProgram(notifications[i].openwith, notifications[i].url);
-						}
-					}
-
-					if(config.autoMarkRead) {
-						post.sendPOST({
-							'method': 'setRead',
-							'id': n_id
-						}, true);
-					}
-				}
-				else { // requested all notifications
-					if(n_id === "l") { // poll for more notifications after 10 seconds
-						// clear the terminal
-						process.stdout.write('\u001B[2J\u001B[0;0f');
-
-						// do a longpoll request after 1 sec
-						setTimeout(function() {
-							makeReq('/longpoll');
-						}, 1000);
-					}
-					notificationsCache = json_data;
-					if(json_data.length) {
-					} else {
-						console.log(clc_color.no_unread_color("No unread notifications."));
-					}
-				}
-			}
-		});
-	});
-
-	req.end();
-};
-makeReq();
-*/
