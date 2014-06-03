@@ -63,7 +63,7 @@ var printNotifications = function(notifications, listenMode) {
 	if(listenMode)
 		process.stdout.write('\u001B[2J\u001B[0;0f');
 
-	if(notifications.length) {
+	if(notifications && notifications.length) {
 		for(i = 0; i < notifications.length; i++) {
 			printNotification(notifications[i], i, true);
 
@@ -80,17 +80,20 @@ var printNotifications = function(notifications, listenMode) {
 
 var socket = require('socket.io-client')(config.host + ':' + config.port);
 socket.on('connect', function() {
-	switch(process.argv[2]) {
-		// these commands return a list of notifications and should print it
-		case 'u':
-		case 'r':
-		case 'lr':
-		case 'l':
-			socket.on('notifications', function(notifications) {
-				notificationsCache = notifications;
-				printNotifications(notifications, (process.argv[2] === 'l'));
-			});
+	// these commands return a list of notifications and should print it
+	if(new Array('u', 'r', 'lr', 'l', undefined).indexOf(process.argv[2]) !== -1
+		|| /(\d).*/.test(process.argv[2])) {
+		socket.on('notifications', function(notifications) {
+			printNotifications(notifications, (process.argv[2] === 'l'));
 
+			// non listen modes should exit now
+			if(process.argv[2] !== 'l')
+				process.exit(0);
+			notificationsCache = notifications;
+		});
+	}
+
+	switch(process.argv[2]) {
 		// mark as (un)read
 		case 'u':
 		case 'r':

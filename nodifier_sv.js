@@ -159,7 +159,8 @@ io.sockets.on('connection', function(socket) {
 	// search for notifications and mark results as (un)read according to s.read
 	socket.on('markAs', function(s) {
 		notifications = searchNotifications(s.id, s.uid, s.source, s.context, !s.read);
-		markAs(notifications, s.noSendResponse, s.read);
+		if(notifications)
+			markAs(notifications, s.noSendResponse, s.read);
 
 		socket.emit('notifications', notifications);
 
@@ -170,9 +171,9 @@ io.sockets.on('connection', function(socket) {
 	socket.on('getRead', function() {
 		socket.emit('notifications', readNotifications);
 	});
-	// get unread notifications by id, or all notifications if no id given
-	socket.on('getUnread', function(id) {
-		if(!id) {
+	// get unread notifications by id, or all notifications if no search terms
+	socket.on('getUnread', function(s) {
+		if(!s) {
 			notifications = unreadNotifications;
 		} else {
 			notifications = searchNotifications(s.id, s.uid, s.source, s.context, false);
