@@ -144,8 +144,9 @@ var markAs = function(notifications, noSendResponse, read) {
 
 /* Networking */
 
-var io = require('socket.io')(config.port);
-io.on('connection', function(socket) {
+var io = require('socket.io').listen(config.port);
+console.log('nodifier server listening on port ' + config.port);
+io.sockets.on('connection', function(socket) {
 	var notifications;
 
 	// add new notification
