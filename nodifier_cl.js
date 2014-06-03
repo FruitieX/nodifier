@@ -54,14 +54,21 @@ var printNotification = function(notification, id, shorten) {
 	process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + text);
 };
 
-var printNotifications = function(notifications, listenMode) {
+var printNotifications = function(notifications, listenMode, shorten) {
 	// listen mode should clear terminal
 	if(listenMode)
 		process.stdout.write('\u001B[2J\u001B[0;0f');
 
 	if(notifications && notifications.length) {
 		for(i = 0; i < notifications.length; i++) {
-			printNotification(notifications[i], i, true);
+			// show id stored in notification itself if this is the only notification
+			// and it actually has a stored id, otherwise use incrementing counter
+			var id;
+			if(!shorten && notifications[i].id)
+				id = notifications[i].id;
+			else
+				id = i;
+			printNotification(notifications[i], id, shorten);
 
 			// no newline after last notification in listen mode, fits one more onscreen
 			if (listenMode && i == notifications.length - 1)
@@ -75,7 +82,7 @@ var printNotifications = function(notifications, listenMode) {
 };
 
 var addNotification = function(notification) {
-	notificationsCache.append(notification)
+	notificationsCache.push(notification);
 	notificationsCache.sort(function(a, b) {
 		return a.date - b.date;
 	});
@@ -88,7 +95,7 @@ socket.on('connect', function() {
 		|| /(\d).*/.test(process.argv[2])) {
 
 		socket.on('notifications', function(notifications) {
-			printNotifications(notifications, false);
+			printNotifications(notifications, false, (notifications && notifications.length !== 1));
 
 			if(/(\d).*/.test(process.argv[2]) && notifications)
 				launchProgram(notifications[0]);
@@ -121,23 +128,25 @@ socket.on('connect', function() {
 		// 'listen' for notifications
 		case 'l':
 			socket.on('notifications', function(notifications) {
+				printNotifications(notifications, true, true);
 				notificationsCache = notifications;
-				printNotifications(notifications, true);
 			});
 			socket.on('markAs', function(notifications) {
-				for (var i = 0; i < notifications.length; i++) {
+				for (var i = notifications.length - 1; i >= 0; i--) {
 					if (notifications[i].read) {
 						// notification marked as read, remove
-						notificationsCache.splice(notificationsCache.indexOf(notifications[i], 1));
+						notificationsCache.splice(i, 1);
 					} else {
 						// new notification, add and sort
 						addNotification(notifications[i]);
 					}
 				}
+				printNotifications(notificationsCache, true, true);
 			});
 			socket.on('newNotification', function(notification) {
 				// new notification, add and sort
 				addNotification(notification);
+				printNotifications(notificationsCache, true, true);
 			});
 
 			// hide cursor
@@ -166,7 +175,7 @@ socket.on('connect', function() {
 
 			// handle resizes
 			process.stdout.on('resize', function() {
-				printNotifications(notificationsCache, true);
+				printNotifications(notificationsCache, true, true);
 			});
 
 			// get all unread notifications once
@@ -180,7 +189,7 @@ socket.on('connect', function() {
 					id: process.argv[2]
 				});
 			}
-			
+
 			// requested all notifications
 			else {
 				socket.emit('getUnread');

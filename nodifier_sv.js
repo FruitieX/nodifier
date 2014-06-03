@@ -84,12 +84,14 @@ var searchNotifications = function(id, uid, source, context, read) {
 				max = temp;
 			}
 			return array.filter(function (notification, i) {
+				notification.id = i;
 				return (i >= min && i <= max);
 			});
 		} else {
 			return array.filter(function (notification, i) {
+				notification.id = i;
 				return i == id;
-			})[0];
+			});
 		}
 	} else {
 		return array.filter(function (notification) {
@@ -115,10 +117,6 @@ var markAs = function(notifications, noSendResponse, read) {
 	// update read boolean field of every given notification
 	for (i = 0; i < notifications.length; i++) {
 		notifications[i].read = read;
-
-		// if plugin supports updating read status, send update
-		if(!noSendResponse)
-			plugin_setReadStatus(notifications[i], state);
 	}
 
 	// loop through (un)readNotifications. see if we can find any that were
