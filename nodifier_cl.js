@@ -54,21 +54,18 @@ var printNotification = function(notification, id, shorten) {
 	process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + text);
 };
 
-var printNotifications = function(notifications, listenMode, shorten) {
+var printNotifications = function(notifications, listenMode, useReadID) {
 	// listen mode should clear terminal
 	if(listenMode)
 		process.stdout.write('\u001B[2J\u001B[0;0f');
 
 	if(notifications && notifications.length) {
 		for(i = 0; i < notifications.length; i++) {
-			// show id stored in notification itself if this is the only notification
-			// and it actually has a stored id, otherwise use incrementing counter
-			var id;
-			if(!shorten && notifications[i].id)
-				id = notifications[i].id;
-			else
-				id = i;
-			printNotification(notifications[i], id, shorten);
+			var id = notifications[i].unreadID;
+			if(useReadID)
+				id = notifications[i].readID;
+
+			printNotification(notifications[i], id, notifications.length !== 1);
 
 			// no newline after last notification in listen mode, fits one more onscreen
 			if (listenMode && i == notifications.length - 1)
@@ -88,6 +85,12 @@ var addNotification = function(notification) {
 	});
 };
 
+var updateID = function() {
+	for (i = 0; i < notificationsCache.length; i++) {
+		notificationsCache[i].unreadID = i;
+	}
+};
+
 var socket = require('socket.io-client')(config.host + ':' + config.port);
 socket.on('connect', function() {
 	// these commands return a list of notifications and should print it
@@ -95,7 +98,8 @@ socket.on('connect', function() {
 		|| /(\d).*/.test(process.argv[2])) {
 
 		socket.on('notifications', function(notifications) {
-			printNotifications(notifications, false, (notifications && notifications.length !== 1));
+			printNotifications(notifications, false,
+				(process.argv[2] === 'u' || process.argv[2] === 'lr'));
 
 			if(/(\d).*/.test(process.argv[2]) && notifications)
 				launchProgram(notifications[0]);
@@ -128,25 +132,28 @@ socket.on('connect', function() {
 		// 'listen' for notifications
 		case 'l':
 			socket.on('notifications', function(notifications) {
-				printNotifications(notifications, true, true);
+				printNotifications(notifications, true, false);
 				notificationsCache = notifications;
 			});
 			socket.on('markAs', function(notifications) {
 				for (var i = notifications.length - 1; i >= 0; i--) {
 					if (notifications[i].read) {
 						// notification marked as read, remove
-						notificationsCache.splice(i, 1);
+						notificationsCache.splice(notifications[i].unreadID, 1);
 					} else {
 						// new notification, add and sort
 						addNotification(notifications[i]);
 					}
 				}
-				printNotifications(notificationsCache, true, true);
+				updateID();
+				printNotifications(notificationsCache, true, false);
 			});
 			socket.on('newNotification', function(notification) {
+				console.log(notification);
 				// new notification, add and sort
 				addNotification(notification);
-				printNotifications(notificationsCache, true, true);
+				updateID();
+				printNotifications(notificationsCache, true, false);
 			});
 
 			// hide cursor
@@ -175,7 +182,7 @@ socket.on('connect', function() {
 
 			// handle resizes
 			process.stdout.on('resize', function() {
-				printNotifications(notificationsCache, true, true);
+				printNotifications(notificationsCache, true, false);
 			});
 
 			// get all unread notifications once

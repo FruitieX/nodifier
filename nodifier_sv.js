@@ -58,10 +58,14 @@ var storeNotification = function(data_json, read) {
 		if(readNotifications.length >= config.numReadToKeep) {
 			readNotifications.splice(0, 1);
 		}
+
+		return readNotifications.length - 1;
 	} else {
 		// insert notification to unreadNotifications array
 		var id = findId(data_json.date, unreadNotifications);
 		unreadNotifications.splice(id, 0, data_json);
+
+		return id;
 	}
 };
 
@@ -84,12 +88,10 @@ var searchNotifications = function(id, uid, source, context, read) {
 				max = temp;
 			}
 			return array.filter(function (notification, i) {
-				notification.id = i;
 				return (i >= min && i <= max);
 			});
 		} else {
 			return array.filter(function (notification, i) {
-				notification.id = i;
 				return i == id;
 			});
 		}
@@ -97,6 +99,18 @@ var searchNotifications = function(id, uid, source, context, read) {
 		return array.filter(function (notification) {
 			return (!uid || (notification.uid == uid)) && (!source || (notification.source == source)) && (!context || (notification.context == context));
 		});
+	}
+};
+
+var updateID = function() {
+	var i;
+	for (i = 0; i < unreadNotifications.length; i++) {
+		unreadNotifications[i].unreadID = i;
+		unreadNotifications[i].read = false;
+	}
+	for (i = 0; i < readNotifications.length; i++) {
+		readNotifications[i].readID = i;
+		readNotifications[i].read = true;
 	}
 };
 
@@ -149,16 +163,18 @@ io.sockets.on('connection', function(socket) {
 
 	// add new notification
 	socket.on('newNotification', function(n) {
-		storeNotification(n, false);
+		var id = storeNotification(n, false);
+		updateID();
 
 		// broadcast new notification to all other connected clients
-		socket.broadcast.emit('newNotification', n);
+		socket.broadcast.emit('newNotification', unreadNotifications[id]);
 	});
 	// search for notifications and mark results as (un)read according to s.read
 	socket.on('markAs', function(s) {
 		notifications = searchNotifications(s.id, s.uid, s.source, s.context, !s.read);
 		if(notifications)
 			markAs(notifications, s.noSendResponse, s.read);
+		updateID();
 
 		socket.emit('notifications', notifications);
 
