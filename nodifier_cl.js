@@ -4,10 +4,6 @@ var clc = require('cli-color');
 var clc_color = require('./lib/clc-color');
 
 var config = require('./config.json');
-var htpasswd = require('./htpasswd.json');
-var post = require('./lib/post.js');
-
-var path;
 
 var range_re = /(.*)\.\.(.*)/;
 var spawn = require('child_process').spawn;
