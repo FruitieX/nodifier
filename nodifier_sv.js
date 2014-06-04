@@ -28,7 +28,6 @@ var storeNotification = function(data_json, read) {
 	if(!data_json.date)
 		data_json.date = new Date().valueOf();
 
-	var uid_dupe_found = false;
 	var primaryArray = unreadNotifications; var secondaryArray = readNotifications;
 	if(read) {
 		primaryArray = readNotifications; secondaryArray = unreadNotifications;
@@ -37,7 +36,7 @@ var storeNotification = function(data_json, read) {
 	// look for notification with duplicate UID in both arrays. if found, remove
 	if(data_json.uid) {
 		var i;
-		for(i = 0; i < primaryArray.length; i++) {
+		for(i = primaryArray.length - 1; i >= 0; i--) {
 			if(primaryArray[i].uid === data_json.uid) {
 				primaryArray.splice(i, 1);
 			}
@@ -117,7 +116,7 @@ var updateID = function() {
 // mark notifications as (un)read
 // move notifications between (un)readNotifications arrays accordingly
 // NOTE: all given notifications must already be in (un)readNotifications
-var markAs = function(notifications, noSendResponse, read) {
+var markAs = function(notifications, read) {
 	var msg = "";
 
 	// check if arg is object, then make it into an array
@@ -173,7 +172,7 @@ io.sockets.on('connection', function(socket) {
 	socket.on('markAs', function(s) {
 		notifications = searchNotifications(s.id, s.uid, s.source, s.context, !s.read);
 		if(notifications)
-			markAs(notifications, s.noSendResponse, s.read);
+			markAs(notifications, s.read);
 		updateID();
 
 		socket.emit('notifications', notifications);
