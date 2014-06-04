@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 
 var config = require('./config.json');
-
-/* Notification handling */
-
 var unreadNotifications = [];
 var readNotifications = [];
 
@@ -101,7 +98,8 @@ var searchNotifications = function(id, uid, source, context, read) {
 	}
 };
 
-var updateID = function() {
+// update .(un)readID and .read properties of all notifications
+var updateIDRead = function() {
 	var i;
 	for (i = 0; i < unreadNotifications.length; i++) {
 		unreadNotifications[i].unreadID = i;
@@ -153,8 +151,7 @@ var markAs = function(notifications, read) {
 	}
 };
 
-/* Networking */
-
+// networking
 var io = require('socket.io').listen(config.port);
 console.log('nodifier server listening on port ' + config.port);
 io.sockets.on('connection', function(socket) {
@@ -163,7 +160,7 @@ io.sockets.on('connection', function(socket) {
 	// add new notification
 	socket.on('newNotification', function(n) {
 		var id = storeNotification(n, false);
-		updateID();
+		updateIDRead(); // indices may have changed, fix them
 
 		// broadcast new notification to all connected clients
 		io.sockets.emit('newNotification', unreadNotifications[id]);
@@ -173,7 +170,7 @@ io.sockets.on('connection', function(socket) {
 		notifications = searchNotifications(s.id, s.uid, s.source, s.context, !s.read);
 		if(notifications)
 			markAs(notifications, s.read);
-		updateID();
+		updateIDRead(); // indices/read states may have changed, fix them
 
 		socket.emit('notifications', notifications);
 
