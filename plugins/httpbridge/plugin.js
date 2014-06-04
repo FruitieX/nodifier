@@ -2,7 +2,7 @@
 
 var port = 5678;
 
-// todo plugin for quick adding of todos
+// HTTP - socket.io bridge to enable applications supporting HTTP to interact with nodifier
 var config = require('../../config.json');
 var socket = require('socket.io-client')(config.host + ':' + config.port);
 
