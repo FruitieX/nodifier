@@ -1,13 +1,12 @@
 var util = require('util');
 var Imap = require('imap');
 var inspect = require('util').inspect;
-var url = require('url');
-var path = require('path');
 
 var config = require('../../config.json');
-var socket = require('socket.io-client')(config.host + ':' + config.port);
 
-exports.start = function(config) {
+exports.start = function(mailConfig) {
+	var socket = require('socket.io-client')(config.host + ':' + config.port);
+
 	socket.on('connect', function() {
 		var imap;
 
@@ -44,22 +43,22 @@ exports.start = function(config) {
 				'method': 'newNotification',
 				'uid': uid,
 				'text': text,
-				'openwith': config.openwith,
-				'url': config.url + threadId,
-				'source': config.source,
-				'sourcebg': config.sourcebg,
-				'sourcefg': config.sourcefg,
+				'openwith': mailConfig.openwith,
+				'url': mailConfig.url + threadId,
+				'source': mailConfig.source,
+				'sourcebg': mailConfig.sourcebg,
+				'sourcefg': mailConfig.sourcefg,
 				'context': context,
 				'contextbg': contextbg,
 				'contextfg': contextfg,
-				'response_host': config.response_host,
-				'response_port': config.response_port
+				'response_host': mailConfig.response_host,
+				'response_port': mailConfig.response_port
 			};
 
 			console.log('Sent new notification for unread mail UID: ' + uid);
 			unread.push(uid);
 
-			post.sendPOST(notification);
+			socket.emit('newNotification', notification);
 		};
 
 		// notify server wants to mark mail as read
@@ -122,20 +121,20 @@ exports.start = function(config) {
 							// loop over labels in mail
 							for (var label in labels) {
 								// loop over labels in config
-								for (var cfglabel in config.label_contexts) {
+								for (var cfglabel in mailConfig.label_contexts) {
 									if(labels[label] === cfglabel) {
-										context = config.label_contexts[cfglabel].context;
-										contextfg = config.label_contexts[cfglabel].contextfg;
-										contextbg = config.label_contexts[cfglabel].contextbg;
+										context = mailConfig.label_contexts[cfglabel].context;
+										contextfg = mailConfig.label_contexts[cfglabel].contextfg;
+										contextbg = mailConfig.label_contexts[cfglabel].contextbg;
 										break;
 									}
 								}
 							}
 						}
 						if(!context) {
-							context = config.label_contexts["default"].context;
-							contextfg = config.label_contexts["default"].contextfg;
-							contextbg = config.label_contexts["default"].contextbg;
+							context = mailConfig.label_contexts["default"].context;
+							contextfg = mailConfig.label_contexts["default"].contextfg;
+							contextbg = mailConfig.label_contexts["default"].contextbg;
 						}
 					});
 					msgs.once('end', function() {
@@ -144,18 +143,6 @@ exports.start = function(config) {
 				});
 			}
 		};
-
-		/* Remove all previously seen UIDs from msgs */
-		/*
-		var removeOld = function(msgs) {
-			for(var uid in unread) {
-				var msg_index = msgs.indexOf(uid);
-				if(msg_index === -1) {
-					msgs.splice(msg_index, 1);
-				}
-			}
-		};
-		*/
 
 		/*
 		 * IMAP server state has changed, sync plugin and notify server accordingly
@@ -185,10 +172,9 @@ exports.start = function(config) {
 				for(i = unread.length - 1; i >= 0; i--) {
 					// found a mail not in the search results
 					if(results.indexOf(unread[i]) === -1) {
-						post.sendPOST({
-							'method': 'setRead',
+						socket.emit('markAs', {
+							'read': true,
 							'uid': unread[i],
-							'noSendResponse': true
 						});
 						unread.splice(i, 1);
 					}
@@ -202,11 +188,11 @@ exports.start = function(config) {
 				imap.destroy();
 
 			imap = new Imap({
-				user: config.user,
-				password: config.password,
-				host: config.host,
-				port: config.port,
-				tls: config.tls,
+				user: mailConfig.user,
+				password: mailConfig.password,
+				host: mailConfig.host,
+				port: mailConfig.port,
+				tls: mailConfig.tls,
 				tlsOptions: { rejectUnauthorized: false },
 				keepalive: true,
 				debug: console.log
@@ -226,7 +212,7 @@ exports.start = function(config) {
 					});
 
 					imap.on('update', function(seqno, info) {
-						console.log('update ', config.source, ' ', seqno);
+						console.log('update ', mailConfig.source, ' ', seqno);
 					});
 
 					imap.on('expunge', function(seqno) {
@@ -235,7 +221,7 @@ exports.start = function(config) {
 
 					setInterval(function() {
 						syncFromIMAP();
-					}, config.unreadSyncInterval * 1000);
+					}, mailConfig.unreadSyncInterval * 1000);
 
 					// initial sync
 					syncFromIMAP();
@@ -256,30 +242,17 @@ exports.start = function(config) {
 			imap.connect();
 		};
 
-		/* HTTP server for reporting read/unread statuses to plugin */
-		var url_read = /(.*read)\/(.*)/;
-		var handleGET = function(req, res) {
-			var resource = url.parse(req.url).pathname;
-			resource = resource.substr(1);
-
-			var url_matches = resource.match(url_read);
-
-			var uid;
-			if(url_matches[1] == 'read') {
-				uid = url_matches[2];
-				setRead(uid);
-			} else if (url_matches[1] == 'unread') {
-				uid = url_matches[2];
-				setUnread(uid);
+		socket.on('markAs', function(notifications) {
+			for (var i = notifications.length - 1; i >= 0; i--) {
+				// TODO: more precise checking
+				if(notifications[i].source === mailConfig.source) {
+					if(notifications[i].read)
+						setRead(notifications[i].uid);
+					else
+						setUnread(notifications[i].uid);
+				}
 			}
-
-			var msg = "ok";
-			res.writeHead(200, msg, {
-				'Content-Type': 'text/html',
-				'Content-Length': Buffer.byteLength(msg, 'utf8')
-			});
-			res.end(msg);
-		};
+		});
 
 		reconnectLoop();
 	});
