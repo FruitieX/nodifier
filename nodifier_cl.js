@@ -110,6 +110,7 @@ socket.on('connect', function() {
 			printNotifications(notifications, false,
 				(process.argv[2] === 'u' || process.argv[2] === 'lr'));
 
+			// requested a certain notification, try launching program associated with it
 			if(/(\d).*/.test(process.argv[2]) && notifications)
 				launchProgram(notifications[0]);
 
@@ -199,9 +200,10 @@ socket.on('connect', function() {
 			break;
 
 		default:
-			// requested a certain notification
+			// requested a certain notification, mark it as read
 			if(/(\d).*/.test(process.argv[2])) {
-				socket.emit('getUnread', {
+				socket.emit('markAs', {
+					read: true,
 					id: process.argv[2]
 				});
 			}
