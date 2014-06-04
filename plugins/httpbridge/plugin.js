@@ -55,7 +55,11 @@ socket.on('connect', function() {
 		});
 
 		req.on('end', function() {
-			resMsg(res, 200, "OK");
+			res.writeHead(200, "OK", {
+				'Content-Type': 'text/html',
+				'Content-Length': Buffer.byteLength("OK", 'utf8')
+			});
+			res.end(msg);
 		});
 	};
 
