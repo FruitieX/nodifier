@@ -1,12 +1,12 @@
-var fs = require('fs');
 var util = require('util');
 var Imap = require('imap');
 var inspect = require('util').inspect;
-var crypto = require('crypto');
-var EventEmitter = require('events').EventEmitter;
 var post = require('../../lib/post.js');
 var url = require('url');
 var path = require('path');
+
+var config = require('../../config.json');
+var socket = require('socket.io-client')(config.host + ':' + config.port);
 
 exports.start = function(config) {
 	var imap;
