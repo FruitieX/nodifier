@@ -1,6 +1,9 @@
 nodifier
 =========
 
+TODO: README needs work after socket.io restructure
+HTTP IS NOT USED ANYMORE!
+
 ![Screenshot](/screenshot.png?raw=true "Screenshot")
 
 nodifier is a simple notification server complete with a client, both written
