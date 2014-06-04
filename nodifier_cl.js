@@ -79,6 +79,15 @@ var printNotifications = function(notifications, listenMode, useReadID) {
 };
 
 var addNotification = function(notification) {
+	// found duplicate ID? then remove the old notification
+	if(notification.uid) {
+		for (var i = notificationsCache.length - 1; i >= 0; i--) {
+			if(notificationsCache[i].uid === notification.uid) {
+				notificationsCache.splice(i, 1);
+			}
+		}
+	}
+
 	notificationsCache.push(notification);
 	notificationsCache.sort(function(a, b) {
 		return a.date - b.date;
@@ -86,7 +95,7 @@ var addNotification = function(notification) {
 };
 
 var updateID = function() {
-	for (i = 0; i < notificationsCache.length; i++) {
+	for (var i = 0; i < notificationsCache.length; i++) {
 		notificationsCache[i].unreadID = i;
 	}
 };
