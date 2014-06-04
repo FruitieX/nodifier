@@ -54,6 +54,8 @@ var printNotification = function(notification, id, shorten) {
 	process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + source_color(source_string) + context_color(context_string) + ' ' + text);
 };
 
+// print list of notifications, listenMode skips last \n, useReadID uses id of
+// notification in read list instead of unread list
 var printNotifications = function(notifications, listenMode, useReadID) {
 	// listen mode should clear terminal
 	if(listenMode)
@@ -78,6 +80,7 @@ var printNotifications = function(notifications, listenMode, useReadID) {
 	}
 };
 
+// add notification to the notificationsCache array
 var addNotification = function(notification) {
 	// found duplicate ID? then remove the old notification
 	if(notification.uid) {
@@ -94,12 +97,14 @@ var addNotification = function(notification) {
 	});
 };
 
+// update indices of notifications in notificationsCache
 var updateID = function() {
 	for (var i = 0; i < notificationsCache.length; i++) {
 		notificationsCache[i].unreadID = i;
 	}
 };
 
+// networking
 var socket = require('socket.io-client')(config.host + ':' + config.port);
 socket.on('connect', function() {
 	// these commands return a list of notifications and should print it
@@ -155,14 +160,14 @@ socket.on('connect', function() {
 						addNotification(notifications[i]);
 					}
 				}
-				updateID();
+				updateID(); // indices may have changed, update them
 				printNotifications(notificationsCache, true, false);
 			});
 			socket.on('newNotification', function(notification) {
 				console.log(notification);
 				// new notification, add and sort
 				addNotification(notification);
-				updateID();
+				updateID(); // indices may have changed, update them
 				printNotifications(notificationsCache, true, false);
 			});
 
