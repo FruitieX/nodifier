@@ -25,49 +25,50 @@ var options = {
 	cert: fs.readFileSync(path.resolve(__dirname, './nodifier-cert.pem'))
 };
 
-socket.on('connect', function() {
-	var handlePOST = function(req, res) {
-		var msg, notifications;
+var handlePOST = function(req, res) {
+	var msg, notifications;
 
-		req.on('data', function(data) {
-			var data_json = querystring.parse(data.toString());
+	req.on('data', function(data) {
+		var data_json = querystring.parse(data.toString());
 
-			if (data_json.method === 'newNotification') {
-				delete(data_json.method);
-				socket.emit('newNotification', data_json);
-			} else if (data_json.method === 'setUnread') {
-				socket.emit('markAs', {
-					read: false,
-					id: data_json.id,
-					uid: data_json.uid,
-					source: data_json.source,
-					context: data_json.context
-				});
-			} else if (data_json.method === 'setRead') {
-				socket.emit('markAs', {
-					read: true,
-					id: data_json.id,
-					uid: data_json.uid,
-					source: data_json.source,
-					context: data_json.context
-				});
-			}
-		});
-
-		req.on('end', function() {
-			res.writeHead(200, "OK", {
-				'Content-Type': 'text/html',
-				'Content-Length': Buffer.byteLength("OK", 'utf8')
+		if (data_json.method === 'newNotification') {
+			delete(data_json.method);
+			socket.emit('newNotification', data_json);
+		} else if (data_json.method === 'setUnread') {
+			socket.emit('markAs', {
+				read: false,
+				id: data_json.id,
+				uid: data_json.uid,
+				source: data_json.source,
+				context: data_json.context
 			});
-			res.end(msg);
-		});
-	};
-
-	s = https.createServer(basic, options, function (req, res) {
-		if (req.method == 'POST') {
-			handlePOST(req, res);
+		} else if (data_json.method === 'setRead') {
+			socket.emit('markAs', {
+				read: true,
+				id: data_json.id,
+				uid: data_json.uid,
+				source: data_json.source,
+				context: data_json.context
+			});
 		}
 	});
+
+	req.on('end', function() {
+		res.writeHead(200, "OK", {
+			'Content-Type': 'text/html',
+			'Content-Length': Buffer.byteLength("OK", 'utf8')
+		});
+		res.end(msg);
+	});
+};
+
+s = https.createServer(basic, options, function (req, res) {
+	if (req.method == 'POST') {
+		handlePOST(req, res);
+	}
+});
+
+socket.on('connect', function() {
 	console.log('HTTP server on port ' + port + ', bridging to socket.io');
 	s.listen(port);
 });

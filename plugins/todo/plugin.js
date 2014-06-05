@@ -15,10 +15,10 @@ for (var i = 2; i < process.argv.length; i++) {
 }
 str.substring(0, str.length - 1);
 
+socket.on('newNotification', function(data) {
+	socket.disconnect();
+});
 socket.on('connect', function() {
-	socket.on('newNotification', function(data) {
-		socket.disconnect();
-	});
 	socket.emit('newNotification', {
 		'text': str,
 		'source': 'todo',

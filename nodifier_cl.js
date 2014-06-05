@@ -106,27 +106,87 @@ var updateID = function() {
 
 // networking
 var socket = require('socket.io-client')(config.host + ':' + config.port);
-socket.on('connect', function() {
-	// these commands return a list of notifications and should print it
-	if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
-		|| open_re.test(process.argv[2])) {
 
-		socket.on('notifications', function(notifications) {
-			printNotifications(notifications, false,
-				(process.argv[2] === 'u' || process.argv[2] === 'lr'));
+/* set up event handlers
+ *
+ * the commands in the Array() fetch a list of notifications from the server,
+ * print the list once we receive it */
 
-			// args match launching app
-			if(open_re.test(process.argv[2]) && notifications) {
-				for(var i = 0; i < notifications.length; i++) {
-					launchProgram(notifications[i]);
-				}
+if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
+	|| open_re.test(process.argv[2])) {
+
+	socket.on('notifications', function(notifications) {
+		printNotifications(notifications, false,
+			(process.argv[2] === 'u' || process.argv[2] === 'lr'));
+
+		// args match launching app
+		if(open_re.test(process.argv[2]) && notifications) {
+			for(var i = 0; i < notifications.length; i++) {
+				launchProgram(notifications[i]);
 			}
+		}
 
-			// non listen modes should exit now
-			process.exit(0);
-		});
-	}
+		// non listen modes should exit now
+		process.exit(0);
+	});
+} else if (process.argv[2] === 'l') {
+	socket.on('notifications', function(notifications) {
+		printNotifications(notifications, true, false);
+		notificationsCache = notifications;
+	});
+	socket.on('markAs', function(notifications) {
+		for (var i = notifications.length - 1; i >= 0; i--) {
+			if (notifications[i].read) {
+				// notification marked as read, remove
+				notificationsCache.splice(notifications[i].unreadID, 1);
+			} else {
+				// new notification, add and sort
+				addNotification(notifications[i]);
+			}
+		}
+		updateID(); // indices may have changed, update them
+		printNotifications(notificationsCache, true, false);
+	});
+	socket.on('newNotification', function(notification) {
+		console.log(notification);
+		// new notification, add and sort
+		addNotification(notification);
+		updateID(); // indices may have changed, update them
+		printNotifications(notificationsCache, true, false);
+	});
 
+	// hide cursor
+	process.stdout.write('\x1b[?25l');
+
+	// show cursor again after program exit
+	var onquit = function() {
+		process.stdout.write('\n');
+		process.stdout.write('\x1b[?25h');
+		process.exit();
+	};
+
+	// catch ctrl-c
+	process.on('SIGINT', onquit); process.on('exit', onquit);
+
+	// hide keyboard input
+	var stdin = process.stdin;
+	stdin.setRawMode(true);
+	stdin.resume();
+	stdin.setEncoding( 'utf8' );
+
+	// look for q keypresses, run onquit
+	stdin.on('data', function(key) {
+		if(key == 'q' || key == '\u0003') onquit();
+	});
+
+	// handle resizes
+	process.stdout.on('resize', function() {
+		printNotifications(notificationsCache, true, false);
+	});
+}
+
+// handle commands once connected to server
+socket.on('connect', function() {
 	switch(process.argv[2]) {
 		// mark as (un)read
 		case 'u':
@@ -149,60 +209,6 @@ socket.on('connect', function() {
 
 		// 'listen' for notifications
 		case 'l':
-			socket.on('notifications', function(notifications) {
-				printNotifications(notifications, true, false);
-				notificationsCache = notifications;
-			});
-			socket.on('markAs', function(notifications) {
-				for (var i = notifications.length - 1; i >= 0; i--) {
-					if (notifications[i].read) {
-						// notification marked as read, remove
-						notificationsCache.splice(notifications[i].unreadID, 1);
-					} else {
-						// new notification, add and sort
-						addNotification(notifications[i]);
-					}
-				}
-				updateID(); // indices may have changed, update them
-				printNotifications(notificationsCache, true, false);
-			});
-			socket.on('newNotification', function(notification) {
-				console.log(notification);
-				// new notification, add and sort
-				addNotification(notification);
-				updateID(); // indices may have changed, update them
-				printNotifications(notificationsCache, true, false);
-			});
-
-			// hide cursor
-			process.stdout.write('\x1b[?25l');
-
-			// show cursor again after program exit
-			var onquit = function() {
-				process.stdout.write('\n');
-				process.stdout.write('\x1b[?25h');
-				process.exit();
-			};
-
-			// catch ctrl-c
-			process.on('SIGINT', onquit); process.on('exit', onquit);
-
-			// hide keyboard input
-			var stdin = process.stdin;
-			stdin.setRawMode(true);
-			stdin.resume();
-			stdin.setEncoding( 'utf8' );
-
-			// look for q keypresses, run onquit
-			stdin.on('data', function(key) {
-				if(key == 'q' || key == '\u0003') onquit();
-			});
-
-			// handle resizes
-			process.stdout.on('resize', function() {
-				printNotifications(notificationsCache, true, false);
-			});
-
 			// get all unread notifications once
 			socket.emit('getUnread');
 			break;
@@ -221,7 +227,6 @@ socket.on('connect', function() {
 				console.log('unknown command!');
 				process.exit(1);
 			}
-
 			break;
 	}
 });
