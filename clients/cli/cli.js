@@ -105,9 +105,8 @@ var updateID = function() {
 };
 
 // networking
-var socket = require('socket.io-client')(config.host + ':' + config.port, {
-	token: config.token,
-	secure: true
+var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
+	query: {token: config.token}
 });
 
 /* set up event handlers
