@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // template client program
-var config = require('../../config.json');
+var config = require('../../config/config.json');
 var socket = require('socket.io-client')(config.host + ':' + config.port);
 
 socket.on('newNotification', function(notification) {

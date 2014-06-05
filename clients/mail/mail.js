@@ -2,7 +2,7 @@ var util = require('util');
 var Imap = require('imap');
 var inspect = require('util').inspect;
 
-var config = require('../../config.json');
+var config = require('../../config/config.json');
 
 exports.start = function(mailConfig) {
 	var socket = require('socket.io-client')(config.host + ':' + config.port);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var config = require('./config.json');
+var config = require('./config/config.json');
 var unreadNotifications = [];
 var readNotifications = [];
 

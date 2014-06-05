@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // send new nodifier notifications to system notification-daemon
-var config = require('../../config.json');
+var config = require('../../config/config.json');
 var socket = require('socket.io-client')(config.host + ':' + config.port);
 var spawn = require('child_process').spawn;
 

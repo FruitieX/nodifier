@@ -20,8 +20,8 @@ TODO:
 * Mobile client - Send new notifications to an Android phone (via Google Cloud Messaging?). Possibility to mark as (un)read from the phone?
 * Support more services
 
-It's easy to write new clients! 
-Have a look at the template client and at the API below!
+It's easy to write new clients!
+Have a look at the template client and at the API below.
 
 ### Features:
 * Simple HTTPS REST API. Notifications sent as JSON.

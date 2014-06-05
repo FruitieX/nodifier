@@ -3,7 +3,7 @@
 var clc = require('cli-color');
 var clc_color = require('./lib/clc-color');
 
-var config = require('./config.json');
+var config = require('../../config/config.json');
 
 var open_re = /^(\d).*$|\.\./;
 var spawn = require('child_process').spawn;
