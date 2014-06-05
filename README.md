@@ -23,9 +23,11 @@ TODO:
 It's easy to write new clients!
 Have a look at the template client and the API description below.
 
-Configs
--------
-### config.json
+Setup
+=====
+
+config.json
+-----------
 Take a look at the `config/config.json.example` file. This file is shared between
 server and client. These can of course run on separate hosts. Fill in the
 details of your server and other options you want, then save as `config/config.json`.
@@ -37,18 +39,19 @@ Option			| Explanation
 `numReadToKeep`	| How many read notifications will be remembered.
 `ssl-key`		| Relative path to the server SSL key
 `ssl-cert`		| Relative path to the server SSL certificate
+`token`			| Token used for token based authentication
 `programs`		| For safety, a list of applications a notification can be associated with and what command should be ran
 
-### token.json
-This configuration file contains the credentials that will be used for token
-based authentication. Recommended to choose a strong random password, you don't
-need to remember it either as the clients can read it from a file. All included
-clients read the password from this file.
+Server - `nodifier.js`
+----------------------
+1. Generate SSL keys with `config/gen_cert.sh`
+2. Configure `config/config.json`
+3. Run `nodifier.js`
 
-See `config/token.json.example` for an example, then save it as `config/token.json`.
+Test with e.g. `clients/spam/spam.js`, and the CLI client listing notifications (see below)
 
-CLI Client - `nodifier_cl.js`
------------------------------
+CLI Client - `clients/cli/cli.js`
+---------------------------------
 ### Supported commands:
 If the client is ran without any arguments, all notifications will be listed
 
@@ -70,28 +73,24 @@ Handy aliases for your shell:
 * `alias nr="n r"`
 * `alias nu="n u"`
 
-Server - `nodifier_sv.js`
--------------------------
-### Setup
-1. Generate SSL keys with `./gen_keys.sh`
-2. Run `nodifier_sv.js`
-3. Test with e.g. `plugins/spam/plugin.js`
+Misc clients
+------------
+### Included
+These plugins make use of your `config/config.json` file to connect to the server.
+Explanations at beginning of document.
 
-Now the server is not very useful alone without anything sending notifications
-to it, but there are a few scripts in this repo (under `plugins/`) that do just
-that (such as the above spam script).  Have a look and/or script your own!
+* "Todo client" - `clients/todo/todo.js`
+* IMAP mail bridge - `clients/mail/mail.js`
+* HTTP bridge - `clients/httpbridge/httpbridge.js`
+* Desktop notifications - `client/notify-send/notify-send.js`
+* Template client - `client/template/template.js`
 
-Plugins
--------
-### Included plugins
-These plugins make use of your `htpasswd.json` and `config.json` (via `lib/post.js`)
-* Mail notifier
-* Simple program for adding a TODO as a notification
-* Test plugin
+Most of these can simply be ran without any additional configuration, assuming
+you have a `config/config.json` file the client can find. Some clients (eg. mail)
+need additional configuring, example configuration files and scripts needed are included.
 
-These can be ran in one node process via `plugins.js`
 ### Other projects
-* znc-push, using URI service. Setup example:
+* znc-push, using HTTP bridge and ZNC URI service. Setup example:
 ```
 set service url
 set message_uri https://domain.org:8888/?method=newNotification&text={nick} {message}&sourcebg=green&sourcefg=black&source=irc&context={context}&contextbg=yellow&contextfg=black&openwith=irc
@@ -109,100 +108,26 @@ fork of znc-push, and maintain all changes inside my server branch over at:
 [FruitieX/znc-push](https://github.com/FruitieX/znc-push/tree/fruitiex/server)
 
 API
-------
-The server speaks HTTPS and uses basic HTTP authentication. Here's a list of
-notification properties that the server cares about, most of which can be left
-out:
+---
+The server communicates over Socket.IO. Notifications are sent as JavaScript
+objects. Here's a list of Socket.IO events the server responds to
 
- Property					| Explanation 
-----------------------------|------------------- 
-`method`					| What the server should do with this notification. Valid values are: `newNotification`, `setRead`, `setUnread`. Must be set when using POST, does nothing when using GET.
+* `newNotification` store given notification. Pass the notification JSON object as data. Notification broadcast to all connected clients (including you) in a `newNotification` event containing the notification.
+* `markAs` mark notification matching search terms as (un)read. Argument is a JSON object of search terms with required field `read` (boolean: mark as read or unread) and optional fields `id` (integer or a range: 4..42) `uid` `source` `context`. Matched notifications sent back to you in a `notifications` event, and broadcast to all connected clients (excluding you) in a `markAs` event containing a list of notifications.
+* `getRead` sends you a list of all read notifications in a `notifications` event.
+* `getUnread` sends you a list of unread notifications in a `notifications` event. Optional argument with search terms, works the same as in `markAs`.
+
+Here's a list of notification properties that the server/included CLI client
+cares about, most of which can be left undefined. Any extra properties are
+allowed, and they can be useful as they are just passed on to clients:
+
+ Property					| Explanation
+----------------------------|-------------------
 `text`						| Text of the notification. Only makes sense with `newNotification`.
 `source`					| This is displayed right of the notification ID in the server/client and is used to categorize notifications. Can be used as a search criteria.
 `sourcebg` and `sourcefg`	| Color of source string. See list of possible values at: `lib/clc-color.js`
 `context`					| This is displayed right of the source string, and can be used to further categorize notifications. Can be used as a search criteria.
 `contextbg` and `contextfg`	| Color of context string. See list of possible values at: `lib/clc-color.js`
 `uid`						| Can be set by plugin to uniquely identify notifications even if their indices change. Only one notification with the same UID, source and context is allowed, old ones are replaced. UID will be sent along read/unread updates to plugin. Can be used as a search criteria.
-`id`						| Only used for `setRead` and `setUnread` methods. Supports ranges. Is used as search criteria.
 `openwith`					| Specify which program the notification should be opened with.
 `url`						| Specify an argument to be passed to the `openwith` program.
-`response_host`				| Specify which hostname the plugin listens on. If given, the server will send a GET to given hostname on `response_port` when a notification is marked as read/unread, resource is: `/read/<uid>` or `/unread/<uid>`.
-`response_port`				| Specify which port the plugin listens on.
-`noSendResponse`			| If set to `true`, the server will not send read/unread updates to the plugin even if `response_host` and `response_port` are given.
-
-Notifications can include any properties, the server will just pass on any
-unknown ones.
-
-### POST request (adding/manipulating notifications)
-Resource is always `/`, with a querystring to describe the notification, e.g:
-```
-/?method=setRead&source=irc&context=foo
-```
-I use JSON here for clarity purposes.  Use `querystring.stringify(data_json)`
-to go from JSON to query string.
-
-* Add a notification
-```
-{
-	"method": "newNotification",
-	"text": "lorem ipsum",
-	"source": "mail",
-	"sourcebg": "green",
-	"sourcefg": "black"
-	"context": "gmail",
-	"contextbg": "red",
-	"contextfg": "whiteBright",
-	"uid" "1234567890foo",
-	"openwith": "browser",
-	"url": "http://awesome-mail-provider.com/inbox/847295819"
-}
-```
-* Mark notification with `id` equal to `42` as read:
-```
-{
-	"method": "setRead",
-	"id": 42
-}
-```
-* Mark all notifications with `source` set to `mail` as read:
-```
-{
-	"method": "setRead",
-	"source": "mail"
-}
-```
-* Mark notification with uid `123abc` as unread:
-```
-{
-	"method": "setUnread",
-	"uid": "123abc"
-}
-```
-
-### GET request (listing notifications)
-* Request a list of all notifications
-	* Resource: `/all`, returns something like:
-```
-[
-	{"text":"spam0","source":"source0","app":"app0","url":"url0","sourcebg":"red","sourcefg":"white","read":false,"id":0,"date":1392663071818},
-	{"text":"spam1","source":"source1","app":"app1","url":"url1","sourcebg":"red","sourcefg":"white","read":false,"id":1,"date":1392663072816},
-	{"text":"spam2","source":"source2","app":"app2","url":"url2","sourcebg":"red","sourcefg":"white","read":false,"id":2,"date":1392663073816}
-]
-```
-
-* Request a specific notification
-	* Resource: `/<notification-id>`, returns something like:
-```
-{
-	"text":"spam","source":"source0","sourcebg":"green","sourcefg":"black","app":"app0","url":"url0","read":false,"id":0,"date":1392663071818
-}
-```
-
-* Request a range of notifications
-	* Resource: `/<min-id>..<max-id>`, returns something like:
-```
-[
-	{"text":"spam0","source":"source0","app":"app0","url":"url0","sourcebg":"red","sourcefg":"white","read":false,"id":0,"date":1392663071818},
-	{"text":"spam1","source":"source1","app":"app1","url":"url1","sourcebg":"red","sourcefg":"white","read":false,"id":1,"date":1392663072816}
-]
-```

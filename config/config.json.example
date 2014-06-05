@@ -4,6 +4,7 @@
 	"numReadToKeep": 1000,
 	"ssl-key": "nodifier-key.pem",
 	"ssl-cert": "nodifier-cert.pem",
+	"token": "veryverylongrandompassword",
 	"programs": {
 		"browser": "chromium"
 	}
