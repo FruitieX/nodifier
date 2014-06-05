@@ -67,8 +67,5 @@ s = https.createServer(basic, options, function (req, res) {
 		handlePOST(req, res);
 	}
 });
-
-socket.on('connect', function() {
-	console.log('HTTP server on port ' + port + ', bridging to socket.io');
-	s.listen(port);
-});
+s.listen(port);
+console.log('HTTP server on port ' + port + ', bridging to socket.io');
