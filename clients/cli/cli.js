@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var clc = require('cli-color');
-var clc_color = require('./lib/clc-color');
+var clc_color = require('../../lib/clc-color');
 
 var config = require('../../config/config.json');
 
