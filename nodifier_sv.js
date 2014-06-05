@@ -68,7 +68,7 @@ var storeNotification = function(data_json, read) {
 // return notifications with matching id, uid, source, context
 // if id is given only it will be used. if id is undefined search using other
 // fields. undefined fields not included in search.
-var range_re = /(.*)\.\.(.*)/;
+var range_re = /(\d*)\.\.(\d*)/;
 var searchNotifications = function(id, uid, source, context, read) {
 	var array = read ? readNotifications : unreadNotifications;
 
