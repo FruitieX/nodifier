@@ -77,6 +77,8 @@ var searchNotifications = function(id, uid, source, context, read) {
 		if(range) {
 			var min = range[1] || 0;
 			var max = range[2] || 9999999999999;
+			min = parseInt(min);
+			max = parseInt(max);
 
 			if (min > max) {
 				var temp = min;
