@@ -113,7 +113,7 @@ The server communicates over Socket.IO. Notifications are sent as JavaScript
 objects. Here's a list of Socket.IO events the server responds to
 
 * `newNotification` store given notification. Pass the notification JSON object as data. Notification broadcast to all connected clients (including you) in a `newNotification` event containing the notification.
-* `markAs` mark notification matching search terms as (un)read. Argument is a JSON object of search terms with required field:
+* `markAs` mark notification matching search terms as (un)read. Pass as data a JSON object of search terms with required field:
   * `read` (boolean: mark as read or unread)
 
   and optional fields:
@@ -122,9 +122,9 @@ objects. Here's a list of Socket.IO events the server responds to
   * `source`
   * `context`
 
-  Matched notifications sent back to you in a `notifications` event, and broadcast to all connected clients (excluding you) in a `markAs` event containing a list of notifications.
+  Matched notifications sent back to you in a `notifications` event, and broadcast to all connected clients (excluding you) in a `markAs` event both containing a list of notifications.
 * `getRead` sends you a list of all read notifications in a `notifications` event.
-* `getUnread` sends you a list of unread notifications in a `notifications` event. Optional argument with search terms, works the same as in `markAs`.
+* `getUnread` sends you a list of unread notifications in a `notifications` event. Pass as optional data a JSON object of search terms, works the same as in `markAs`.
 
 Here's a list of notification properties that the server/included CLI client
 cares about, most of which can be left undefined. Any extra properties are
@@ -133,7 +133,7 @@ allowed, and they can be useful as they are just passed on to clients:
  Property					| Explanation
 ----------------------------|-------------------
 `text`						| Text of the notification. Only makes sense with `newNotification`.
-`source`					| This is displayed right of the notification ID in the server/client and is used to categorize notifications. Can be used as a search criteria.
+`source`					| This is displayed right of the notification ID in the CLI client and is used to categorize notifications. Can be used as a search criteria.
 `sourcebg` and `sourcefg`	| Color of source string. See list of possible values at: `lib/clc-color.js`
 `context`					| This is displayed right of the source string, and can be used to further categorize notifications. Can be used as a search criteria.
 `contextbg` and `contextfg`	| Color of context string. See list of possible values at: `lib/clc-color.js`
