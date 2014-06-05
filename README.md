@@ -1,15 +1,27 @@
 nodifier
-=========
-
-TODO: README needs work after socket.io restructure
-HTTP IS NOT USED ANYMORE!
+========
 
 ![Screenshot](/screenshot.png?raw=true "Screenshot")
 
-nodifier is a simple notification server complete with a client, both written
-in NodeJS. Standalone programs known as plugins can add new notifications to
-the server, eg. e-mails and IRC highlights. You can easily write your own
-plugins by having a look at the API below!
+nodifier is a simple, general purpose notification server with a Socket.IO based API.
+Client programs can query the server for notifications, mark notifications as (un)read
+and add new notifications. Connected clients will receive updates of new/changed notifications.
+
+Several clients can stay connected at once, enabling you to share notifications across
+several devices and services. Examples of client programs included with nodifier:
+
+* CLI client - List (un)read notifications, mark notifications as (un)read, open URLs associated with notifications in a browser and more, all from the terminal!
+* "Todo client" - Simple client program for adding tasks as new notifications.
+* IMAP mail bridge - Adds/removes notifications when new mail arrives or when mail is marked as (un)read. Also works vice versa: marks mail on the IMAP server as (un)read if a notification is marked as (un)read.
+* HTTP bridge - Exposes a HTTP REST API for clients where implementing Socket.IO might be challenging. As an example: a plugin for the ZNC IRC bouncer which adds notifications on IRC highlights, and marks old notifications as read when you reply on the same channel/private message.
+* Desktop notifications - Pop up a message bubble / play a sound on your desktop PCs when new notifications arrive.
+
+TODO:
+* Mobile client - Send new notifications to an Android phone (via Google Cloud Messaging?). Possibility to mark as (un)read from the phone?
+* Support more services
+
+It's easy to write new clients! 
+Have a look at the template client and at the API below!
 
 ### Features:
 * Simple HTTPS REST API. Notifications sent as JSON.
@@ -43,8 +55,8 @@ need to remember it either as the client and server uses the same file.
 
 See `htpasswd.json.example` for an example, then save it as `htpasswd.json`.
 
-Client - `nodifier_cl.js`
--------------------------
+CLI Client - `nodifier_cl.js`
+-----------------------------
 ### Supported commands:
 If the client is ran without any arguments, all notifications will be listed
 
