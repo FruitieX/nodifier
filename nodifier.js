@@ -154,12 +154,7 @@ var markAs = function(notifications, read) {
 };
 
 // networking
-var fs = require('fs');
-var path = require('path');
-var io = require('socket.io').listen(config.port, {
-	key: fs.readFileSync(path.resolve(__dirname, config['ssl-key'])),
-	cert: fs.readFileSync(path.resolve(__dirname, config['ssl-cert'])),
-});
+var io = require('socket.io').listen(config.port);
 console.log('nodifier server listening on port ' + config.port);
 
 io.set('authorization', function(req, callback) {
