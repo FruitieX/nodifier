@@ -2,8 +2,8 @@
 	"host": "http://example.com",
 	"port": "8888",
 	"numReadToKeep": 1000,
-	"ssl-key": "nodifier-key.pem",
-	"ssl-cert": "nodifier-cert.pem",
+	"ssl-key": "config/nodifier-key.pem",
+	"ssl-cert": "config/nodifier-cert.pem",
 	"token": "veryverylongrandompassword",
 	"programs": {
 		"browser": "chromium"
