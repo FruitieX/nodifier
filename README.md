@@ -21,39 +21,31 @@ TODO:
 * Support more services
 
 It's easy to write new clients!
-Have a look at the template client and at the API below.
-
-### Features:
-* Simple HTTPS REST API. Notifications sent as JSON.
-* The nodifier client can be used to list (un)read notifications, mark one or several as (un)read, and open a program associated with a notification.
-* The nodifier client can be put into 'listen' mode, where it prints unread notifications to STDOUT whenever the list changes, making it useful on a secondary monitor. When in listen mode the client uses HTTP long polling.
-* Plugins can associate notifications with a program and an URI to pass as an argument to that program. This way you can e.g. open a web browser directly to the webmail URL of a received e-mail.
-* Plugins can be told when a notification has been read, and can then e.g. mark an e-mail as read. Works vice-versa, too.
-* Free Open Source Software! (MIT License)
+Have a look at the template client and the API description below.
 
 Configs
 -------
 ### config.json
-Take a look at the `config.json.example` file. This file is shared between
+Take a look at the `config/config.json.example` file. This file is shared between
 server and client. These can of course run on separate hosts. Fill in the
-details of your server and other options you want, then save as `config.json`.
+details of your server and other options you want, then save as `config/config.json`.
 
 Option			| Explanation
 ----------------|--------------
 `host`			| Hostname of your server
 `port`			| Port your server listens on
-`autoMarkRead`	| When client only requests one notification, should it be marked as read? (true/false)
 `numReadToKeep`	| How many read notifications will be remembered.
 `ssl-key`		| Relative path to the server SSL key
 `ssl-cert`		| Relative path to the server SSL certificate
 `programs`		| For safety, a list of applications a notification can be associated with and what command should be ran
 
-### htpasswd.json
-This configuration file contains the credentials that will be used for basic
-HTTP authentication. Recommended to choose a strong random password, you don't
-need to remember it either as the client and server uses the same file.
+### token.json
+This configuration file contains the credentials that will be used for token
+based authentication. Recommended to choose a strong random password, you don't
+need to remember it either as the clients can read it from a file. All included
+clients read the password from this file.
 
-See `htpasswd.json.example` for an example, then save it as `htpasswd.json`.
+See `config/token.json.example` for an example, then save it as `config/token.json`.
 
 CLI Client - `nodifier_cl.js`
 -----------------------------
