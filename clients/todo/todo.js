@@ -2,7 +2,9 @@
 
 // todo plugin for quick adding of todos
 var config = require('../../config/config.json');
-var socket = require('socket.io-client')(config.host + ':' + config.port);
+var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
+	query: {token: config.token}
+});
 
 if(!process.argv[2]) {
 	console.log("Usage: todo [message]");

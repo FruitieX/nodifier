@@ -2,7 +2,9 @@
 
 // spam plugin, useful for testing
 var config = require('../../config/config.json');
-var socket = require('socket.io-client')(config.host + ':' + config.port);
+var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
+	query: {token: config.token}
+});
 
 var cnt = 0;
 socket.on('connect', function() {

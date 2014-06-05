@@ -5,7 +5,9 @@ var inspect = require('util').inspect;
 var config = require('../../config/config.json');
 var mailConfig = require('./mailConfig.json');
 
-var socket = require('socket.io-client')(config.host + ':' + config.port);
+var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
+	query: {token: config.token}
+});
 
 var imap;
 

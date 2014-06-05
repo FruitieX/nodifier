@@ -2,7 +2,9 @@
 
 // template client program
 var config = require('../../config/config.json');
-var socket = require('socket.io-client')(config.host + ':' + config.port);
+var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
+	query: {token: config.token}
+});
 
 socket.on('newNotification', function(notification) {
 	// new notification arrived, print text property
