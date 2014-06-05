@@ -5,7 +5,7 @@ var clc_color = require('./lib/clc-color');
 
 var config = require('./config.json');
 
-var range_re = /(.*)\.\.(.*)/;
+var open_re = /^(\d).*$|\.\./;
 var spawn = require('child_process').spawn;
 var launchProgram = function(notification) {
 	var command = config.programs[notification.openwith];
@@ -109,15 +109,18 @@ var socket = require('socket.io-client')(config.host + ':' + config.port);
 socket.on('connect', function() {
 	// these commands return a list of notifications and should print it
 	if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
-		|| /(\d).*/.test(process.argv[2])) {
+		|| open_re.test(process.argv[2])) {
 
 		socket.on('notifications', function(notifications) {
 			printNotifications(notifications, false,
 				(process.argv[2] === 'u' || process.argv[2] === 'lr'));
 
-			// requested a certain notification, try launching program associated with it
-			if(/(\d).*/.test(process.argv[2]) && notifications)
-				launchProgram(notifications[0]);
+			// args match launching app
+			if(open_re.test(process.argv[2]) && notifications) {
+				for(var i = 0; i < notifications.length; i++) {
+					launchProgram(notifications[i]);
+				}
+			}
 
 			// non listen modes should exit now
 			process.exit(0);
@@ -205,17 +208,18 @@ socket.on('connect', function() {
 			break;
 
 		default:
-			// requested a certain notification, mark it as read
-			if(/(\d).*/.test(process.argv[2])) {
+			if(open_re.test(process.argv[2])) {
+				// open notification(s) with program
 				socket.emit('markAs', {
 					read: true,
 					id: process.argv[2]
 				});
-			}
-
-			// requested all notifications
-			else {
+			} else if (!process.argv[2]) {
+				// requested all notifications
 				socket.emit('getUnread');
+			} else {
+				console.log('unknown command!');
+				process.exit(1);
 			}
 
 			break;
