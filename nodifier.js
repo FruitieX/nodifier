@@ -156,6 +156,14 @@ var markAs = function(notifications, read) {
 // networking
 var io = require('socket.io').listen(config.port);
 console.log('nodifier server listening on port ' + config.port);
+
+io.set('authorization', function(req, callback) {
+	console.log(req);
+	if(req.token === config.token)
+		return callback(null, true);
+	return false;
+});
+
 io.sockets.on('connection', function(socket) {
 	var notifications;
 
