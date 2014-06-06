@@ -3,7 +3,7 @@ var config = require('./config/config.js');
 require('http-proxy').createServer({
 	target: {
 		host: 'localhost',
-		port: config.port
+		port: config.listenPort
 	},
 	ssl: {
 		key: require('fs').readFileSync('config/nodifier-key.pem', 'utf8'),
