@@ -3,7 +3,7 @@
 var port = 5678;
 
 // HTTP - socket.io bridge to enable applications supporting HTTP to interact with nodifier
-var config = require('../../config/config.js');
+var config = require('./../../config/config.js');
 var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
 	query: {token: config.token}
 });

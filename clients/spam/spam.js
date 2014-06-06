@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // spam plugin, useful for testing
-var config = require('../../config/config.js');
+var config = require('./../../config/config.js');
 var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
 	query: {token: config.token}
 });
