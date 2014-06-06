@@ -6,5 +6,6 @@ require('http-proxy').createServer({
 	ssl: {
 		key: require('fs').readFileSync('config/nodifier-key.pem', 'utf8'),
 		cert: require('fs').readFileSync('config/nodifier-cert.pem', 'utf8')
-	}
+	},
+	ws: true
 }).listen(7777);
