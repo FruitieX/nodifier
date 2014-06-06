@@ -7,6 +7,9 @@ var config = require('../../config/config.js');
 var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
 	query: {token: config.token}
 });
+socket.on('connect', function() {
+	console.log('HTTP server on port ' + port + ', bridging to socket.io');
+});
 
 var auth = require('http-auth');
 var htpasswd = require('./htpasswd.json');
@@ -70,7 +73,6 @@ s = https.createServer(basic, options, function (req, res) {
 	}
 });
 s.listen(port);
-console.log('HTTP server on port ' + port + ', bridging to socket.io');
 
 process.on('uncaughtException', function (err) {
 	console.error(err.stack);
