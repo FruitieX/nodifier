@@ -71,3 +71,8 @@ s = https.createServer(basic, options, function (req, res) {
 });
 s.listen(port);
 console.log('HTTP server on port ' + port + ', bridging to socket.io');
+
+process.on('uncaughtException', function (err) {
+	console.error(err.stack);
+	console.log("ERROR! Node not exiting.");
+});
