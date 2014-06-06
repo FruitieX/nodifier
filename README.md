@@ -26,11 +26,11 @@ Have a look at the template client and the API description below.
 Setup
 =====
 
-config.json
+config.js
 -----------
-Take a look at the `config/config.json.example` file. This file is shared between
+Take a look at the `config/config.js.example` file. This file is shared between
 server and client. These can of course run on separate hosts. Fill in the
-details of your server and other options you want, then save as `config/config.json`.
+details of your server and other options you want, then save as `config/config.js`.
 
 Option			| Explanation
 ----------------|--------------
@@ -45,7 +45,7 @@ Option			| Explanation
 Server - `nodifier.js`
 ----------------------
 1. Generate SSL keys with `config/gen_cert.sh`
-2. Configure `config/config.json`
+2. Configure `config/config.js`
 3. Run `nodifier.js`
 
 Test with e.g. `clients/spam/spam.js`, and the CLI client listing notifications (see below)
@@ -76,7 +76,7 @@ Handy aliases for your shell:
 Misc clients
 ------------
 ### Included
-These plugins make use of your `config/config.json` file to connect to the server.
+These plugins make use of your `config/config.js` file to connect to the server.
 Explanations at beginning of document.
 
 * "Todo client" - `clients/todo/todo.js`
@@ -86,7 +86,7 @@ Explanations at beginning of document.
 * Template client - `client/template/template.js`
 
 Most of these can simply be ran without any additional configuration, assuming
-you have a `config/config.json` file the client can find. Some clients (eg. mail)
+you have a `config/config.js` file the client can find. Some clients (eg. mail)
 need additional configuring, example configuration files and scripts needed are included.
 
 ### Other projects

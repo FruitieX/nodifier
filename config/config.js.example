@@ -1,0 +1,20 @@
+// TODO:
+// WARNING: this leaves the client vulnerable to man-in-the middle attacks!
+// this is UGLY UGLY UGLY, but what choices do I have when socket.io-client
+// does not seem to support custom CAs!
+//
+// relevant issue: https://github.com/Automattic/socket.io-client/issues/594
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+// something like this might fix it in the future:
+// require('https').globalAgent.options.ca = require('fs').readFileSync('nodifier-cert.pem', 'utf8');
+
+module.exports = {
+	"host": "https://fruitiex.org",
+	"port": "7777",
+	"token": "awesomesauce",
+	"programs": {
+		"browser": "chromium"
+	}
+};
