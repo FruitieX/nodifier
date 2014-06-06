@@ -6,6 +6,7 @@
 	"dependencies" : {
 		"socket.io" : ">=1.0.2",
 		"socket.io-client" : ">=1.0.2",
-		"cli-color" : ">=0.2.3"
+		"cli-color" : ">=0.2.3",
+		"http-proxy" : ">=1.1.4"
 	}
 }
