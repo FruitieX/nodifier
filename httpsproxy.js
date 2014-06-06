@@ -11,3 +11,8 @@ require('http-proxy').createServer({
 	},
 	ws: true
 }).listen(config.httpsProxyPort);
+
+process.on('uncaughtException', function (err) {
+	console.error(err.stack);
+	console.log("ERROR! Node not exiting.");
+});
