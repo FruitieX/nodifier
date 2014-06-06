@@ -258,3 +258,8 @@ socket.on('markAs', function(notifications) {
 socket.on('connect', function() {
 	reconnectLoop();
 });
+
+process.on('uncaughtException', function (err) {
+	console.log("ERROR: " + err);
+	reconnectLoop();
+});
