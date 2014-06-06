@@ -154,8 +154,8 @@ var markAs = function(notifications, read) {
 };
 
 // networking
-var io = require('socket.io').listen(config.port);
-console.log('nodifier server listening on port ' + config.port);
+var io = require('socket.io').listen(config.listenPort);
+console.log('nodifier server listening on port ' + config.listenPort);
 
 io.set('authorization', function(req, callback) {
 	if(req._query.token === config.token)
