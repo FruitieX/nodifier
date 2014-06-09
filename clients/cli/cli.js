@@ -14,7 +14,6 @@ var launchProgram = function(notification) {
 		console.log("Unknown program: " + notification.openwith + "!");
 		return;
 	}
-	console.log("launching " + command.executable + ' ' + notification.url);
 
 	var whichSpawn = command.sync ? spawnSync : spawn;
 	var child = whichSpawn(command.executable, [notification.url], {
