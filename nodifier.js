@@ -95,7 +95,7 @@ var searchNotifications = function(id, uid, source, context, read) {
 		}
 	} else {
 		return array.filter(function (notification) {
-			return (!uid || (notification.uid == uid)) && (!source || (notification.source == source)) && (!context || (notification.context == context));
+			return (!uid || (notification.uid == uid)) && (!source || (notification.source.toUpperCase() == source.toUpperCase())) && (!context || (notification.context.toUpperCase() == context.toUpperCase()));
 		});
 	}
 };
