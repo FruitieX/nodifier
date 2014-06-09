@@ -6,6 +6,7 @@ var clc_color = require('./../../lib/clc-color');
 var config = require('./../../config/config.js');
 
 var open_re = /^(\d).*$|\.\./;
+var spawnSync = require('child_process').spawnSync || require('spawn-sync');
 var spawn = require('child_process').spawn;
 var launchProgram = function(notification) {
 	var command = config.programs[notification.openwith];
@@ -13,13 +14,18 @@ var launchProgram = function(notification) {
 		console.log("Unknown program: " + notification.openwith + "!");
 		return;
 	}
+	console.log("launching " + command.executable + ' ' + notification.url);
 
-	var child = spawn(command, [notification.url], {
-		detached: true,
-		stdio: [ 'ignore', 'ignore', 'ignore' ]
+	var whichSpawn = command.sync ? spawnSync : spawn;
+	var child = whichSpawn(command.executable, [notification.url], {
+		detached: command.detached,
+		stdio: command.stdio
 	});
 
-	child.unref();
+	if(command.unref)
+		child.unref();
+
+	console.log();
 };
 
 var notificationsCache;
@@ -118,15 +124,15 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
 	|| open_re.test(process.argv[2])) {
 
 	socket.on('notifications', function(notifications) {
-		printNotifications(notifications, false,
-			(process.argv[2] === 'u' || process.argv[2] === 'lr'));
-
 		// args match launching app
 		if(open_re.test(process.argv[2]) && notifications) {
 			for(var i = 0; i < notifications.length; i++) {
 				launchProgram(notifications[i]);
 			}
 		}
+
+		printNotifications(notifications, false,
+			(process.argv[2] === 'u' || process.argv[2] === 'lr'));
 
 		// non listen modes should exit now
 		process.exit(0);
