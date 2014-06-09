@@ -16,7 +16,20 @@ var config = {
 	"useHttpsProxy": true,			// use https proxy port or not?
 	"token": "awesomesauce",		// token used for authorization
 	"programs": {					// used by CLI client to constrain which programs can be launched
-		"browser": "chromium"
+		"browser": {
+			"executable": "chromium",
+			"sync": false,
+			"stdio": [ 'ignore', 'ignore', 'ignore' ],
+			"detached": true,
+			"unref": true
+		},
+		"irc": {
+			"executable": "i",
+			"sync": true,
+			"stdio": [ false, false, '/dev/null' ],
+			"detached": false,
+			"unref": false
+		}
 	}
 };
 
