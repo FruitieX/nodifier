@@ -3,11 +3,8 @@
 var port = 5678;
 
 // HTTP - socket.io bridge to enable applications supporting HTTP to interact with nodifier
-var config = require('./../../config/config.js');
-var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
-	query: {token: config.token}
-});
-socket.on('connect', function() {
+var socket = require('./../../lib/connect.js');;
+socket.on('auth', function() {
 	console.log('HTTP server on port ' + port + ', bridging to socket.io');
 });
 
@@ -38,9 +35,9 @@ var handlePOST = function(req, res) {
 
 		if (data_json.method === 'newNotification') {
 			delete(data_json.method);
-			socket.emit('newNotification', data_json);
+			socket.eventSend('newNotification', data_json);
 		} else if (data_json.method === 'setUnread') {
-			socket.emit('markAs', {
+			socket.eventSend('markAs', {
 				read: false,
 				id: data_json.id,
 				uid: data_json.uid,
@@ -48,7 +45,7 @@ var handlePOST = function(req, res) {
 				context: data_json.context
 			});
 		} else if (data_json.method === 'setRead') {
-			socket.emit('markAs', {
+			socket.eventSend('markAs', {
 				read: true,
 				id: data_json.id,
 				uid: data_json.uid,

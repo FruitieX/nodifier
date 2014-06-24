@@ -1,15 +1,12 @@
 #!/usr/bin/env node
 
 // spam plugin, useful for testing
-var config = require('./../../config/config.js');
-var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
-	query: {token: config.token}
-});
+var socket = require('./../../lib/connect.js');;
 
 var cnt = 0;
-socket.on('connect', function() {
+socket.on('auth', function() {
 	setInterval(function() {
-		socket.emit('newNotification', {
+		socket.eventSend('newNotification', {
 			'text': 'spamäåö123456789atheoutheachumcramcrhkrcehachuechacmecuaocemuchaechucehaocumechoaceuhcmkch.phehlowhwhell' + cnt,
 			'source': 'source' + cnt,
 			'sourcebg': 'red',
