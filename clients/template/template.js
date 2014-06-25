@@ -22,19 +22,19 @@ socket.on('notifications', function(notifications) {
 	for (var i = 0; i < notifications.length; i++)
 		console.log(notifications[i].source + ': ' + notifications[i].text)
 });
-socket.on('auth', function() {
-	socket.eventSend('newNotification', {
+socket.on('open', function() {
+	socket.send('newNotification', {
 		'text': 'notification text goes here',
 		'source': 'testapp',
 		'sourcebg': 'blue',
 		'sourcefg': 'black'
 	});
-	socket.eventSend('markAs', {
+	socket.send('markAs', {
 		'read': true,
 		'source': 'testapp'
 	});
-	socket.eventSend('getRead');
-	socket.eventSend('getUnread', {
+	socket.send('getRead');
+	socket.send('getUnread', {
 		'id': '5..42'
 	});
 });

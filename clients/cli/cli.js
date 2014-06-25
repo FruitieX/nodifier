@@ -110,7 +110,7 @@ var updateID = function() {
 };
 
 // networking
-var socket = require('./../../lib/connect.js');;
+var socket = require('./../../lib/connect.js');
 
 /* set up event handlers
  *
@@ -164,7 +164,7 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
 
 	// show cursor again after program exit
 	var onquit = function() {
-		socket.close();
+		socket.end();
 		process.stdout.write('\n');
 		process.stdout.write('\x1b[?25h');
 		process.exit();
@@ -191,7 +191,7 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
 }
 
 // handle commands once connected to server
-socket.on('auth', function() {
+socket.on('open', function() {
 	switch(process.argv[2]) {
 		// mark as (un)read
 		case 'u':
@@ -201,7 +201,7 @@ socket.on('auth', function() {
 				process.exit(1);
 			}
 
-			socket.eventSend('markAs', {
+			socket.send('markAs', {
 				'read': (process.argv[2] === 'r' ? true : false),
 				'id': process.argv[3]
 			});
@@ -209,25 +209,25 @@ socket.on('auth', function() {
 
 		// list read notifications
 		case 'lr':
-			socket.eventSend('getRead');
+			socket.send('getRead');
 			break;
 
 		// 'listen' for notifications
 		case 'l':
 			// get all unread notifications once
-			socket.eventSend('getUnread');
+			socket.send('getUnread');
 			break;
 
 		default:
 			if(open_re.test(process.argv[2])) {
 				// open notification(s) with program
-				socket.eventSend('markAs', {
+				socket.send('markAs', {
 					read: true,
 					id: process.argv[2]
 				});
 			} else if (!process.argv[2]) {
 				// requested all notifications
-				socket.eventSend('getUnread');
+				socket.send('getUnread');
 			} else {
 				console.log('unknown command!');
 				process.exit(1);

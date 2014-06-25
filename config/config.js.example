@@ -1,20 +1,6 @@
-// TODO:
-// WARNING: this leaves the client vulnerable to man-in-the middle attacks!
-// this is UGLY UGLY UGLY, but what choices do I have when socket.io-client
-// does not seem to support custom CAs!
-
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-// relevant issue: https://github.com/Automattic/socket.io-client/issues/594
-
-// something like this might fix it in the future:
-// require('https').globalAgent.options.ca = require('fs').readFileSync('nodifier-cert.pem', 'utf8');
-
 var config = {
 	"host": "https://fruitiex.org",	// nodifier server host, note: http/https
-	"listenPort": "8888",			// nodifier server listen port
-	"httpsProxyPort": "7777",		// http <-> https proxy listen port
-	"useHttpsProxy": true,			// use https proxy port or not?
-	"token": "awesomesauce",		// token used for authorization
+	"port": "8888",					// http <-> https proxy listen port
 	"programs": {					// used by CLI client to constrain which programs can be launched
 		"browser": {
 			"executable": "chromium",
@@ -32,11 +18,5 @@ var config = {
 		}
 	}
 };
-
-if (config.useHttpsProxy) {
-	config.port = config.httpsProxyPort;
-} else {
-	config.port = config.listenPort;
-}
 
 module.exports = config;

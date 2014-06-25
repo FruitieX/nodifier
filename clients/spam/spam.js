@@ -4,9 +4,9 @@
 var socket = require('./../../lib/connect.js');;
 
 var cnt = 0;
-socket.on('auth', function() {
+socket.on('open', function() {
 	setInterval(function() {
-		socket.eventSend('newNotification', {
+		socket.send('newNotification', {
 			'text': 'spamäåö123456789atheoutheachumcramcrhkrcehachuechacmecuaocemuchaechucehaocumechoaceuhcmkch.phehlowhwhell' + cnt,
 			'source': 'source' + cnt,
 			'sourcebg': 'red',

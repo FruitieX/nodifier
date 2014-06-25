@@ -16,10 +16,10 @@ str.substring(0, str.length - 1);
 
 socket.on('newNotification', function(data) {
 	console.log('Notification added');
-	socket.close();
+	socket.end();
 });
-socket.on('auth', function() {
-	socket.eventSend('newNotification', {
+socket.on('open', function() {
+	socket.send('newNotification', {
 		'text': str,
 		'source': 'todo',
 		'sourcebg': 'blue',

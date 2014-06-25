@@ -87,7 +87,7 @@ var newUnread = function(from, subject, uid, threadId, labels, context, contextf
 	console.log('Sent new notification for unread mail UID: ' + uid);
 	unread.push(uid);
 
-	socket.eventSend('newNotification', notification);
+	socket.send('newNotification', notification);
 };
 
 /* fetch msgs and mark them as new notifications */
@@ -171,7 +171,7 @@ var syncFromIMAP = function() {
 		for(i = unread.length - 1; i >= 0; i--) {
 			// found a mail not in the search results
 			if(results.indexOf(unread[i]) === -1) {
-				socket.eventSend('markAs', {
+				socket.send('markAs', {
 					'read': true,
 					'uid': unread[i],
 				});
@@ -253,7 +253,7 @@ socket.on('markAs', function(notifications) {
 	}
 });
 
-socket.on('auth', function() {
+socket.on('open', function() {
 	reconnectLoop();
 });
 

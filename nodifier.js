@@ -154,75 +154,77 @@ var markAs = function(notifications, read) {
 };
 
 // networking
-var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({port: config.port});
-console.log('nodifier server listening on port ' + config.port);
-
-wss.broadcast = function(event, data, ignoreSocket) {
-	var packet = {
-		'event': event,
-		'data': data
-	};
-
-	packet = JSON.stringify(packet);
-	for(var i in this.clients) {
-		if(this.clients[i] !== ignoreSocket) {
-			this.clients[i].send(packet, {binary: true, mask: true});
-		}
-	}
+var tls = require('tls')
+var fs = require('fs');
+var options = {
+	key: fs.readFileSync('config/nodifier-key.pem'),
+	cert: fs.readFileSync('config/nodifier-cert.pem'),
+	ca: fs.readFileSync('config/nodifier-cert.pem'),
+	requestCert: true,
+	rejectUnauthorized: true
 };
-
-wss.on('connection', function(socket) {
-	socket.eventSend = function(event, data) {
-		var packet = {
-			'event': event,
-			'data': data
-		};
-
-		packet = JSON.stringify(packet)
-		this.send(packet, {binary: true, mask: true});
-	};
-
+var sockets = [];
+var server = tls.createServer(options, function(socket) {
+	sockets.push(socket);
 	var notifications;
 
-	socket.on('message', function(packet) {
-		packet = JSON.parse(packet);
-
-		if(packet.event === 'newNotification') {
-			// add new notification
-			var id = storeNotification(packet.data, false);
-			updateIDRead(); // indices may have changed, fix them
-
-			// broadcast new notification to all connected clients
-			wss.broadcast('newNotification', unreadNotifications[id]);
-		} else if (packet.event === 'markAs') {
-			// search for notifications and mark results as (un)read according to s.read
-			notifications = searchNotifications(packet.data.id, packet.data.uid, packet.data.source, packet.data.context, !packet.data.read);
-			if(notifications)
-				markAs(notifications, packet.data.read);
-			updateIDRead(); // indices/read states may have changed, fix them
-
-			socket.eventSend('notifications', notifications);
-
-			// broadcast updated notifications to all other connected clients
-			wss.broadcast('markAs', notifications, socket);
-		} else if (packet.event === 'getRead') {
-			// get all read notifications
-			socket.eventSend('notifications', readNotifications);
-		} else if (packet.event === 'getUnread') {
-			// get unread notifications by id, or all notifications if no search terms
-			if(!packet.data) {
-				notifications = unreadNotifications;
-			} else {
-				notifications = searchNotifications(packet.data.id, packet.data.uid, packet.data.source, packet.data.context, false);
+	socket.on('data', function(data) {
+		data = JSON.parse(data.toString());
+		if(data[0] !== 'data')
+			socket.emit(data[0], data[1]);
+	});
+	socket.send = function(evt, data) {
+		socket.write(JSON.stringify([evt, data]));
+	};
+	socket.broadcast = function(evt, data, ignoreSelf) {
+		for(var i = 0; i < sockets.length; i++) {
+			if(!ignoreSelf || sockets[i] !== socket) {
+				sockets[i].send(evt, data);
 			}
-
-			socket.eventSend('notifications', notifications);
-		} else {
-			console.log('unknown event ' + packet.event + ' from ' + socket);
 		}
+	};
+	socket.on('end', function() {
+		if(sockets.indexOf(socket) !== -1)
+			sockets.splice(sockets.indexOf(socket), 1);
+	});
+
+	socket.on('newNotification', function(notification) {
+		// add new notification
+		var id = storeNotification(notification, false);
+		updateIDRead(); // indices may have changed, fix them
+
+		// broadcast new notification to all connected clients
+		socket.broadcast('newNotification', unreadNotifications[id]);
+	});
+	socket.on('markAs', function(search) {
+		// search for notifications and mark results as (un)read according to s.read
+		notifications = searchNotifications(search.id, search.uid, search.source, search.context, !search.read);
+		if(notifications)
+			markAs(notifications, search.read);
+		updateIDRead(); // indices/read states may have changed, fix them
+
+		socket.send('notifications', notifications);
+
+		// broadcast updated notifications to all other connected clients
+		socket.broadcast('markAs', notifications, true);
+	});
+	socket.on('getRead', function() {
+		socket.send('notifications', readNotifications);
+	});
+	socket.on('getUnread', function(search) {
+		// get unread notifications by id, or all notifications if no search terms
+		if(!search) {
+			notifications = unreadNotifications;
+		} else {
+			notifications = searchNotifications(search.id, search.uid, search.source, search.context, false);
+		}
+
+		socket.send('notifications', notifications);
 	});
 });
+
+server.listen(config.port);
+console.log('nodifier tls server listening on port ' + config.port);
 
 process.on('uncaughtException', function (err) {
 	console.error(err.stack);
