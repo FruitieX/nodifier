@@ -159,13 +159,15 @@ var WebSocketServer = require('ws').Server
 console.log('nodifier server listening on port ' + config.port);
 
 wss.broadcast = function(event, data, ignoreSocket) {
-	if(!data)
-		data = {};
-	data.event = event;
-	data = JSON.stringify(data);
+	var packet = {
+		'event': event,
+		'data': data
+	};
+
+	packet = JSON.stringify(packet);
 	for(var i in this.clients) {
 		if(this.clients[i] !== ignoreSocket) {
-			this.clients[i].send(data, {binary: true, mask: true});
+			this.clients[i].send(packet, {binary: true, mask: true});
 		}
 	}
 };

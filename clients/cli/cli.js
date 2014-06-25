@@ -135,27 +135,26 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
 		process.exit(0);
 	});
 } else if (process.argv[2] === 'l') {
-	socket.on('notifications', function(data) {
-		printNotifications(data, true, false);
-		notificationsCache = data;
+	socket.on('notifications', function(notifications) {
+		printNotifications(notifications, true, false);
+		notificationsCache = notifications;
 	});
-	socket.on('markAs', function(data) {
-		for (var i = data.length - 1; i >= 0; i--) {
-			if (data[i].read) {
+	socket.on('markAs', function(notifications) {
+		for (var i = notifications.length - 1; i >= 0; i--) {
+			if (notifications[i].read) {
 				// notification marked as read, remove
-				notificationsCache.splice(data[i].unreadID, 1);
+				notificationsCache.splice(notifications[i].unreadID, 1);
 			} else {
 				// new notification, add and sort
-				addNotification(data[i]);
+				addNotification(notifications[i]);
 			}
 		}
 		updateID(); // indices may have changed, update them
 		printNotifications(notificationsCache, true, false);
 	});
-	socket.on('newNotification', function(data) {
-		console.log(data);
+	socket.on('newNotification', function(notification) {
 		// new notification, add and sort
-		addNotification(data);
+		addNotification(notification);
 		updateID(); // indices may have changed, update them
 		printNotifications(notificationsCache, true, false);
 	});
@@ -165,6 +164,7 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
 
 	// show cursor again after program exit
 	var onquit = function() {
+		socket.close();
 		process.stdout.write('\n');
 		process.stdout.write('\x1b[?25h');
 		process.exit();
