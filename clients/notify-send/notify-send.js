@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 
 // send new nodifier notifications to system notification-daemon
-var config = require('./../../config/config.js');
-var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
-	query: {token: config.token}
-});
+var socket = require('./../../lib/connect.js');;
 var spawn = require('child_process').spawn;
 
 var launchDetached = function(program, args) {

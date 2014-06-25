@@ -4,8 +4,7 @@
 	"description" : "A very simple CLI program capable of receiving notifications",
 	"main" : "nodifier.js",
 	"dependencies" : {
-		"socket.io" : ">=1.0.2",
-		"socket.io-client" : ">=1.0.2",
+		"ws" : ">=0.4.31",
 		"cli-color" : ">=0.2.3",
 		"http-proxy" : ">=1.1.4",
 		"spawn-sync" : "git://github.com/FruitieX/spawn-sync"

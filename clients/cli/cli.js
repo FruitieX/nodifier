@@ -110,9 +110,7 @@ var updateID = function() {
 };
 
 // networking
-var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
-	query: {token: config.token}
-});
+var socket = require('./../../lib/connect.js');;
 
 /* set up event handlers
  *
@@ -155,7 +153,6 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
 		printNotifications(notificationsCache, true, false);
 	});
 	socket.on('newNotification', function(notification) {
-		console.log(notification);
 		// new notification, add and sort
 		addNotification(notification);
 		updateID(); // indices may have changed, update them
@@ -167,6 +164,7 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
 
 	// show cursor again after program exit
 	var onquit = function() {
+		socket.close();
 		process.stdout.write('\n');
 		process.stdout.write('\x1b[?25h');
 		process.exit();
@@ -193,7 +191,7 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
 }
 
 // handle commands once connected to server
-socket.on('connect', function() {
+socket.on('auth', function() {
 	switch(process.argv[2]) {
 		// mark as (un)read
 		case 'u':
@@ -203,7 +201,7 @@ socket.on('connect', function() {
 				process.exit(1);
 			}
 
-			socket.emit('markAs', {
+			socket.eventSend('markAs', {
 				'read': (process.argv[2] === 'r' ? true : false),
 				'id': process.argv[3]
 			});
@@ -211,25 +209,25 @@ socket.on('connect', function() {
 
 		// list read notifications
 		case 'lr':
-			socket.emit('getRead');
+			socket.eventSend('getRead');
 			break;
 
 		// 'listen' for notifications
 		case 'l':
 			// get all unread notifications once
-			socket.emit('getUnread');
+			socket.eventSend('getUnread');
 			break;
 
 		default:
 			if(open_re.test(process.argv[2])) {
 				// open notification(s) with program
-				socket.emit('markAs', {
+				socket.eventSend('markAs', {
 					read: true,
 					id: process.argv[2]
 				});
 			} else if (!process.argv[2]) {
 				// requested all notifications
-				socket.emit('getUnread');
+				socket.eventSend('getUnread');
 			} else {
 				console.log('unknown command!');
 				process.exit(1);

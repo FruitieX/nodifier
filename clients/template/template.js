@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 
 // template client program
-var config = require('./../../config/config.js');
-var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
-	query: {token: config.token}
-});
+var socket = require('./../../lib/connect.js');;
 
 socket.on('newNotification', function(notification) {
 	// new notification arrived, print text property
@@ -25,19 +22,19 @@ socket.on('notifications', function(notifications) {
 	for (var i = 0; i < notifications.length; i++)
 		console.log(notifications[i].source + ': ' + notifications[i].text)
 });
-socket.on('connect', function() {
-	socket.emit('newNotification', {
+socket.on('auth', function() {
+	socket.eventSend('newNotification', {
 		'text': 'notification text goes here',
 		'source': 'testapp',
 		'sourcebg': 'blue',
 		'sourcefg': 'black'
 	});
-	socket.emit('markAs', {
+	socket.eventSend('markAs', {
 		'read': true,
 		'source': 'testapp'
 	});
-	socket.emit('getRead');
-	socket.emit('getUnread', {
+	socket.eventSend('getRead');
+	socket.eventSend('getUnread', {
 		'id': '5..42'
 	});
 });

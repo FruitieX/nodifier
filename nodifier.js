@@ -154,51 +154,73 @@ var markAs = function(notifications, read) {
 };
 
 // networking
-var io = require('socket.io').listen(config.listenPort);
-console.log('nodifier server listening on port ' + config.listenPort);
+var WebSocketServer = require('ws').Server
+  , wss = new WebSocketServer({port: config.port});
+console.log('nodifier server listening on port ' + config.port);
 
-io.set('authorization', function(req, callback) {
-	if(req._query.token === config.token)
-		return callback(null, true);
-	return false;
-});
+wss.broadcast = function(event, data, ignoreSocket) {
+	var packet = {
+		'event': event,
+		'data': data
+	};
 
-io.sockets.on('connection', function(socket) {
+	packet = JSON.stringify(packet);
+	for(var i in this.clients) {
+		if(this.clients[i] !== ignoreSocket) {
+			this.clients[i].send(packet, {binary: true, mask: true});
+		}
+	}
+};
+
+wss.on('connection', function(socket) {
+	socket.eventSend = function(event, data) {
+		var packet = {
+			'event': event,
+			'data': data
+		};
+
+		packet = JSON.stringify(packet)
+		this.send(packet, {binary: true, mask: true});
+	};
+
 	var notifications;
 
-	// add new notification
-	socket.on('newNotification', function(n) {
-		var id = storeNotification(n, false);
-		updateIDRead(); // indices may have changed, fix them
+	socket.on('message', function(packet) {
+		packet = JSON.parse(packet);
 
-		// broadcast new notification to all connected clients
-		io.sockets.emit('newNotification', unreadNotifications[id]);
-	});
-	// search for notifications and mark results as (un)read according to s.read
-	socket.on('markAs', function(s) {
-		notifications = searchNotifications(s.id, s.uid, s.source, s.context, !s.read);
-		if(notifications)
-			markAs(notifications, s.read);
-		updateIDRead(); // indices/read states may have changed, fix them
+		if(packet.event === 'newNotification') {
+			// add new notification
+			var id = storeNotification(packet.data, false);
+			updateIDRead(); // indices may have changed, fix them
 
-		socket.emit('notifications', notifications);
+			// broadcast new notification to all connected clients
+			wss.broadcast('newNotification', unreadNotifications[id]);
+		} else if (packet.event === 'markAs') {
+			// search for notifications and mark results as (un)read according to s.read
+			notifications = searchNotifications(packet.data.id, packet.data.uid, packet.data.source, packet.data.context, !packet.data.read);
+			if(notifications)
+				markAs(notifications, packet.data.read);
+			updateIDRead(); // indices/read states may have changed, fix them
 
-		// broadcast updated notifications to all other connected clients
-		socket.broadcast.emit('markAs', notifications);
-	});
-	// get all read notifications
-	socket.on('getRead', function() {
-		socket.emit('notifications', readNotifications);
-	});
-	// get unread notifications by id, or all notifications if no search terms
-	socket.on('getUnread', function(s) {
-		if(!s) {
-			notifications = unreadNotifications;
+			socket.eventSend('notifications', notifications);
+
+			// broadcast updated notifications to all other connected clients
+			wss.broadcast('markAs', notifications, socket);
+		} else if (packet.event === 'getRead') {
+			// get all read notifications
+			socket.eventSend('notifications', readNotifications);
+		} else if (packet.event === 'getUnread') {
+			// get unread notifications by id, or all notifications if no search terms
+			if(!packet.data) {
+				notifications = unreadNotifications;
+			} else {
+				notifications = searchNotifications(packet.data.id, packet.data.uid, packet.data.source, packet.data.context, false);
+			}
+
+			socket.eventSend('notifications', notifications);
 		} else {
-			notifications = searchNotifications(s.id, s.uid, s.source, s.context, false);
+			console.log('unknown event ' + packet.event + ' from ' + socket);
 		}
-
-		socket.emit('notifications', notifications);
 	});
 });
 

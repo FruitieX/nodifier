@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 
 // todo plugin for quick adding of todos
-var config = require('./../../config/config.js');
-var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
-	query: {token: config.token}
-});
+var socket = require('./../../lib/connect.js');;
 
 if(!process.argv[2]) {
 	console.log("Usage: todo [message]");
@@ -18,10 +15,11 @@ for (var i = 2; i < process.argv.length; i++) {
 str.substring(0, str.length - 1);
 
 socket.on('newNotification', function(data) {
-	socket.disconnect();
+	console.log('Notification added');
+	socket.close();
 });
-socket.on('connect', function() {
-	socket.emit('newNotification', {
+socket.on('auth', function() {
+	socket.eventSend('newNotification', {
 		'text': str,
 		'source': 'todo',
 		'sourcebg': 'blue',

@@ -5,9 +5,7 @@ var inspect = require('util').inspect;
 var config = require('./../../config/config.js');
 var mailConfig = require('./mailConfig.json');
 
-var socket = require('socket.io-client').connect(config.host + ':' + config.port, {
-	query: {token: config.token}
-});
+var socket = require('./../../lib/connect.js');;
 
 var imap;
 
@@ -89,7 +87,7 @@ var newUnread = function(from, subject, uid, threadId, labels, context, contextf
 	console.log('Sent new notification for unread mail UID: ' + uid);
 	unread.push(uid);
 
-	socket.emit('newNotification', notification);
+	socket.eventSend('newNotification', notification);
 };
 
 /* fetch msgs and mark them as new notifications */
@@ -173,7 +171,7 @@ var syncFromIMAP = function() {
 		for(i = unread.length - 1; i >= 0; i--) {
 			// found a mail not in the search results
 			if(results.indexOf(unread[i]) === -1) {
-				socket.emit('markAs', {
+				socket.eventSend('markAs', {
 					'read': true,
 					'uid': unread[i],
 				});
@@ -255,7 +253,7 @@ socket.on('markAs', function(notifications) {
 	}
 });
 
-socket.on('connect', function() {
+socket.on('auth', function() {
 	reconnectLoop();
 });
 
