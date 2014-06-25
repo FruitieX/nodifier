@@ -1,6 +1,7 @@
 var config = {
 	"host": "https://fruitiex.org",	// nodifier server host, note: http/https
 	"port": "8888",					// http <-> https proxy listen port
+	"numReadToKeep": 1000,			// how many read notifications to remember
 	"programs": {					// used by CLI client to constrain which programs can be launched
 		"browser": {
 			"executable": "chromium",
