@@ -3,7 +3,7 @@ nodifier
 
 ![Screenshot](/screenshot.png?raw=true "Screenshot")
 
-nodifier is a simple, general purpose notification server with a Socket.IO based API.
+nodifier is a simple, general purpose notification server using Node TLS.
 Client programs can query the server for notifications, mark notifications as (un)read
 and add new notifications. Connected clients will receive updates of new/changed notifications.
 
@@ -37,9 +37,6 @@ Option			| Explanation
 `host`			| Hostname of your server
 `port`			| Port your server listens on
 `numReadToKeep`	| How many read notifications will be remembered.
-`ssl-key`		| Relative path to the server SSL key
-`ssl-cert`		| Relative path to the server SSL certificate
-`token`			| Token used for token based authentication
 `programs`		| For safety, a list of applications a notification can be associated with and what command should be ran
 
 Server - `nodifier.js`
@@ -109,8 +106,18 @@ fork of znc-push, and maintain all changes inside my server branch over at:
 
 API
 ---
-The server communicates over Socket.IO. Notifications are sent as JavaScript
-objects. Here's a list of Socket.IO events the server responds to
+The server communicates over TLS sockets. Messages are sent as stringified
+arrays containing an event as a first element and the data as the second element.
+Notifications are sent as JSON, see valid properties below.
+
+The included helper library `lib/connect.js` will take care of formatting by adding
+a few methods to the exported socket object:
+
+* socket.on('myEvent', function(data) { console.log(data); }
+* socket.send('myOtherEvent', data);
+* socket.on('open', function() { console.log('connection opened'); });
+
+Here's a list of events the server responds to:
 
 * `newNotification` store given notification. Pass the notification JSON object as data. Notification broadcast to all connected clients (including you) in a `newNotification` event containing the notification.
 * `markAs` mark notification matching search terms as (un)read. Pass as data a JSON object of search terms with required field:
