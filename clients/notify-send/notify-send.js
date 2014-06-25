@@ -15,19 +15,16 @@ var launchDetached = function(program, args) {
 };
 
 socket.on('newNotification', function(data) {
-	var s = "";
+	var title = "";
 	if(data.source) {
-		s += data.source;
+		title += data.source;
 	}
 	if(data.context) {
 		if(data.source)
-			s += ' ';
-		s += '(' + data.context + ')';
+			title += ' ';
+		title += '(' + data.context + ')';
 	}
 
-	s += ': ';
-	s += data.text;
-
-	launchDetached('notify-send', [s]);
+	launchDetached('notify-send', [title, data.text]);
 	launchDetached('paplay', ['/usr/share/sounds/freedesktop/stereo/message.oga']);
 });
