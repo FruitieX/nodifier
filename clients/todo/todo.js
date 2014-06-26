@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // todo plugin for quick adding of todos
-var socket = require('./../../lib/connect.js');;
+var socket = require('./../../lib/connect.js')();
 
 if(!process.argv[2]) {
 	console.log("Usage: todo [message]");
