@@ -30,8 +30,9 @@ var storeNotification = function(data_json, read) {
 		primaryArray = readNotifications; secondaryArray = unreadNotifications;
 	}
 
-	// look for notification with duplicate UID in both arrays. if found, remove
 	if(data_json.uid) {
+		// notification has a set UID:
+		// look for notification with duplicate UID in both arrays. if found, remove
 		var i;
 		for(i = primaryArray.length - 1; i >= 0; i--) {
 			if(primaryArray[i].uid === data_json.uid) {
@@ -44,6 +45,11 @@ var storeNotification = function(data_json, read) {
 				secondaryArray.splice(i, 1);
 			}
 		}
+	} else {
+		// notification lacks UID: generate a pseudo random hash and set it as the UID
+		var shasum = crypto.createHash('md5');
+		shasum.update(String(Math.random()));
+		data_json.uid = shasum.digest('base64');
 	}
 
 	if (read) {
