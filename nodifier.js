@@ -190,7 +190,7 @@ var server = tls.createServer(options, function(socket) {
 	});
 	socket.send = function(evt, data) {
 		data = JSON.stringify([evt, data]);
-		socket.write(data.length);
+		socket.write(data.length.toString());
 		socket.write(data);
 	};
 	socket.broadcast = function(evt, data, ignoreSelf) {
