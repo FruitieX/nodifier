@@ -3,10 +3,21 @@
 var port = 5678;
 
 // HTTP - socket.io bridge to enable applications supporting HTTP to interact with nodifier
-var socket = require('./../../lib/connect.js');;
-socket.on('open', function() {
-	console.log('HTTP server on port ' + port + ', bridging to socket.io');
-});
+var socketConnect = require('./../../lib/connect.js');
+
+var setupEventHandlers = function(sock) {
+	sock.on('open', function() {
+		console.log('HTTP server on port ' + port + ', bridging to node tls');
+	});
+	sock.on('close', function() {
+		socket = socketConnect();
+		setupEventHandlers(socket);
+	});
+	sock.setKeepAlive(true);
+};
+
+var socket = socketConnect();
+setupEventHandlers(socket);
 
 var auth = require('http-auth');
 var htpasswd = require('./htpasswd.json');

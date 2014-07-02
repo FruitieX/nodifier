@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // spam plugin, useful for testing
-var socket = require('./../../lib/connect.js');;
+var socket = require('./../../lib/connect.js')();
 
 var cnt = 0;
 socket.on('open', function() {

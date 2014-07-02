@@ -5,7 +5,33 @@ var inspect = require('util').inspect;
 var config = require('./../../config/config.js');
 var mailConfig = require('./mailConfig.json');
 
-var socket = require('./../../lib/connect.js');;
+var socketConnect = require('./../../lib/connect.js');
+var socket = socketConnect();
+
+var setupEventHandlers = function(sock) {
+	sock.on('markAs', function(notifications) {
+		for (var i = notifications.length - 1; i >= 0; i--) {
+			// TODO: more precise checking
+			if(notifications[i].source === mailConfig.source) {
+				if(notifications[i].read)
+					setRead(notifications[i].uid);
+				else
+					setUnread(notifications[i].uid);
+			}
+		}
+	});
+
+	sock.on('open', function() {
+		reconnectLoop();
+	});
+
+	sock.on('close', function() {
+		socket = socketConnect();
+		setupEventHandlers(socket);
+	});
+	sock.setKeepAlive(true);
+};
+setupEventHandlers(socket);
 
 var imap;
 
@@ -240,22 +266,6 @@ var reconnectLoop = function() {
 
 	imap.connect();
 };
-
-socket.on('markAs', function(notifications) {
-	for (var i = notifications.length - 1; i >= 0; i--) {
-		// TODO: more precise checking
-		if(notifications[i].source === mailConfig.source) {
-			if(notifications[i].read)
-				setRead(notifications[i].uid);
-			else
-				setUnread(notifications[i].uid);
-		}
-	}
-});
-
-socket.on('open', function() {
-	reconnectLoop();
-});
 
 process.on('uncaughtException', function (err) {
 	console.log("ERROR: " + err);
