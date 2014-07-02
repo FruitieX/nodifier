@@ -168,13 +168,30 @@ var server = tls.createServer(options, function(socket) {
 	sockets.push(socket);
 	var notifications;
 
+	var recvBuffer = "";
+	var incomingLength = 0;
+
 	socket.on('data', function(data) {
-		data = JSON.parse(data.toString());
-		if(data[0] !== 'data')
-			socket.emit(data[0], data[1]);
+		if(!incomingLength) {
+			// first message is always the length
+			incomingLength = data.toString();
+		} else {
+			recvBuffer += data.toString();
+
+			// recv'd entire message
+			if(recvBuffer.length >= incomingLength) {
+				data = JSON.parse(recvBuffer);
+				recvBuffer = "";
+				incomingLength = 0;
+				if(data[0] !== 'data')
+					socket.emit(data[0], data[1]);
+			}
+		}
 	});
 	socket.send = function(evt, data) {
-		socket.write(JSON.stringify([evt, data]));
+		data = JSON.stringify([evt, data]);
+		socket.write(data.length);
+		socket.write(data);
 	};
 	socket.broadcast = function(evt, data, ignoreSelf) {
 		for(var i = 0; i < sockets.length; i++) {
