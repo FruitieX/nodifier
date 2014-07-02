@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var config = require('./config/config.js');
+var crypto = require('crypto');
 var unreadNotifications = [];
 var readNotifications = [];
 
