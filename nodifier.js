@@ -230,14 +230,16 @@ var server = tls.createServer(options, function(socket) {
 	socket.on('markAs', function(search) {
 		// search for notifications and mark results as (un)read according to s.read
 		notifications = searchNotifications(search.id, search.uid, search.source, search.context, !search.read);
-		if(notifications)
+		if(notifications.length) {
 			markAs(notifications, search.read);
-		updateIDRead(); // indices/read states may have changed, fix them
+            updateIDRead(); // indices/read states may have changed, fix them
 
-		socket.send('notifications', notifications);
+            // broadcast updated notifications to all other connected clients
+            socket.broadcast('markAs', notifications, true);
+        }
 
-		// broadcast updated notifications to all other connected clients
-		socket.broadcast('markAs', notifications, true);
+        // send matching notifications (or empty array) to requesting client
+        socket.send('notifications', notifications);
 	});
 	socket.on('getRead', function() {
 		socket.send('notifications', readNotifications);
