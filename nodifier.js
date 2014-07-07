@@ -179,19 +179,26 @@ var server = tls.createServer(options, function(socket) {
 	var incomingLength = 0;
 
 	socket.on('data', function(data) {
-		if(!incomingLength) {
-			// first message is always the length
-			incomingLength = data.toString();
-		} else {
-			recvBuffer += data.toString();
+		// message format is assumed to be:
+		// 1234["string", {...}]
+		// where 1234 is message length
+		recvBuffer += data.toString();
 
-			// recv'd entire message
-			if(recvBuffer.length >= incomingLength) {
-				data = JSON.parse(recvBuffer);
-				recvBuffer = "";
-				incomingLength = 0;
+		// recv'd the msg length integer if we have a '[' char
+		var msgLenEnd = recvBuffer.indexOf('[');
+		if(msgLenEnd !== -1) {
+			var len = recvBuffer.substr(0, msgLenEnd);
+			var msg = recvBuffer.substr(msgLenEnd, len);
+
+			// got entire msg?
+			if(msg.length === len) {
+				// remove msg from buffer, then handle it
+				recvBuffer = recvBuffer.substr(msgLenEnd + len);
+				console.log(recvBuffer);
+
+				data = JSON.parse(msg);
 				if(data[0] !== 'data')
-					socket.emit(data[0], data[1]);
+					self.emit(data[0], data[1]);
 			}
 		}
 	});
@@ -245,6 +252,9 @@ var server = tls.createServer(options, function(socket) {
 
 		socket.send('notifications', notifications);
 	});
+
+	socket.setKeepAlive(true);
+	socket.setNoDelay(true);
 });
 
 server.listen(config.port);
