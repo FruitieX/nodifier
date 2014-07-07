@@ -20,7 +20,7 @@ socket.on('markAs', function(notifications) {
     }
 });
 
-socket.on('open', function() {
+socket.once('open', function() {
     reconnectLoop();
 });
 
