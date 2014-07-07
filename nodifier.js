@@ -176,7 +176,6 @@ var server = tls.createServer(options, function(socket) {
 	var notifications;
 
 	var recvBuffer = "";
-	var incomingLength = 0;
 
 	socket.on('data', function(data) {
 		// message format is assumed to be:
@@ -191,14 +190,13 @@ var server = tls.createServer(options, function(socket) {
 			var msg = recvBuffer.substr(msgLenEnd, len);
 
 			// got entire msg?
-			if(msg.length === len) {
+			if(msg.length == len) {
 				// remove msg from buffer, then handle it
 				recvBuffer = recvBuffer.substr(msgLenEnd + len);
-				console.log(recvBuffer);
 
 				data = JSON.parse(msg);
 				if(data[0] !== 'data')
-					self.emit(data[0], data[1]);
+					socket.emit(data[0], data[1]);
 			}
 		}
 	});
