@@ -194,6 +194,7 @@ var server = tls.createServer(options, function(socket) {
 				// remove msg from buffer, then handle it
 				recvBuffer = recvBuffer.substr(msgLenEnd + len);
 
+                console.log('got msg: ' + msg);
 				data = JSON.parse(msg);
 				if(data[0] !== 'data')
 					socket.emit(data[0], data[1]);
@@ -204,6 +205,7 @@ var server = tls.createServer(options, function(socket) {
 		data = JSON.stringify([evt, data]);
 		socket.write(data.length.toString());
 		socket.write(data);
+        console.log('sent msg: ' + data);
 	};
 	socket.broadcast = function(evt, data, ignoreSelf) {
 		for(var i = 0; i < sockets.length; i++) {
