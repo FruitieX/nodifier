@@ -111,137 +111,130 @@ var updateID = function() {
 
 // networking
 var socketConnect = require('./../../lib/connect.js');
+var socket = new socketConnect();
 /* set up event handlers
  *
  * the commands in the Array() fetch a list of notifications from the server,
  * print the list once we receive it */
 
-var setupEventHandlers = function(socket) {
-	if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
-		|| open_re.test(process.argv[2])) {
+if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
+	|| open_re.test(process.argv[2])) {
 
-		socket.on('notifications', function(notifications) {
-			// args match launching app
-			if(open_re.test(process.argv[2]) && notifications) {
-				for(var i = 0; i < notifications.length; i++) {
-					launchProgram(notifications[i]);
-				}
+	socket.on('notifications', function(notifications) {
+		// args match launching app
+		if(open_re.test(process.argv[2]) && notifications) {
+			for(var i = 0; i < notifications.length; i++) {
+				launchProgram(notifications[i]);
 			}
-
-			printNotifications(notifications, false,
-				(process.argv[2] === 'u' || process.argv[2] === 'lr'));
-
-			// non listen modes should exit now
-			socket.end();
-			process.exit(0);
-		});
-	} else if (process.argv[2] === 'l') {
-		socket.on('notifications', function(notifications) {
-			printNotifications(notifications, true, false);
-			notificationsCache = notifications;
-		});
-		socket.on('markAs', function(notifications) {
-			for (var i = notifications.length - 1; i >= 0; i--) {
-				if (notifications[i].read) {
-					// notification marked as read, remove
-					notificationsCache.splice(notifications[i].unreadID, 1);
-				} else {
-					// new notification, add and sort
-					addNotification(notifications[i]);
-				}
-			}
-			updateID(); // indices may have changed, update them
-			printNotifications(notificationsCache, true, false);
-		});
-		socket.on('newNotification', function(notification) {
-			// new notification, add and sort
-			addNotification(notification);
-			updateID(); // indices may have changed, update them
-			printNotifications(notificationsCache, true, false);
-		});
-		socket.on('close', function() {
-			setupEventHandlers(socketConnect());
-		});
-		socket.setKeepAlive(true);
-
-		// hide cursor
-		process.stdout.write('\x1b[?25l');
-
-		// show cursor again after program exit
-		var onquit = function() {
-			socket.end();
-			process.stdout.write('\n');
-			process.stdout.write('\x1b[?25h');
-			process.exit();
-		};
-
-		// catch ctrl-c
-		process.on('SIGINT', onquit); process.on('exit', onquit);
-
-		// hide keyboard input
-		var stdin = process.stdin;
-		stdin.setRawMode(true);
-		stdin.resume();
-		stdin.setEncoding( 'utf8' );
-
-		// look for q keypresses, run onquit
-		stdin.on('data', function(key) {
-			if(key == 'q' || key == '\u0003') onquit();
-		});
-
-		// handle resizes
-		process.stdout.on('resize', function() {
-			printNotifications(notificationsCache, true, false);
-		});
-	}
-
-	// handle commands once connected to server
-	socket.on('open', function() {
-		switch(process.argv[2]) {
-			// mark as (un)read
-			case 'u':
-			case 'r':
-				if(!process.argv[3]) {
-					console.log("Please provide notification ID!");
-					socket.end();
-					process.exit(1);
-				}
-
-				socket.send('markAs', {
-					'read': (process.argv[2] === 'r' ? true : false),
-					'id': process.argv[3]
-				});
-				break;
-
-			// list read notifications
-			case 'lr':
-				socket.send('getRead');
-				break;
-
-			// 'listen' for notifications
-			case 'l':
-				// get all unread notifications once
-				socket.send('getUnread');
-				break;
-
-			default:
-				if(open_re.test(process.argv[2])) {
-					// open notification(s) with program
-					socket.send('markAs', {
-						read: true,
-						id: process.argv[2]
-					});
-				} else if (!process.argv[2]) {
-					// requested all notifications
-					socket.send('getUnread');
-				} else {
-					console.log('unknown command!');
-					socket.end();
-					process.exit(1);
-				}
-				break;
 		}
-	});
-};
 
-setupEventHandlers(socketConnect());
+		printNotifications(notifications, false,
+			(process.argv[2] === 'u' || process.argv[2] === 'lr'));
+
+		// non listen modes should exit now
+		socket.close();
+		process.exit(0);
+	});
+} else if (process.argv[2] === 'l') {
+	socket.on('notifications', function(notifications) {
+		printNotifications(notifications, true, false);
+		notificationsCache = notifications;
+	});
+	socket.on('markAs', function(notifications) {
+		for (var i = notifications.length - 1; i >= 0; i--) {
+			if (notifications[i].read) {
+				// notification marked as read, remove
+				notificationsCache.splice(notifications[i].unreadID, 1);
+			} else {
+				// new notification, add and sort
+				addNotification(notifications[i]);
+			}
+		}
+		updateID(); // indices may have changed, update them
+		printNotifications(notificationsCache, true, false);
+	});
+	socket.on('newNotification', function(notification) {
+		// new notification, add and sort
+		addNotification(notification);
+		updateID(); // indices may have changed, update them
+		printNotifications(notificationsCache, true, false);
+	});
+
+	// hide cursor
+	process.stdout.write('\x1b[?25l');
+
+	// show cursor again after program exit
+	var onquit = function() {
+		socket.close();
+		process.stdout.write('\n');
+		process.stdout.write('\x1b[?25h');
+		process.exit();
+	};
+
+	// catch ctrl-c
+	process.on('SIGINT', onquit); process.on('exit', onquit);
+
+	// hide keyboard input
+	var stdin = process.stdin;
+	stdin.setRawMode(true);
+	stdin.resume();
+	stdin.setEncoding( 'utf8' );
+
+	// look for q keypresses, run onquit
+	stdin.on('data', function(key) {
+		if(key == 'q' || key == '\u0003') onquit();
+	});
+
+	// handle resizes
+	process.stdout.on('resize', function() {
+		printNotifications(notificationsCache, true, false);
+	});
+}
+
+// handle commands once connected to server
+socket.on('open', function() {
+	switch(process.argv[2]) {
+		// mark as (un)read
+		case 'u':
+		case 'r':
+			if(!process.argv[3]) {
+				console.log("Please provide notification ID!");
+				socket.close();
+				process.exit(1);
+			}
+
+			socket.send('markAs', {
+				'read': (process.argv[2] === 'r' ? true : false),
+				'id': process.argv[3]
+			});
+			break;
+
+		// list read notifications
+		case 'lr':
+			socket.send('getRead');
+			break;
+
+		// 'listen' for notifications
+		case 'l':
+			// get all unread notifications once
+			socket.send('getUnread');
+			break;
+
+		default:
+			if(open_re.test(process.argv[2])) {
+				// open notification(s) with program
+				socket.send('markAs', {
+					read: true,
+					id: process.argv[2]
+				});
+			} else if (!process.argv[2]) {
+				// requested all notifications
+				socket.send('getUnread');
+			} else {
+				console.log('unknown command!');
+				socket.close();
+				process.exit(1);
+			}
+			break;
+	}
+});

@@ -6,32 +6,23 @@ var config = require('./../../config/config.js');
 var mailConfig = require('./mailConfig.json');
 
 var socketConnect = require('./../../lib/connect.js');
-var socket = socketConnect();
+var socket = new socketConnect();
 
-var setupEventHandlers = function(sock) {
-	sock.on('markAs', function(notifications) {
-		for (var i = notifications.length - 1; i >= 0; i--) {
-			// TODO: more precise checking
-			if(notifications[i].source === mailConfig.source) {
-				if(notifications[i].read)
-					setRead(notifications[i].uid);
-				else
-					setUnread(notifications[i].uid);
-			}
-		}
-	});
+socket.on('markAs', function(notifications) {
+    for (var i = notifications.length - 1; i >= 0; i--) {
+        // TODO: more precise checking
+        if(notifications[i].source === mailConfig.source) {
+            if(notifications[i].read)
+                setRead(notifications[i].uid);
+            else
+                setUnread(notifications[i].uid);
+        }
+    }
+});
 
-	sock.on('open', function() {
-		reconnectLoop();
-	});
-
-	sock.on('close', function() {
-		socket = socketConnect();
-		setupEventHandlers(socket);
-	});
-	sock.setKeepAlive(true);
-};
-setupEventHandlers(socket);
+socket.on('open', function() {
+    reconnectLoop();
+});
 
 var imap;
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 // template client program
-var socket = require('./../../lib/connect.js')();
+var socketConnect = require('./../../lib/connect.js');
+var socket = new socketConnect();
 
 socket.on('newNotification', function(notification) {
 	// new notification arrived, print text property
