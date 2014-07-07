@@ -80,7 +80,7 @@ var unread = [];
 // new unread mail arrived
 var newUnread = function(from, subject, uid, threadId, labels, context, contextfg, contextbg) {
 	var from_re = /(.*) <.*@.*>/;
-	if(from.toString().match(from_re))
+	if(from && from.toString().match(from_re))
 		from = from.toString().match(from_re)[1];
 
 	var text = from + ': "' + subject + '"';
