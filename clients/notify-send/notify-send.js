@@ -21,8 +21,8 @@ socket.on('newNotification', function(data) {
 
 var spawn = require('child_process').spawn;
 var launchDetached = function(program, args) {
-	var child = spawn(program, args, {
-		detached: true,
-	});
-	child.unref();
+    var child = spawn(program, args, {
+        detached: true,
+    });
+    child.unref();
 };

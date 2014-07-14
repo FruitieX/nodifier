@@ -32,12 +32,12 @@ Take a look at the `config/config.js.example` file. This file is shared between
 server and client. These can of course run on separate hosts. Fill in the
 details of your server and other options you want, then save as `config/config.js`.
 
-Option			| Explanation
+Option          | Explanation
 ----------------|--------------
-`host`			| Hostname of your server
-`port`			| Port your server listens on
-`numReadToKeep`	| How many read notifications will be remembered.
-`programs`		| For safety, a list of applications a notification can be associated with and what command should be ran
+`host`          | Hostname of your server
+`port`          | Port your server listens on
+`numReadToKeep` | How many read notifications will be remembered.
+`programs`      | For safety, a list of applications a notification can be associated with and what command should be ran
 
 Server - `nodifier.js`
 ----------------------
@@ -52,13 +52,13 @@ CLI Client - `clients/cli/cli.js`
 ### Supported commands:
 If the client is ran without any arguments, all notifications will be listed
 
-Argument	| Explanation
+Argument    | Explanation
 ------------|------------------
-`lr`		| List read (old) notifications
-`<id>`		| List a notification with matching `id`, if the notification specifies program to launch it will be launched. If `autoMarkRead` is enabled, the notification will be marked as read. Supports ranges.
-`r <id>`	| Mark `id` as read, supports ranges
-`u <id>`	| Mark `id` from list of read notifications as unread, supports ranges
-`l`			| Run the client in 'listen' mode, continuously printing new notifications to console
+`lr`        | List read (old) notifications
+`<id>`      | List a notification with matching `id`, if the notification specifies program to launch it will be launched. If `autoMarkRead` is enabled, the notification will be marked as read. Supports ranges.
+`r <id>`    | Mark `id` as read, supports ranges
+`u <id>`    | Mark `id` from list of read notifications as unread, supports ranges
+`l`         | Run the client in 'listen' mode, continuously printing new notifications to console
 
 Ranges can be specified as such, both limits are inclusive: `37..42`
 Either limit can be left out to match indices before/after:
@@ -137,13 +137,13 @@ Here's a list of notification properties that the server/included CLI client
 cares about, most of which can be left undefined. Any extra properties are
 allowed, and they can be useful as they are just passed on to clients:
 
- Property					| Explanation
+ Property                   | Explanation
 ----------------------------|-------------------
-`text`						| Text of the notification. Only makes sense with `newNotification`.
-`source`					| This is displayed right of the notification ID in the CLI client and is used to categorize notifications. Can be used as a search criteria.
-`sourcebg` and `sourcefg`	| Color of source string. See list of possible values at: `lib/clc-color.js`
-`context`					| This is displayed right of the source string, and can be used to further categorize notifications. Can be used as a search criteria.
-`contextbg` and `contextfg`	| Color of context string. See list of possible values at: `lib/clc-color.js`
-`uid`						| Can be set by plugin to uniquely identify notifications even if their indices change. Only one notification with the same UID, source and context is allowed, duplicates are replaced. Can be used as a search criteria.
-`openwith`					| Specify which program the notification should be opened with.
-`url`						| Specify an argument to be passed to the `openwith` program.
+`text`                      | Text of the notification. Only makes sense with `newNotification`.
+`source`                    | This is displayed right of the notification ID in the CLI client and is used to categorize notifications. Can be used as a search criteria.
+`sourcebg` and `sourcefg`   | Color of source string. See list of possible values at: `lib/clc-color.js`
+`context`                   | This is displayed right of the source string, and can be used to further categorize notifications. Can be used as a search criteria.
+`contextbg` and `contextfg` | Color of context string. See list of possible values at: `lib/clc-color.js`
+`uid`                       | Can be set by plugin to uniquely identify notifications even if their indices change. Only one notification with the same UID, source and context is allowed, duplicates are replaced. Can be used as a search criteria.
+`openwith`                  | Specify which program the notification should be opened with.
+`url`                       | Specify an argument to be passed to the `openwith` program.

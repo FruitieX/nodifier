@@ -6,18 +6,18 @@ var socket = new socketConnect();
 
 var cnt = 0;
 socket.on('open', function() {
-	setInterval(function() {
-		socket.send('newNotification', {
-			'text': 'spamäåö123456789atheoutheachumcramcrhkrcehachuechacmecuaocemuchaechucehaocumechoaceuhcmkch.phehlowhwhell' + cnt,
-			'source': 'source' + cnt,
-			'sourcebg': 'red',
-			'sourcefg': 'white',
-			'context': 'context' + cnt,
-			'contextbg': 'blue',
-			'contextfg': 'white',
-			'openwith': 'openwith' + cnt,
-			'url': 'url' + cnt
-		});
-		cnt++;
-	}, 200);
+    setInterval(function() {
+        socket.send('newNotification', {
+            'text': 'spamäåö123456789atheoutheachumcramcrhkrcehachuechacmecuaocemuchaechucehaocumechoaceuhcmkch.phehlowhwhell' + cnt,
+            'source': 'source' + cnt,
+            'sourcebg': 'red',
+            'sourcefg': 'white',
+            'context': 'context' + cnt,
+            'contextbg': 'blue',
+            'contextfg': 'white',
+            'openwith': 'openwith' + cnt,
+            'url': 'url' + cnt
+        });
+        cnt++;
+    }, 200);
 });
