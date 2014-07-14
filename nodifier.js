@@ -2,8 +2,24 @@
 
 var config = require('./config/config.js');
 var crypto = require('crypto');
+var fs = require('fs');
 var unreadNotifications = [];
 var readNotifications = [];
+if(fs.existsSync(__dirname + '/config/unreadNotifications.json')) {
+    unreadNotifications = JSON.parse(fs.readFileSync(
+                          __dirname + '/config/unreadNotifications.json'));
+}
+if(fs.existsSync(__dirname + '/config/readNotifications.json')) {
+    readNotifications = JSON.parse(fs.readFileSync(
+                          __dirname + '/config/readNotifications.json'));
+}
+
+var writeToFile = function() {
+    fs.writeFileSync(__dirname + '/config/unreadNotifications.json',
+                     JSON.stringify(unreadNotifications));
+    fs.writeFileSync(__dirname + '/config/readNotifications.json',
+                     JSON.stringify(readNotifications));
+};
 
 // find index for new notification based on its timestamp
 // assumes 'array' is sorted in ascending order according to .date fields
@@ -161,12 +177,11 @@ var markAs = function(notifications, read) {
 };
 
 // networking
-var tls = require('tls')
-var fs = require('fs');
+var tls = require('tls');
 var options = {
-    key: fs.readFileSync('config/nodifier-key.pem'),
-    cert: fs.readFileSync('config/nodifier-cert.pem'),
-    ca: fs.readFileSync('config/nodifier-cert.pem'),
+    key: fs.readFileSync(__dirname + '/config/nodifier-key.pem'),
+    cert: fs.readFileSync(__dirname + '/config/nodifier-cert.pem'),
+    ca: fs.readFileSync(__dirname + '/config/nodifier-cert.pem'),
     requestCert: true,
     rejectUnauthorized: true
 };
@@ -223,6 +238,7 @@ var server = tls.createServer(options, function(socket) {
         // add new notification
         var id = storeNotification(notification, false);
         updateIDRead(); // indices may have changed, fix them
+        writeToFile();
 
         // broadcast new notification to all connected clients
         socket.broadcast('newNotification', unreadNotifications[id]);
@@ -233,6 +249,7 @@ var server = tls.createServer(options, function(socket) {
         if(notifications.length) {
             markAs(notifications, search.read);
             updateIDRead(); // indices/read states may have changed, fix them
+            writeToFile();
 
             // broadcast updated notifications to all other connected clients
             socket.broadcast('markAs', notifications, true);
