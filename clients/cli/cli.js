@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 var clc = require('cli-color');
-var clc_color = require('./../../lib/clc-color');
+var clc_color = require(__dirname + '/clc-color.js');
 
-var config = require('./../../config/config.js');
+var config = require(process.env.HOME + '/.nodifier/config.js');
 
 var open_re = /^(\d).*$|\.\./;
 var spawnSync = require('child_process').spawnSync || require('spawn-sync');
@@ -110,8 +110,8 @@ var updateID = function() {
 };
 
 // networking
-var socketConnect = require('./../../lib/connect.js');
-var socket = new socketConnect();
+var nodifierConnect = require('nodifier_connect');
+var socket = new nodifierConnect();
 /* set up event handlers
  *
  * the commands in the Array() fetch a list of notifications from the server,

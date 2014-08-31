@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 // spam plugin, useful for testing
-var socketConnect = require('./../../lib/connect.js');
-var socket = new socketConnect();
+var nodifierConnect = require('nodifier_connect');
+var socket = new nodifierConnect();
 
 var cnt = 0;
 socket.on('open', function() {

@@ -1,23 +1,23 @@
 #!/usr/bin/env node
 
-var config = require('./config/config.js');
+var config = require(process.env.HOME + '/.nodifier/config.js');
 var crypto = require('crypto');
 var fs = require('fs');
 var unreadNotifications = [];
 var readNotifications = [];
-if(fs.existsSync(__dirname + '/config/unreadNotifications.json')) {
+if(fs.existsSync(process.env.HOME + '/.nodifier/unreadNotifications.json')) {
     unreadNotifications = JSON.parse(fs.readFileSync(
-                          __dirname + '/config/unreadNotifications.json'));
+                          process.env.HOME + '/.nodifier/unreadNotifications.json'));
 }
-if(fs.existsSync(__dirname + '/config/readNotifications.json')) {
+if(fs.existsSync(process.env.HOME + '/.nodifier/readNotifications.json')) {
     readNotifications = JSON.parse(fs.readFileSync(
-                          __dirname + '/config/readNotifications.json'));
+                          process.env.HOME + '/.nodifier/readNotifications.json'));
 }
 
 var writeToFile = function() {
-    fs.writeFileSync(__dirname + '/config/unreadNotifications.json',
+    fs.writeFileSync(process.env.HOME + '/.nodifier/unreadNotifications.json',
                      JSON.stringify(unreadNotifications));
-    fs.writeFileSync(__dirname + '/config/readNotifications.json',
+    fs.writeFileSync(process.env.HOME + '/.nodifier/readNotifications.json',
                      JSON.stringify(readNotifications));
 };
 
@@ -182,9 +182,9 @@ var markAs = function(notifications, read) {
 // networking
 var tls = require('tls');
 var options = {
-    key: fs.readFileSync(__dirname + '/config/nodifier-key.pem'),
-    cert: fs.readFileSync(__dirname + '/config/nodifier-cert.pem'),
-    ca: fs.readFileSync(__dirname + '/config/nodifier-cert.pem'),
+    key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
+    cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
+    ca: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
     requestCert: true,
     rejectUnauthorized: true
 };

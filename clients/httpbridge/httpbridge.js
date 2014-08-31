@@ -3,8 +3,8 @@
 var port = 5678;
 
 // HTTP - socket.io bridge to enable applications supporting HTTP to interact with nodifier
-var socketConnect = require('./../../lib/connect.js');
-var socket = new socketConnect();
+var nodifierConnect = require('nodifier_connect');
+var socket = new nodifierConnect();
 
 socket.on('open', function() {
     console.log('HTTP server on port ' + port + ', bridging to node tls');

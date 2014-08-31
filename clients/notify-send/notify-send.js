@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 // send new nodifier notifications to system notification-daemon
-var socketConnect = require('./../../lib/connect.js');
-var socket = new socketConnect();
+var nodifierConnect = require('nodifier_connect');
+var socket = new nodifierConnect();
 
 socket.on('newNotification', function(data) {
     var title = "";

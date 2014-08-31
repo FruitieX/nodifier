@@ -141,9 +141,9 @@ allowed, and they can be useful as they are just passed on to clients:
 ----------------------------|-------------------
 `text`                      | Text of the notification. Only makes sense with `newNotification`.
 `source`                    | This is displayed right of the notification ID in the CLI client and is used to categorize notifications. Can be used as a search criteria.
-`sourcebg` and `sourcefg`   | Color of source string. See list of possible values at: `lib/clc-color.js`
+`sourcebg` and `sourcefg`   | Color of source string. See list of possible values at: `clc-color.js`
 `context`                   | This is displayed right of the source string, and can be used to further categorize notifications. Can be used as a search criteria.
-`contextbg` and `contextfg` | Color of context string. See list of possible values at: `lib/clc-color.js`
+`contextbg` and `contextfg` | Color of context string. See list of possible values at: `clc-color.js`
 `uid`                       | Can be set by plugin to uniquely identify notifications even if their indices change. Only one notification with the same UID, source and context is allowed, duplicates are replaced. Can be used as a search criteria.
 `openwith`                  | Specify which program the notification should be opened with.
 `url`                       | Specify an argument to be passed to the `openwith` program.
