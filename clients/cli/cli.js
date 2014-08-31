@@ -6,9 +6,9 @@ var clc_color = require(__dirname + '/clc-color.js');
 var config = require(process.env.HOME + '/.nodifier/config.js');
 
 var open_re = /^(\d).*$|\.\./;
-var spawnSync = require('child_process').spawnSync || require('spawn-sync');
-var spawn = require('child_process').spawn;
 var launchProgram = function(notification) {
+    var spawnSync = require('child_process').spawnSync || require('spawn-sync');
+    var spawn = require('child_process').spawn;
     var command = config.programs[notification.openwith];
     if(!command) {
         console.log("Unknown program: " + notification.openwith + "!");
