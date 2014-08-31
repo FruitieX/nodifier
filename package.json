@@ -5,7 +5,7 @@
   "main": "nodifier.js",
   "dependencies": {
     "cli-color": ">=0.2.3",
-    "nodifier_connect": "0.0.1",
+    "nodifier_connect": "0.0.2",
     "spawn-sync": "git://github.com/FruitieX/spawn-sync"
   }
 }
