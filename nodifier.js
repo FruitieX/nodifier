@@ -34,9 +34,12 @@ var findId = function(date, array) {
 
 // store notification in (un)readNotifications array at a date sorted index
 var storeNotification = function(data_json, read) {
-    data_json.text = data_json.text.replace('\t',' '); // tabs to single spaces
-    data_json.text = data_json.text.replace(/^\s*/, ""); // get rid of leading ws
-    data_json.text = data_json.text.replace(/\s*$/, ""); // get rid of trailing ws
+    if(data_json.text) {
+        data_json.text = data_json.text.toString();
+        data_json.text = data_json.text.replace('\t',' '); // tabs to single spaces
+        data_json.text = data_json.text.replace(/^\s*/, ""); // get rid of leading ws
+        data_json.text = data_json.text.replace(/\s*$/, ""); // get rid of trailing ws
+    }
 
     // plugin did not provide timestamp, create one from current time
     if(!data_json.date)
@@ -198,21 +201,26 @@ var server = tls.createServer(options, function(socket) {
         // where 1234 is message length
         recvBuffer += data.toString();
 
-        // recv'd the msg length integer if we have a '[' char
-        var msgLenEnd = recvBuffer.indexOf('[');
-        if(msgLenEnd !== -1) {
-            var len = recvBuffer.substr(0, msgLenEnd);
-            var msg = recvBuffer.substr(msgLenEnd, len);
+        while(true) {
+            // recv'd the msg length integer if we have a '[' char
+            var msgLenEnd = recvBuffer.indexOf('[');
+            if(msgLenEnd !== -1) {
+                var len = parseInt(recvBuffer.substr(0, msgLenEnd));
+                var msg = recvBuffer.substr(msgLenEnd, len);
 
-            // got entire msg?
-            if(msg.length == len) {
-                // remove msg from buffer, then handle it
-                recvBuffer = recvBuffer.substr(msgLenEnd + len);
+                // got entire msg?
+                if(msg.length === len) {
+                    // remove msg from buffer, then handle it
+                    recvBuffer = recvBuffer.substr(msgLenEnd + len);
 
-                console.log('got msg: ' + msg);
-                data = JSON.parse(msg);
-                if(data[0] !== 'data')
-                    socket.emit(data[0], data[1]);
+                    data = JSON.parse(msg);
+                    if(data[0] !== 'data')
+                        socket.emit(data[0], data[1]);
+                } else {
+                    break;
+                }
+            } else {
+                break;
             }
         }
     });
