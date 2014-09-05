@@ -5,7 +5,11 @@ var nodifierConnect = require('nodifier_connect');
 var socket = new nodifierConnect();
 
 socket.on('newNotification', function(data) {
-    var title = "";
+    var title = '';
+
+    if(data.unreadID) {
+        title += '#' + data.unreadID +': ';
+    }
     if(data.source) {
         title += data.source;
     }
