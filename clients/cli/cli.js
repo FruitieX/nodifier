@@ -120,7 +120,7 @@ var options = {
     key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
     cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
     ca: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
-    rejectUnauthorized: true
+    rejectUnauthorized: config.rejectUnauthorized
 };
 
 var socket = new netEvent(options);

@@ -184,12 +184,12 @@ var netEvent = require('net-event');
 var options = {
     server: true,
     port: config.port,
-    tls: true,
+    tls: config.tls,
     key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
     cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
     ca: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
-    requestCert: true,
-    rejectUnauthorized: true
+    requestCert: config.requestCert,
+    rejectUnauthorized: config.rejectUnauthorized
 };
 var server = new netEvent(options);
 
