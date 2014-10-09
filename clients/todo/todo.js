@@ -1,8 +1,21 @@
 #!/usr/bin/env node
 
 // todo plugin for quick adding of todos
-var nodifierConnect = require('nodifier_connect');
-var socket = new nodifierConnect();
+var netEvent = require('net-event');
+var fs = require('fs');
+
+var config = require(process.env.HOME + '/.nodifier/config.js');
+var options = {
+    host: config.host,
+    port: config.port,
+    tls: config.tls,
+    key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
+    cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
+    ca: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
+    rejectUnauthorized: config.rejectUnauthorized
+};
+
+var socket = new netEvent(config);
 
 if(!process.argv[2]) {
     console.log("Usage: todo [message]");
