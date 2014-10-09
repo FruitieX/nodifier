@@ -15,7 +15,7 @@ var options = {
     rejectUnauthorized: config.rejectUnauthorized
 };
 
-var socket = new netEvent(config);
+var socket = new netEvent(options);
 
 if(!process.argv[2]) {
     console.log("Usage: todo [message]");
