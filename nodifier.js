@@ -180,68 +180,20 @@ var markAs = function(notifications, read) {
 };
 
 // networking
-var tls = require('tls');
+var netEvent = require('net-event');
 var options = {
+    server: true,
+    port: config.port,
+    tls: true,
     key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
     cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
     ca: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
     requestCert: true,
     rejectUnauthorized: true
 };
-var sockets = [];
-var server = tls.createServer(options, function(socket) {
-    sockets.push(socket);
-    var notifications;
+var server = new netEvent(options);
 
-    var recvBuffer = "";
-
-    socket.on('data', function(data) {
-        // message format is assumed to be:
-        // 1234["string", {...}]
-        // where 1234 is message length
-        recvBuffer += data.toString();
-
-        while(true) {
-            // recv'd the msg length integer if we have a '[' char
-            var msgLenEnd = recvBuffer.indexOf('[');
-            if(msgLenEnd !== -1) {
-                var len = parseInt(recvBuffer.substr(0, msgLenEnd));
-                var msg = recvBuffer.substr(msgLenEnd, len);
-
-                // got entire msg?
-                if(msg.length === len) {
-                    // remove msg from buffer, then handle it
-                    recvBuffer = recvBuffer.substr(msgLenEnd + len);
-
-                    data = JSON.parse(msg);
-                    if(data[0] !== 'data')
-                        socket.emit(data[0], data[1]);
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-    });
-    socket.send = function(evt, data) {
-        data = JSON.stringify([evt, data]);
-        socket.write(data.length.toString());
-        socket.write(data);
-        console.log('sent msg: ' + data);
-    };
-    socket.broadcast = function(evt, data, ignoreSelf) {
-        for(var i = 0; i < sockets.length; i++) {
-            if(!ignoreSelf || sockets[i] !== socket) {
-                sockets[i].send(evt, data);
-            }
-        }
-    };
-    socket.on('end', function() {
-        if(sockets.indexOf(socket) !== -1)
-            sockets.splice(sockets.indexOf(socket), 1);
-    });
-
+server.on('open', function(socket) {
     socket.on('newNotification', function(notification) {
         // add new notification
         var id = storeNotification(notification, false);
@@ -284,7 +236,6 @@ var server = tls.createServer(options, function(socket) {
     socket.setNoDelay(true);
 });
 
-server.listen(config.port);
 console.log('nodifier tls server listening on port ' + config.port);
 
 process.on('uncaughtException', function (err) {

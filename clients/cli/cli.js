@@ -110,8 +110,21 @@ var updateID = function() {
 };
 
 // networking
-var nodifierConnect = require('nodifier_connect');
-var socket = new nodifierConnect();
+var netEvent = require('net-event');
+var fs = require('fs');
+
+var options = {
+    host: config.host,
+    port: config.port,
+    tls: config.tls,
+    key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
+    cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
+    ca: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
+    rejectUnauthorized: true
+};
+
+var socket = new netEvent(options);
+
 /* set up event handlers
  *
  * the commands in the Array() fetch a list of notifications from the server,
@@ -237,4 +250,8 @@ socket.on('open', function() {
             }
             break;
     }
+});
+
+socket.on('end', function() {
+    console.log('unable to connect to the server');
 });
