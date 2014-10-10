@@ -176,11 +176,11 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
     // hide cursor
     process.stdout.write('\x1b[?25l');
 
-    // show cursor again after program exit
+    // show cursor again, clear terminal and exit program
     var onquit = function() {
         socket.close();
-        process.stdout.write('\n');
         process.stdout.write('\x1b[?25h');
+        process.stdout.write('\u001B[2J\u001B[0;0f');
         process.exit();
     };
 
