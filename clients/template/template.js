@@ -52,3 +52,7 @@ socket.on('open', function() {
         'id': '5..42'
     });
 });
+
+socket.on('error', function(e) {
+    console.log('socket error: ' + e);
+});

@@ -253,8 +253,8 @@ socket.on('open', function() {
 });
 
 socket.on('end', function() {
-    console.log('disconnected from server');
+    console.log('\ndisconnected from server');
 });
 socket.on('error', function(e) {
-    console.log('socket error: ' + e);
+    console.log('\nsocket error: ' + e);
 });

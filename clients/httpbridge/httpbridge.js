@@ -90,3 +90,7 @@ process.on('uncaughtException', function (err) {
     console.error(err.stack);
     console.log("ERROR! Node not exiting.");
 });
+
+socket.on('error', function(e) {
+    console.log('socket error: ' + e);
+});

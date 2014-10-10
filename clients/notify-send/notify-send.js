@@ -36,6 +36,10 @@ socket.on('newNotification', function(data) {
     launchDetached('paplay', ['/usr/share/sounds/freedesktop/stereo/message.oga']);
 });
 
+socket.on('error', function(e) {
+    console.log('socket error: ' + e);
+});
+
 var spawn = require('child_process').spawn;
 var launchDetached = function(program, args) {
     var child = spawn(program, args, {
