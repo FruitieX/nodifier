@@ -5,6 +5,7 @@
   "main": "nodifier.js",
   "dependencies": {
     "cli-color": ">=0.2.3",
+    "mongodb": "^1.4.22",
     "net-event": ">=0.0.4",
     "spawn-sync": "git://github.com/FruitieX/spawn-sync"
   }
