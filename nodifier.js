@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var netEvent = require('net-event');
 var config = require(process.env.HOME + '/.nodifier/config.js');
 var fs = require('fs');
 var assert = require('assert');
@@ -10,7 +11,6 @@ MongoClient.connect(config.mongoURL, function(err, db) {
     var entries = db.collection('entries');
 
     // networking
-    var netEvent = require('net-event');
     var options = {
         server: true,
         port: config.port,
