@@ -6,6 +6,7 @@ var config = {
     "rejectUnauthorized": true,     // validate certificates against CA
     "requestCert": true,            // server: validate client certificate against CA
     "numReadToKeep": 1000,          // how many read notifications to remember
+    "expiryTime": 1000 * 60 * 60 * 24 * 30 // expiry time for read notifications in ms
     "programs": {                   // used by CLI client to constrain which programs can be launched
         "browser": {
             "executable": "chromium",

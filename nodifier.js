@@ -11,6 +11,16 @@ MongoClient.connect(config.mongoURL, function(err, db) {
     assert.equal(null, err);
     var entries = db.collection('entries');
 
+    var cleanOldEntries = function() {
+        entries.remove({
+            lastModified: { "$lte": new Date().getTime() - config.expiryTime }
+        }, function(err, cnt) {
+            console.log("cleaned up " + cnt + " expired entries.");
+        });
+    };
+    cleanOldEntries();
+    setTimeout(cleanOldEntries, config.expiryCheckInterval);
+
     // networking
     var options = {
         server: true,
@@ -25,9 +35,11 @@ MongoClient.connect(config.mongoURL, function(err, db) {
     var server = new netEvent(options);
 
     server.on('open', function(socket) {
-        // add/modify notification
         socket.on('set', function(entry) {
+            entry.lastModified = new Date().getTime();
+
             if(entry._id) {
+                // modify existing entry
                 var id = entry._id;
                 delete(entry._id);
                 entries.findAndModify(
@@ -37,6 +49,7 @@ MongoClient.connect(config.mongoURL, function(err, db) {
                     }
                 );
             } else {
+                // add new entry
                 entries.insert(
                     entry,
                     function(err, doc) {
@@ -46,8 +59,8 @@ MongoClient.connect(config.mongoURL, function(err, db) {
             }
         });
 
-        // get notifications
         socket.on('get', function(data) {
+            // get notifications
             entries.find(data.query, data.options).toArray(function(err, docs) {
                 socket.send('set', {err: err, entries: docs});
             });
