@@ -88,9 +88,9 @@ var printNotifications = function(notifications, listenMode, useReadID) {
 // add notification to the notificationsCache array
 var addNotification = function(notification) {
     // found duplicate ID? then remove the old notification
-    if(notification.uid) {
+    if(notification._id) {
         for (var i = notificationsCache.length - 1; i >= 0; i--) {
-            if(notificationsCache[i].uid === notification.uid) {
+            if(notificationsCache[i]._id === notification._id) {
                 notificationsCache.splice(i, 1);
             }
         }
@@ -133,7 +133,7 @@ var socket = new netEvent(options);
 if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
     || open_re.test(process.argv[2])) {
 
-    socket.on('notifications', function(notifications) {
+    socket.on('set', function(notifications) {
         // args match launching app
         if(open_re.test(process.argv[2]) && notifications) {
             for(var i = 0; i < notifications.length; i++) {
@@ -149,7 +149,7 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
         process.exit(0);
     });
 } else if (process.argv[2] === 'l') {
-    socket.on('notifications', function(notifications) {
+    socket.on('set', function(notifications) {
         printNotifications(notifications, true, false);
         notificationsCache = notifications;
     });

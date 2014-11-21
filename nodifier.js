@@ -34,7 +34,7 @@ MongoClient.connect(config.mongoURL, function(err, db) {
             function(err, result) {
                 if(!err && result) {
                     // broadcast new notification to all connected clients
-                    socket.broadcast('set', entry);
+                    socket.broadcast('set', [err, entry]);
                 }
 
                 // send update status back to caller
