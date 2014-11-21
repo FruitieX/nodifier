@@ -5,6 +5,7 @@ var config = require(process.env.HOME + '/.nodifier/config.js');
 var fs = require('fs');
 var assert = require('assert');
 var MongoClient = require('mongodb').MongoClient;
+var ObjectID = require('mongodb').ObjectID;
 
 MongoClient.connect(config.mongoURL, function(err, db) {
     assert.equal(null, err);
@@ -26,26 +27,29 @@ MongoClient.connect(config.mongoURL, function(err, db) {
     server.on('open', function(socket) {
         // add/modify notification
         socket.on('set', function(entry) {
-            // plugin did not provide timestamp, create one from current time
-            if(!entry.date)
-                entry.date = new Date().valueOf();
-
-            entries.update({ _id: entry._id }, entry, { upsert: true },
-            function(err, result) {
-                if(!err && result) {
-                    // broadcast new notification to all connected clients
-                    socket.broadcast('set', [err, entry]);
-                }
-
-                // send update status back to caller
-                socket.send('setStatus', [err, result]);
-            });
+            if(entry._id) {
+                var id = entry._id;
+                delete(entry._id);
+                entries.findAndModify(
+                    { _id: ObjectID(id) }, [['_id', 'asc']], entry, { new: true, upsert: true},
+                    function(err) {
+                        socket.broadcast('set', {err: err, entries: [entry]});
+                    }
+                );
+            } else {
+                entries.insert(
+                    entry,
+                    function(err, doc) {
+                        socket.broadcast('set', {err: err, entries: [doc]});
+                    }
+                );
+            }
         });
 
         // get notifications
         socket.on('get', function(data) {
-            entries.find(data.query, data.options).toArray(function(err, results) {
-                socket.send('set', [err, results]);
+            entries.find(data.query, data.options).toArray(function(err, docs) {
+                socket.send('set', {err: err, entries: docs});
             });
         });
 
