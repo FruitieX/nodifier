@@ -23,7 +23,7 @@ MongoClient.connect(config.mongoURL, function(err, db) {
         });
     };
     cleanOldEntries();
-    setTimeout(cleanOldEntries, config.expiryCheckInterval);
+    setInterval(cleanOldEntries, config.expiryCheckInterval);
 
     // networking
     var options = {
