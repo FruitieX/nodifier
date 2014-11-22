@@ -11,9 +11,13 @@ MongoClient.connect(config.mongoURL, function(err, db) {
     assert.equal(null, err);
     var entries = db.collection('entries');
 
+    // cleanup old entries marked as "done"
     var cleanOldEntries = function() {
         entries.remove({
-            lastModified: { "$lte": new Date().getTime() - config.expiryTime }
+            "$and": [
+                { lastModified: { "$lte": new Date().getTime() - config.expiryTime } },
+                { category: config.categories[config.categories.length - 1] }
+            ]
         }, function(err, cnt) {
             console.log("cleaned up " + cnt + " expired entries.");
         });
