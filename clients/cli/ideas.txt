@@ -1,0 +1,21 @@
+# move todo:1 to wip
+n mv todo:1 wip
+
+# create new todo entry with text "hello world", optional deadline 3 days from
+# now, optionally starting in category wip
+n new [-d +3d] [-c wip] hello world
+
+# edit entry in wip:2, can change dl, text
+n edit wip:2 [-d +3d] [hello world 42]
+
+# more deadlines:
+# asap: set dl to current time
+# 26/11: set dl to next occurence of 26th of Nov
+# +3w: set dl three weeks into the future
+# w37: set dl to next occurence of week 37
+
+# list notifications with deadlines
+n
+
+# list all notifications
+n all

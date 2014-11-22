@@ -35,7 +35,7 @@ socket.on('set', function(data) {
 });
 
 var printCategory = function(category) {
-    process.stdout.write('\n' + category + ':\n');
+    process.stdout.write('\n' + category + ':');
     // descending sort by date, then print entries in order
     _.each(_.sortBy(categories[category], 'date'), printEntry);
 };
@@ -72,8 +72,8 @@ var printEntry = function(entry, index) {
     if(pre_text.length + text_length > process.stdout.columns)
         text = text.substr(0, process.stdout.columns - pre_text.length - 3) + '...';
 
-    process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + app_color(app_string) + context_color(context_string) + ' ' + text);
     process.stdout.write('\n');
+    process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + app_color(app_string) + context_color(context_string) + ' ' + text);
 };
 
 /*
