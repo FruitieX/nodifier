@@ -4,34 +4,6 @@ var clc_color = require(__dirname + '/clc-color.js');
 var config = require(process.env.HOME + '/.nodifier/config.js');
 var inspect = require('util').inspect;
 
-// networking
-var netEvent = require('net-event');
-var fs = require('fs');
-var _ = require("underscore");
-
-var options = {
-    host: config.host,
-    port: config.port,
-    tls: config.tls,
-    key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
-    cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
-    ca: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
-    rejectUnauthorized: config.rejectUnauthorized
-};
-
-var socket = new netEvent(options);
-var categories = [];
-
-socket.on('set', function(data) {
-    if(data.err) {
-        console.log(inspect(data.err));
-        return;
-    }
-
-    categories = _.groupBy(data.entries, 'category');
-    printEntries();
-});
-
 var printEntries = function() {
     _.each(_.sortBy(_.keys(categories), function(category) {
         return config.categories.indexOf(category) * -1;
@@ -88,6 +60,34 @@ socket.send('set', {
     context: "gmail"
 });
 */
+
+// networking
+var netEvent = require('net-event');
+var fs = require('fs');
+var _ = require("underscore");
+
+var options = {
+    host: config.host,
+    port: config.port,
+    tls: config.tls,
+    key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
+    cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
+    ca: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
+    rejectUnauthorized: config.rejectUnauthorized
+};
+
+var socket = new netEvent(options);
+var categories = [];
+
+socket.on('set', function(data) {
+    if(data.err) {
+        console.log(inspect(data.err));
+        return;
+    }
+
+    categories = _.groupBy(data.entries, 'category');
+    printEntries();
+});
 
 socket.send('get', {
     query: {},
