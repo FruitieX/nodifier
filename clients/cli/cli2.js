@@ -35,14 +35,45 @@ socket.on('set', function(data) {
 });
 
 var printCategory = function(category) {
-    // descending sort by date
-    var sorted = _.sortBy(categories[category], 'date');
-
-    _.each(sorted, printEntry);
+    process.stdout.write('\n' + category + ':\n');
+    // descending sort by date, then print entries in order
+    _.each(_.sortBy(categories[category], 'date'), printEntry);
 };
 
-var printEntry = function(entry) {
-    console.log(entry);
+var printEntry = function(entry, index) {
+    var app_color = clc_color.def_app_color;
+    if(entry.appfg || entry.appbg)
+        app_color = clc_color.color_from_text(entry.appfg, entry.appbg);
+    var context_color = clc_color.def_context_color;
+    if(entry.contextfg || entry.contextbg)
+        context_color = clc_color.color_from_text(entry.contextfg, entry.contextbg);
+
+    var date_string;
+    if(entry.date) {
+        var date_arr = new Date(entry.date).toString().split(' ');
+        date_string = date_arr[1] + ' ' + date_arr[2] + ' ';
+    } else {
+        date_string = Array(8).join(' ');
+    }
+
+    var pos_string = index.toString();
+
+    // find length of string before entry.text, shorten entry.text if
+    // wider than our terminal
+    var app_string = ''; context_string = '';
+    if(entry.app)
+        app_string = ' ' + entry.app + ' ';
+    if(entry.context)
+        context_string = ' ' + entry.context + ' ';
+
+    var pre_text = date_string + ' ' + pos_string + ' ' + app_string + context_string + ' ';
+    var text_length = entry.text.length;
+    var text = entry.text
+    if(pre_text.length + text_length > process.stdout.columns)
+        text = text.substr(0, process.stdout.columns - pre_text.length - 3) + '...';
+
+    process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + app_color(app_string) + context_color(context_string) + ' ' + text);
+    process.stdout.write('\n');
 };
 
 /*
