@@ -29,10 +29,14 @@ socket.on('set', function(data) {
     }
 
     categories = _.groupBy(data.entries, 'category');
+    printEntries();
+});
+
+var printEntries = function() {
     _.each(_.sortBy(_.keys(categories), function(category) {
         return config.categories.indexOf(category) * -1;
     }), printCategory);
-});
+};
 
 var printCategory = function(category) {
     process.stdout.write('\n' + category + ':');
@@ -78,24 +82,6 @@ var printEntry = function(entry, index) {
 
 /*
 socket.send('set', {
-    category: "todo",
-    text: "hello world 39",
-    app: "mail",
-    context: "gmail"
-});
-socket.send('set', {
-    category: "done",
-    text: "hello done 2",
-    app: "mail",
-    context: "gmail"
-});
-socket.send('set', {
-    category: "done",
-    text: "hello done",
-    app: "mail",
-    context: "gmail"
-});
-socket.send('set', {
     category: "wip",
     text: "foo bar",
     app: "mail",
@@ -108,4 +94,26 @@ socket.send('get', {
     options: {
         sort: "category"
     }
+});
+
+var onexit = function() {
+    socket.close();
+    process.stdout.write('\x1b[?25h'); // enable cursor
+    process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
+    process.exit();
+};
+process.on('SIGINT', onexit); process.on('exit', onexit);
+
+// q or ctrl-c pressed: run onquit
+process.stdin.on('data', function(key) {
+    if(key == 'q' || key == '\u0003') onquit();
+});
+
+process.stdin.setRawMode(true); // hide input
+process.stdout.write('\x1b[?25l'); // hide cursor
+process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
+
+process.stdout.on('resize', function() {
+    process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
+    printEntries();
 });
