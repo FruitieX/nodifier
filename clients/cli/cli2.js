@@ -4,6 +4,11 @@ var clc_color = require(__dirname + '/clc-color.js');
 var config = require(process.env.HOME + '/.nodifier/config.js');
 var inspect = require('util').inspect;
 
+var argv = require('yargs')
+    .boolean('n')
+    .argv;
+
+var categories = [];
 var printEntries = function() {
     _.each(_.sortBy(_.keys(categories), function(category) {
         return config.categories.indexOf(category) * -1;
@@ -52,15 +57,6 @@ var printEntry = function(entry, index) {
     process.stdout.write(clc_color.date_color(date_string) + clc_color.id_color(' ' + pos_string + ' ') + app_color(app_string) + context_color(context_string) + ' ' + text);
 };
 
-/*
-socket.send('set', {
-    category: "wip",
-    text: "foo bar",
-    app: "mail",
-    context: "gmail"
-});
-*/
-
 // networking
 var netEvent = require('net-event');
 var fs = require('fs');
@@ -76,44 +72,107 @@ var options = {
     rejectUnauthorized: config.rejectUnauthorized
 };
 
-var socket = new netEvent(options);
-var categories = [];
-
-socket.on('set', function(data) {
-    if(data.err) {
-        console.log(inspect(data.err));
-        return;
-    }
-
-    categories = _.groupBy(data.entries, 'category');
-    printEntries();
-});
-
-socket.send('get', {
-    query: {},
-    options: {
-        sort: "category"
-    }
-});
-
-var onexit = function() {
-    socket.close();
-    process.stdout.write('\x1b[?25h'); // enable cursor
-    process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
-    process.exit();
+var getDate = function(s) {
+    var d = new Date();
+    if(s.indexOf('d') !== -1)
+        d.setDate(d.getDate() + parseInt(s));
+    else if(s.indexOf('w') !== -1)
+        d.setDate(d.getDate() + parseInt(s) * 7);
+    else if(s.indexOf('m') !== -1)
+        d.setDate(d.getDate() + parseInt(s) * 30); // approx 30 days
+    return d.getTime();
 };
-process.on('SIGINT', onexit); process.on('exit', onexit);
 
-// q or ctrl-c pressed: run onquit
-process.stdin.on('data', function(key) {
-    if(key == 'q' || key == '\u0003') onquit();
-});
+var socket = new netEvent(options);
 
-process.stdin.setRawMode(true); // hide input
-process.stdout.write('\x1b[?25l'); // hide cursor
-process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
+socket.on('open', function() {
+    var getAll = function(query, callback) {
+        socket.send('get', {
+            query: query || {},
+            options: {
+                sort: "category"
+            }
+        });
+        socket.on('get', function(data) {
+            if(callback)
+                callback(data);
+        });
+    }
 
-process.stdout.on('resize', function() {
+    var storeEntries = function(data) {
+        if(data.err) {
+            console.log(inspect(data.err));
+            return;
+        }
+
+        categories = _.groupBy(data.entries, 'category');
+    };
+
+
+    /*
+    if(quitQuery && JSON.stringify(data.query) === quitQuery)
+        onexit(true);
+    */
+
+    var recvQuitId;
+    if(argv.a) {
+        getAll(null, function(data) {
+            storeEntries(data);
+            printEntries();
+        });
+    } else if(argv.n) {
+        var entry = {};
+        entry.category = argv.c || config.categories[0];
+        entry.text = argv._.join(' ');
+        entry.app = 'task';
+        if(argv.d) {
+            entry.date = getDate(argv.d);
+        }
+        socket.send('set', entry);
+    } else if(argv.m) {
+        getAll(null, function(data) {
+            storeEntries(data);
+
+            var srcEntry = _.clone(_.sortBy(categories[argv.c || config.categories[0]], 'date')[argv.m]);
+            if(!srcEntry) {
+                console.log("Error: entry not found!");
+                onexit(true);
+            }
+            srcEntry.category = argv.c || config.categories[config.categories.length - 1];
+            recvQuitId = srcEntry._id;
+            socket.send('set', srcEntry);
+            socket.on('set', function(data) {
+                //if(data.
+                onexit(true);
+            });
+        });
+    } else {
+        getAll({ date: { "$exists": true }}, function(data) {
+            storeEntries(data);
+            printEntries();
+        });
+    }
+
+    var onexit = function(noClear) {
+        socket.close();
+        process.stdout.write('\x1b[?25h'); // enable cursor
+        if(!noClear)
+            process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
+        process.exit();
+    };
+    process.on('SIGINT', onexit);
+
+    // q or ctrl-c pressed: run onexit
+    process.stdin.on('data', function(key) {
+        if(key == 'q' || key == '\u0003') onexit();
+    });
+
+    process.stdin.setRawMode(true); // hide input
+    process.stdout.write('\x1b[?25l'); // hide cursor
     process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
-    printEntries();
+
+    process.stdout.on('resize', function() {
+        process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
+        printEntries();
+    });
 });

@@ -49,7 +49,7 @@ MongoClient.connect(config.mongoURL, function(err, db) {
                 entries.findAndModify(
                     { _id: ObjectID(id) }, [['_id', 'asc']], entry, { new: true, upsert: true},
                     function(err) {
-                        socket.broadcast('set', {err: err, entries: [entry]});
+                        socket.broadcast('set', {err: err, entries: entry});
                     }
                 );
             } else {
@@ -57,7 +57,7 @@ MongoClient.connect(config.mongoURL, function(err, db) {
                 entries.insert(
                     entry,
                     function(err, doc) {
-                        socket.broadcast('set', {err: err, entries: [doc]});
+                        socket.broadcast('set', {err: err, entries: doc});
                     }
                 );
             }
@@ -66,7 +66,7 @@ MongoClient.connect(config.mongoURL, function(err, db) {
         socket.on('get', function(data) {
             // get notifications
             entries.find(data.query, data.options).toArray(function(err, docs) {
-                socket.send('set', {err: err, entries: docs});
+                socket.send('get', {query: data.query, err: err, entries: docs});
             });
         });
 
