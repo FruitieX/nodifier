@@ -8,9 +8,18 @@ var argv = require('yargs')
     .boolean('n')
     .argv;
 
-var categories = [];
+var entries = {};
 var printEntries = function() {
-    _.each(_.sortBy(_.keys(categories), function(category) {
+    var categories = _.groupBy(entries, 'category');
+
+    //console.log(categories);
+
+    _.each(categories, function(category, key) {
+        categories[key] = _.sortBy(category, 'date');
+    });
+
+    console.log(categories);
+    _.each(_.sortBy(categories, function(category) {
         return config.categories.indexOf(category) * -1;
     }), printCategory);
 };
@@ -18,7 +27,6 @@ var printEntries = function() {
 var printCategory = function(category) {
     process.stdout.write('\n' + category + ':');
     // descending sort by date, then print entries in order
-    _.each(_.sortBy(categories[category], 'date'), printEntry);
 };
 
 var printEntry = function(entry, index) {
@@ -105,7 +113,9 @@ socket.on('open', function() {
             return;
         }
 
-        categories = _.groupBy(data.entries, 'category');
+        _.each(data.entries, function(entry) {
+            entries[entry._id] = entry;
+        });
     };
 
 
