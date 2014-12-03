@@ -25,7 +25,7 @@ var foreachCategory = function(callback) {
     });
 };
 
-var getEntry = function(categoryName, index) {
+var getEntry = function(categoryName, index, callback) {
     foreachCategory(function(_categoryName, categories) {
         // found correct category
         if(_categoryName === categoryName) {
@@ -33,8 +33,8 @@ var getEntry = function(categoryName, index) {
 
             _.each(categoryEntries, function(entry, _index) {
                 // found correct index
-                if(_index === index)
-                    return entry;
+                if(_index == index)
+                    callback(entry);
             });
         }
     });
@@ -141,6 +141,8 @@ socket.on('open', function() {
         _.each(data.entries, function(entry) {
             entries[entry._id] = entry;
         });
+
+        return entries;
     };
 
 
@@ -159,10 +161,10 @@ socket.on('open', function() {
             entry.date = getDate(argv.d);
         }
         socket.send('set', entry);
-    } else if(argv.m) {
-        var query = null;
+    } else if(argv.m || argv.m === 0) {
+        var query = { date: { "$exists": true }};
         if(argv.a) {
-            query = { date: { "$exists": true }};
+            query = null;
         }
 
         getAll(query, function(data) {
@@ -170,17 +172,20 @@ socket.on('open', function() {
 
             console.log(entries);
 
-            var srcEntry = getEntry((argv.c || config.categories[0]), argv.m);
-            if(!srcEntry) {
-                console.log("Error: entry not found!");
-                onexit(true);
-            }
-            srcEntry.category = argv.c || config.categories[config.categories.length - 1];
-            recvQuitId = srcEntry._id;
-            socket.send('set', srcEntry);
-            socket.on('set', function(data) {
-                //if(data.
-                onexit(true);
+            // TODO: can't use argv.c both here and below
+            getEntry((argv.c || config.categories[0]), parseInt(argv.m), function(srcEntry) {
+                if(!srcEntry) {
+                    console.log("Error: entry not found!");
+                    onexit(true);
+                }
+                srcEntry = _.clone(srcEntry);
+                srcEntry.category = argv.c || config.categories[config.categories.length - 1];
+                recvQuitId = srcEntry._id;
+                socket.send('set', srcEntry);
+                socket.on('set', function(data) {
+                    if(data._id == recvQuitId)
+                        onexit(true);
+                });
             });
         });
     } else if(argv.a) {
