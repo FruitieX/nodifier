@@ -9,24 +9,49 @@ var argv = require('yargs')
     .argv;
 
 var entries = {};
-var printEntries = function() {
+var foreachCategory = function(callback) {
     var categories = _.groupBy(entries, 'category');
 
-    //console.log(categories);
-
+    // sort entries within each category by date
     _.each(categories, function(category, key) {
-        categories[key] = _.sortBy(category, 'date');
+        categories[key] = _.sortBy(category, 'date').reverse();
     });
 
-    console.log(categories);
-    _.each(_.sortBy(categories, function(category) {
-        return config.categories.indexOf(category) * -1;
-    }), printCategory);
+    // loop over categories in order set by config and callback
+    _.each(_.sortBy(_.keys(categories), function(categoryName) {
+        return config.categories.indexOf(categoryName) * -1;
+    }), function(categoryName) {
+        callback(categoryName, categories);
+    });
 };
 
-var printCategory = function(category) {
-    process.stdout.write('\n' + category + ':');
-    // descending sort by date, then print entries in order
+var getEntry = function(categoryName, index) {
+    foreachCategory(function(_categoryName, categories) {
+        // found correct category
+        if(_categoryName === categoryName) {
+            var categoryEntries = categories[categoryName];
+
+            _.each(categoryEntries, function(entry, _index) {
+                // found correct index
+                if(_index === index)
+                    return entry;
+            });
+        }
+    });
+};
+
+var printCategories = function() {
+    foreachCategory(function(categoryName, categories) {
+        printCategory(categoryName, categories[categoryName]);
+    });
+};
+
+var printCategory = function(categoryName, categoryEntries) {
+    process.stdout.write('\n\n' + categoryName + ':');
+
+    _.each(categoryEntries, function(entry, index) {
+        printEntry(entry, index);
+    });
 };
 
 var printEntry = function(entry, index) {
@@ -125,12 +150,7 @@ socket.on('open', function() {
     */
 
     var recvQuitId;
-    if(argv.a) {
-        getAll(null, function(data) {
-            storeEntries(data);
-            printEntries();
-        });
-    } else if(argv.n) {
+    if(argv.n) {
         var entry = {};
         entry.category = argv.c || config.categories[0];
         entry.text = argv._.join(' ');
@@ -140,10 +160,17 @@ socket.on('open', function() {
         }
         socket.send('set', entry);
     } else if(argv.m) {
-        getAll(null, function(data) {
+        var query = null;
+        if(argv.a) {
+            query = { date: { "$exists": true }};
+        }
+
+        getAll(query, function(data) {
             storeEntries(data);
 
-            var srcEntry = _.clone(_.sortBy(categories[argv.c || config.categories[0]], 'date')[argv.m]);
+            console.log(entries);
+
+            var srcEntry = getEntry((argv.c || config.categories[0]), argv.m);
             if(!srcEntry) {
                 console.log("Error: entry not found!");
                 onexit(true);
@@ -156,10 +183,15 @@ socket.on('open', function() {
                 onexit(true);
             });
         });
+    } else if(argv.a) {
+        getAll(null, function(data) {
+            storeEntries(data);
+            printCategories();
+        });
     } else {
         getAll({ date: { "$exists": true }}, function(data) {
             storeEntries(data);
-            printEntries();
+            printCategories();
         });
     }
 
@@ -183,6 +215,6 @@ socket.on('open', function() {
 
     process.stdout.on('resize', function() {
         process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
-        printEntries();
+        printCategories();
     });
 });
