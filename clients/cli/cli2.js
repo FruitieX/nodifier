@@ -4,9 +4,21 @@ var clc_color = require(__dirname + '/clc-color.js');
 var config = require(process.env.HOME + '/.nodifier/config.js');
 var inspect = require('util').inspect;
 
-var argv = require('yargs')
-    .boolean('n')
-    .argv;
+var yargs = require('yargs')
+    .usage('Get/manipulate entries in nodifier.\nUsage: $0')
+    .example('$0 -a -m 2', 'mark entry 2 as done')
+    .describe('a', 'Show all entries')
+    .describe('c', 'Category')
+    .describe('m', 'Move/mark entry')
+    .describe('n', 'New entry')
+    .describe('h', 'Show this help')
+    .boolean('n');
+
+var argv = yargs.argv;
+if(argv.h) {
+    console.log(yargs.help());
+    process.exit(0);
+}
 
 var entries = {};
 var foreachCategory = function(callback) {
