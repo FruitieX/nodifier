@@ -45,11 +45,14 @@ MongoClient.connect(config.mongoURL, function(err, db) {
             if(entry._id) {
                 // modify existing entry
                 var id = entry._id;
+                // id has to be removed before findAndModify(), else mongo complains
                 delete(entry._id);
                 entries.findAndModify(
                     { _id: ObjectID(id) }, [['_id', 'asc']], entry, { new: true, upsert: true},
                     function(err) {
-                        socket.broadcast('set', {err: err, entries: entry});
+                        // re-add entry when sending back to client
+                        entry._id = id;
+                        socket.broadcast('update', {err: err, entries: entry});
                     }
                 );
             } else {
@@ -57,16 +60,16 @@ MongoClient.connect(config.mongoURL, function(err, db) {
                 entries.insert(
                     entry,
                     function(err, doc) {
-                        socket.broadcast('set', {err: err, entries: doc});
+                        socket.broadcast('update', {err: err, entries: doc});
                     }
                 );
             }
         });
 
-        socket.on('get', function(data) {
+        socket.on('search', function(data) {
             // get notifications
             entries.find(data.query, data.options).toArray(function(err, docs) {
-                socket.send('get', {query: data.query, err: err, entries: docs});
+                socket.send('results', {query: data.query, err: err, entries: docs});
             });
         });
 

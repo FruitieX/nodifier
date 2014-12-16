@@ -40,16 +40,6 @@ var socket = new netEvent(options);
 socket.on('open', function() {
     /* TODO: race condition, this function is no good :( */
     var getAll = function(query, callback) {
-        socket.send('get', {
-            query: query || {},
-            options: {
-                sort: "category"
-            }
-        });
-        socket.on('get', function(data) {
-            if(callback)
-                callback(data);
-        });
     }
 
     var storeEntries = function(data) {
@@ -87,9 +77,15 @@ socket.on('open', function() {
             query = null;
         }
 
-        getAll(query, function(data) {
-            storeEntries(data);
+        socket.send('search', {
+            query: query,
+            options: {
+                sort: "category"
+            }
+        });
 
+        socket.once('results', function(data) {
+            storeEntries(data);
             console.log(entries);
 
             // TODO: can't use argv.c both here and below
@@ -102,24 +98,25 @@ socket.on('open', function() {
                 srcEntry.category = argv.c || config.categories[config.categories.length - 1];
                 recvQuitId = srcEntry._id;
                 socket.send('set', srcEntry);
-                socket.on('set', function(data) {
-                    if(data._id == recvQuitId)
+                socket.on('update', function(data) {
+                    console.log('there');
+                    console.log(data);
+                    _.findWhere(data.entries, {_id: recvQuitId}, function(entry) {
                         onexit(true);
+                    });
                 });
             });
         });
-    } else if(argv.a) {
-        getAll(null, function(data) {
-            storeEntries(data);
-            printCategories(entries);
+    } else {
+        // get all entries with a date (all entries if argv.a given)
+        socket.send('search', {
+            query: argv.a ? {} : { date: { "$exists": true }},
+            options: {
+                sort: "category"
+            }
         });
 
-        socket.on('set', function(data) {
-            storeEntries(data);
-            printCategories(entries);
-        });
-    } else {
-        getAll({ date: { "$exists": true }}, function(data) {
+        socket.on('results', function(data) {
             storeEntries(data);
             printCategories(entries);
         });
@@ -144,7 +141,6 @@ socket.on('open', function() {
     process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
 
     process.stdout.on('resize', function() {
-        process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
         printCategories(entries);
     });
 });

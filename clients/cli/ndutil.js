@@ -60,17 +60,14 @@ module.exports = function() {
             // found correct category
             if(_categoryName === categoryName) {
                 var categoryEntries = categories[categoryName];
-
-                _.each(categoryEntries, function(entry, _index) {
-                    // found correct index
-                    if(_index == index)
-                        callback(entry);
-                });
+                callback(categoryEntries[index]);
             }
         });
     };
 
     this.printCategories = function(entries) {
+        process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
+
         foreachCategory(entries, function(categoryName, categories) {
             printCategory(categoryName, categories[categoryName]);
         });
