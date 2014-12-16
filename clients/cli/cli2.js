@@ -57,7 +57,6 @@ socket.on('open', function() {
         onexit(true);
     */
 
-    var recvQuitId;
     if(argv.n) {
         /* add new entry */
 
@@ -90,9 +89,9 @@ socket.on('open', function() {
 
         var fromCategory = config.categories[0];
         var index = argv.m;
-        if(argv.m.toString().indexOf(':') !== -1) {
-            fromCategory = argv.m.toString().substr(0, argv.m.toString().indexOf(':'));
-            index = parseInt(argv.m.toString().substr(argv.m.toString().indexOf(':') + 1));
+        if(argv.m.toString().lastIndexOf(':') !== -1) {
+            fromCategory = argv.m.toString().substr(0, argv.m.toString().lastIndexOf(':'));
+            index = parseInt(argv.m.toString().substr(argv.m.toString().lastIndexOf(':') + 1));
         }
 
         socket.once('searchResults', function(data) {
@@ -105,15 +104,16 @@ socket.on('open', function() {
                 }
                 srcEntry = _.clone(srcEntry);
                 srcEntry.category = argv.c || config.categories[config.categories.length - 1];
-                recvQuitId = srcEntry._id;
                 socket.send('set', srcEntry);
                 socket.on('updateResults', function(data) {
                     if(data.err)
                         console.log(data.err);
-                    else
-                        console.log('success.');
+                    else {
+                        printEntry(srcEntry, index);
+                        process.stdout.write('\n');
+                    }
 
-                    onexit(true);
+                    setTimeout(function() { onexit(true) }, 0);
                 });
             });
         });

@@ -56,17 +56,20 @@ module.exports = function() {
     };
 
     this.getEntry = function(entries, categoryName, index, callback) {
+        var found = false;
+
         foreachCategory(entries, function(_categoryName, categories) {
             // found correct category
-            if(_categoryName === categoryName) {
+            if(!found && _categoryName === categoryName) {
                 var categoryEntries = categories[categoryName];
                 callback(categoryEntries[index]);
 
-                return;
+                found = true;
             }
         });
 
-        callback(null);
+        if(!found)
+            callback(null);
     };
 
     this.printCategories = function(entries) {
