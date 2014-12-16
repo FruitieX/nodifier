@@ -61,8 +61,12 @@ module.exports = function() {
             if(_categoryName === categoryName) {
                 var categoryEntries = categories[categoryName];
                 callback(categoryEntries[index]);
+
+                return;
             }
         });
+
+        callback(null);
     };
 
     this.printCategories = function(entries) {

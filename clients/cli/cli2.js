@@ -72,6 +72,7 @@ socket.on('open', function() {
     } else if(argv.m || argv.m === 0) {
         /* move entries */
 
+        // first get the current entry list
         var query = { date: { "$exists": true }};
         if(argv.a) {
             query = null;
@@ -84,11 +85,20 @@ socket.on('open', function() {
             }
         });
 
+        // entry to modify may be referred to by just number (then category
+        // todo is assumed), or by categoryName:number
+
+        var fromCategory = config.categories[0];
+        var index = argv.m;
+        if(argv.m.toString().indexOf(':') !== -1) {
+            fromCategory = argv.m.toString().substr(0, argv.m.toString().indexOf(':'));
+            index = parseInt(argv.m.toString().substr(argv.m.toString().indexOf(':') + 1));
+        }
+
         socket.once('searchResults', function(data) {
             storeEntries(data);
 
-            // TODO: can't use argv.c both here and below
-            getEntry(entries, (argv.c || config.categories[0]), parseInt(argv.m), function(srcEntry) {
+            getEntry(entries, fromCategory, index, function(srcEntry) {
                 if(!srcEntry) {
                     console.log("Error: entry not found!");
                     onexit(true);
