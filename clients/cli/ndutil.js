@@ -42,9 +42,9 @@ module.exports = function() {
     this.foreachCategory = function(entries, callback) {
         var categories = _.groupBy(entries, 'category');
 
-        // sort entries within each category by date
+        // sort entries within each category first by lastModified, then by date
         _.each(categories, function(category, key) {
-            categories[key] = _.sortBy(category, 'date').reverse();
+            categories[key] = _.sortBy(_.sortBy(category, 'lastModified').reverse(), 'date').reverse();
         });
 
         // loop over categories in order set by config and callback
