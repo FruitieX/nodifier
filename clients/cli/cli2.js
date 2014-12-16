@@ -38,6 +38,7 @@ var options = {
 var socket = new netEvent(options);
 
 socket.on('open', function() {
+    /* TODO: race condition, this function is no good :( */
     var getAll = function(query, callback) {
         socket.send('get', {
             query: query || {},
@@ -109,6 +110,11 @@ socket.on('open', function() {
         });
     } else if(argv.a) {
         getAll(null, function(data) {
+            storeEntries(data);
+            printCategories(entries);
+        });
+
+        socket.on('set', function(data) {
             storeEntries(data);
             printCategories(entries);
         });
