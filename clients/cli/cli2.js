@@ -2,14 +2,21 @@ var config = require(process.env.HOME + '/.nodifier/config.js');
 var inspect = require('util').inspect;
 var ndutil = require('./ndutil.js');
 
+var usageText = '';
+usageText += 'This program manipulates and lists entries in nodifier.\n\n';
+usageText += 'Usage:\n';
+usageText += '  $0 [COMMAND] [OPTION]...\n\n';
+usageText += 'Commands:\n';
+usageText += '  ls            list entries (default)\n';
+usageText += '  set [ENTRY]   edit entry where ENTRY is an id or category:id\n';
+usageText += '  new [TEXT]    add new entry with text field set to TEXT';
+
 var yargs = require('yargs')
-    .usage('Get/manipulate entries in nodifier.\nUsage: $0')
-    .example('$0 -a -m 2', 'mark entry 2 as done')
-    .describe('a', 'Show all entries')
-    .describe('c', 'Category')
-    .describe('m', 'Move/mark entry')
-    .describe('n', 'New entry')
-    .describe('h', 'Show this help')
+    .usage(usageText)
+    .describe('a', 'Show also entries without a due date set')
+    .describe('c', 'Set category (default: ' + config.categories[0] + ')')
+    .describe('d', 'Set due date (default: never)')
+    .describe('h', 'Show this help and quit')
     .boolean('n');
 
 var argv = yargs.argv;
@@ -51,25 +58,29 @@ socket.on('open', function() {
         return entries;
     };
 
-
-    /*
-    if(quitQuery && JSON.stringify(data.query) === quitQuery)
-        onexit(true);
-    */
-
-    if(argv.n) {
+    if(argv._[0] === 'new') {
         /* add new entry */
 
         var entry = {};
         entry.category = argv.c || config.categories[0];
+        argv._.shift();
         entry.text = argv._.join(' ');
         entry.app = 'task';
         if(argv.d) {
             entry.date = getDate(argv.d);
         }
         socket.send('set', entry);
-    } else if(argv.m || argv.m === 0) {
-        /* move entries */
+        socket.on('updateResults', function(data) {
+            if(data.err)
+                console.log(data.err);
+            else {
+                console.log('Entry added.');
+            }
+
+            onexit(true);
+        });
+    } else if(argv._[0] === 'set') {
+        /* edit entries */
 
         // first get the current entry list
         var query = { date: { "$exists": true }};
@@ -104,6 +115,9 @@ socket.on('open', function() {
                 }
                 srcEntry = _.clone(srcEntry);
                 srcEntry.category = argv.c || config.categories[config.categories.length - 1];
+                if(argv.d) {
+                    srcEntry.date = getDate(argv.d);
+                }
                 socket.send('set', srcEntry);
                 socket.on('updateResults', function(data) {
                     if(data.err)
@@ -113,7 +127,7 @@ socket.on('open', function() {
                         process.stdout.write('\n');
                     }
 
-                    setTimeout(function() { onexit(true) }, 0);
+                    onexit(true);
                 });
             });
         });

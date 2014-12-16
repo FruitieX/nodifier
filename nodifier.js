@@ -62,8 +62,8 @@ MongoClient.connect(config.mongoURL, function(err, db) {
                 entries.insert(
                     entry,
                     function(err, doc) {
-                        socket.send('updateResults', {err: err, entries: [doc]});
-                        socket.broadcast('update', {err: err, entries: [doc]}, true);
+                        socket.send('updateResults', {err: err, entries: doc});
+                        socket.broadcast('update', {err: err, entries: doc}, true);
                     }
                 );
             }
