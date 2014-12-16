@@ -11,6 +11,7 @@ MongoClient.connect(config.mongoURL, function(err, db) {
     assert.equal(null, err);
     var entries = db.collection('entries');
 
+    /* TODO: let clients know about this, or write the spec so that done is considered deleted */
     // cleanup old entries marked as "done"
     var cleanOldEntries = function() {
         entries.remove({
@@ -52,7 +53,8 @@ MongoClient.connect(config.mongoURL, function(err, db) {
                     function(err) {
                         // re-add entry when sending back to client
                         entry._id = id;
-                        socket.broadcast('update', {err: err, entries: entry});
+                        socket.send('updateResults', {err: err, entries: [entry]});
+                        socket.broadcast('update', {err: err, entries: [entry]}, true);
                     }
                 );
             } else {
@@ -60,7 +62,8 @@ MongoClient.connect(config.mongoURL, function(err, db) {
                 entries.insert(
                     entry,
                     function(err, doc) {
-                        socket.broadcast('update', {err: err, entries: doc});
+                        socket.send('updateResults', {err: err, entries: [doc]});
+                        socket.broadcast('update', {err: err, entries: [doc]}, true);
                     }
                 );
             }
@@ -69,7 +72,7 @@ MongoClient.connect(config.mongoURL, function(err, db) {
         socket.on('search', function(data) {
             // get notifications
             entries.find(data.query, data.options).toArray(function(err, docs) {
-                socket.send('results', {query: data.query, err: err, entries: docs});
+                socket.send('searchResults', {query: data.query, err: err, entries: docs});
             });
         });
 

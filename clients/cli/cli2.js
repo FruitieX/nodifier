@@ -38,10 +38,6 @@ var options = {
 var socket = new netEvent(options);
 
 socket.on('open', function() {
-    /* TODO: race condition, this function is no good :( */
-    var getAll = function(query, callback) {
-    }
-
     var storeEntries = function(data) {
         if(data.err) {
             console.log(inspect(data.err));
@@ -63,6 +59,8 @@ socket.on('open', function() {
 
     var recvQuitId;
     if(argv.n) {
+        /* add new entry */
+
         var entry = {};
         entry.category = argv.c || config.categories[0];
         entry.text = argv._.join(' ');
@@ -72,6 +70,8 @@ socket.on('open', function() {
         }
         socket.send('set', entry);
     } else if(argv.m || argv.m === 0) {
+        /* move entries */
+
         var query = { date: { "$exists": true }};
         if(argv.a) {
             query = null;
@@ -84,9 +84,8 @@ socket.on('open', function() {
             }
         });
 
-        socket.once('results', function(data) {
+        socket.once('searchResults', function(data) {
             storeEntries(data);
-            console.log(entries);
 
             // TODO: can't use argv.c both here and below
             getEntry(entries, (argv.c || config.categories[0]), parseInt(argv.m), function(srcEntry) {
@@ -98,16 +97,19 @@ socket.on('open', function() {
                 srcEntry.category = argv.c || config.categories[config.categories.length - 1];
                 recvQuitId = srcEntry._id;
                 socket.send('set', srcEntry);
-                socket.on('update', function(data) {
-                    console.log('there');
-                    console.log(data);
-                    _.findWhere(data.entries, {_id: recvQuitId}, function(entry) {
-                        onexit(true);
-                    });
+                socket.on('updateResults', function(data) {
+                    if(data.err)
+                        console.log(data.err);
+                    else
+                        console.log('success.');
+
+                    onexit(true);
                 });
             });
         });
     } else {
+        /* show entries */
+
         // get all entries with a date (all entries if argv.a given)
         socket.send('search', {
             query: argv.a ? {} : { date: { "$exists": true }},
@@ -116,8 +118,20 @@ socket.on('open', function() {
             }
         });
 
-        socket.on('results', function(data) {
+        socket.on('searchResults', function(data) {
             storeEntries(data);
+            printCategories(entries);
+        });
+        socket.on('update', function(data) {
+            storeEntries(data);
+            printCategories(entries);
+        });
+
+        process.stdin.setRawMode(true); // hide input
+        process.stdout.write('\x1b[?25l'); // hide cursor
+        process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
+
+        process.stdout.on('resize', function() {
             printCategories(entries);
         });
     }
@@ -134,14 +148,6 @@ socket.on('open', function() {
     // q or ctrl-c pressed: run onexit
     process.stdin.on('data', function(key) {
         if(key == 'q' || key == '\u0003') onexit();
-    });
-
-    process.stdin.setRawMode(true); // hide input
-    process.stdout.write('\x1b[?25l'); // hide cursor
-    process.stdout.write('\u001B[2J\u001B[0;0f'); // clear terminal
-
-    process.stdout.on('resize', function() {
-        printCategories(entries);
     });
 });
 
