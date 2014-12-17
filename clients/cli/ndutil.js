@@ -88,14 +88,23 @@ module.exports = function() {
         });
     };
 
-    this.getDate = function(s) {
+    this.getDate = function(s, oldDate) {
         var d = new Date();
-        if(s.indexOf('d') !== -1)
-            d.setDate(d.getDate() + parseInt(s));
-        else if(s.indexOf('w') !== -1)
-            d.setDate(d.getDate() + parseInt(s) * 7);
-        else if(s.indexOf('m') !== -1)
-            d.setDate(d.getDate() + parseInt(s) * 30); // approx 30 days
+        var startDate = d.getDate();
+
+        if(s[0] === '+') {
+            startDate = oldDate;
+        } else if (s[1] === '-') {
+            startDate = oldDate;
+        }
+
+        if(s[s.length - 1] === 'd') {
+            d.setDate(startDate + parseInt(s.substr(0, s.length - 1)));
+        } else if(s[s.length - 1] === 'w') {
+            d.setDate(startDate + parseInt(s.substr(0, s.length - 1)) * 7);
+        } else if(s[s.length - 1] === 'm') {
+            d.setDate(startDate + parseInt(s.substr(0, s.length - 1)) * 30); // approx 30 days
+        }
         return d.getTime();
     };
 }();

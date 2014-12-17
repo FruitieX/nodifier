@@ -99,10 +99,10 @@ socket.on('open', function() {
         // todo is assumed), or by categoryName:number
 
         var fromCategory = config.categories[0];
-        var index = argv.m;
-        if(argv.m.toString().lastIndexOf(':') !== -1) {
-            fromCategory = argv.m.toString().substr(0, argv.m.toString().lastIndexOf(':'));
-            index = parseInt(argv.m.toString().substr(argv.m.toString().lastIndexOf(':') + 1));
+        var index = argv._[1];
+        if(argv._[1].toString().lastIndexOf(':') !== -1) {
+            fromCategory = argv._[1].toString().substr(0, argv._[1].toString().lastIndexOf(':'));
+            index = parseInt(argv._[1].toString().substr(argv._[1].toString().lastIndexOf(':') + 1));
         }
 
         socket.once('searchResults', function(data) {
@@ -116,7 +116,7 @@ socket.on('open', function() {
                 srcEntry = _.clone(srcEntry);
                 srcEntry.category = argv.c || config.categories[config.categories.length - 1];
                 if(argv.d) {
-                    srcEntry.date = getDate(argv.d);
+                    srcEntry.date = getDate(argv.d, srcEntry.date);
                 }
                 socket.send('set', srcEntry);
                 socket.on('updateResults', function(data) {
