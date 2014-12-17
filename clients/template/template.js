@@ -17,40 +17,41 @@ var options = {
 
 var socket = new netEvent(options);
 
-socket.on('newNotification', function(notification) {
-    // new notification arrived, print text property
-    console.log('new notification: ' + notification.source + ': ' + notification.text);
-});
-socket.on('markAs', function(notifications) {
-    // existing notifications' read property changed, print the old indices
-    for (var i = 0; i < notifications.length; i++) {
-        if(notifications[i].read)
-            console.log('notification ' + notifications[i].unreadID + ' marked as read.');
-        else
-            console.log('notification ' + notifications[i].readID + ' marked as unread.');
-    }
-});
-socket.on('notifications', function(notifications) {
-    // server sent back a list of notifications that you've requested
-    console.log('got list of notifications:');
-    for (var i = 0; i < notifications.length; i++)
-        console.log(notifications[i].source + ': ' + notifications[i].text)
-});
 socket.on('open', function() {
-    socket.send('newNotification', {
+    socket.send('set', {
         'text': 'notification text goes here',
-        'source': 'testapp',
-        'sourcebg': 'blue',
-        'sourcefg': 'black'
+        'category': 'todo',
+        'app': 'testapp',
+        'appbg': 'blue',
+        'appfg': 'black'
     });
-    socket.send('markAs', {
-        'read': true,
-        'source': 'testapp'
+});
+
+socket.on('updateResults', function(data) {
+    if(data.err)
+        console.log(data.err);
+    else {
+        console.log('Entry added.');
+        console.log(data.entries);
+    }
+
+    // now send a search query
+    socket.send('search', {
+        query: {},
+        options: {
+            sort: "category"
+        }
     });
-    socket.send('getRead');
-    socket.send('getUnread', {
-        'id': '5..42'
-    });
+});
+
+socket.on('searchResults', function(data) {
+    if(data.err)
+        console.log(data.err);
+    else {
+        console.log('Search results:');
+        console.log(data.entries);
+    }
+    process.exit(0);
 });
 
 socket.on('error', function(e) {
