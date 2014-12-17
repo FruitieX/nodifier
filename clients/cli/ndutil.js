@@ -89,14 +89,20 @@ module.exports = function() {
     };
 
     this.getDate = function(s, oldDate) {
+        if(s === 'never') {
+            return undefined;
+        }
+
         var d = new Date();
-        var startDate = d.getDate();
 
         if(s[0] === '+') {
-            startDate = oldDate;
-        } else if (s[1] === '-') {
-            startDate = oldDate;
+            d.setTime(oldDate);
+        } else if (s[0] === '-') {
+            d.setTime(oldDate);
         }
+
+        var startDate = d.getDate();
+        console.log(s);
 
         if(s[s.length - 1] === 'd') {
             d.setDate(startDate + parseInt(s.substr(0, s.length - 1)));

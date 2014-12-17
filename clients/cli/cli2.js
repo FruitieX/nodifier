@@ -14,10 +14,10 @@ usageText += '  new [TEXT]    add new entry with text field set to TEXT';
 var yargs = require('yargs')
     .usage(usageText)
     .describe('a', 'Show also entries without a due date set')
-    .describe('c', 'Set category (default: ' + config.categories[0] + ')')
+    .describe('c', 'Set category')
     .describe('d', 'Set due date (default: never)')
     .describe('h', 'Show this help and quit')
-    .boolean('n');
+    .string('d');
 
 var argv = yargs.argv;
 if(argv.h) {
@@ -114,10 +114,13 @@ socket.on('open', function() {
                     onexit(true);
                 }
                 srcEntry = _.clone(srcEntry);
-                srcEntry.category = argv.c || config.categories[config.categories.length - 1];
+                if(argv.c)
+                    srcEntry.category = argv.c;
+
                 if(argv.d) {
                     srcEntry.date = getDate(argv.d, srcEntry.date);
                 }
+
                 socket.send('set', srcEntry);
                 socket.on('updateResults', function(data) {
                     if(data.err)
