@@ -23,7 +23,8 @@ socket.on('open', function() {
         'category': 'todo',
         'app': 'testapp',
         'appbg': 'blue',
-        'appfg': 'black'
+        'appfg': 'black',
+        '_id': 'huehue#asdfs:aa' // TODO: use the hashing function
     });
 });
 

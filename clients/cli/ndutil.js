@@ -1,8 +1,13 @@
 var config = require(process.env.HOME + '/.nodifier/config.js');
 var clc_color = require(__dirname + '/clc-color.js');
-var _ = require("underscore");
+var _ = require('underscore');
+var crypto = require('crypto');
 
 module.exports = function() {
+    this.hashObjID = function(s) {
+        return crypto.createHash('sha1').update(s).digest('hex').substr(0, 24);
+    }
+
     this.printEntry = function(entry, index) {
         var app_color = clc_color.def_app_color;
         if(entry.appfg || entry.appbg)

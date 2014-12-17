@@ -50,7 +50,7 @@ var handlePOST = function(req, res) {
 
         if (data_json.method === 'newNotification') {
             delete(data_json.method);
-            socket.send('newNotification', data_json);
+            socket.send('set', data_json);
         } else if (data_json.method === 'setUnread') {
             socket.send('markAs', {
                 read: false,
