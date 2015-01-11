@@ -71,7 +71,7 @@ MongoClient.connect(config.mongoURL, function(err, db) {
 
         socket.on('search', function(data) {
             // get notifications
-            entries.find(data.query, data.options).toArray(function(err, docs) {
+            entries.find(data.query, data.options || {}).toArray(function(err, docs) {
                 socket.send('searchResults', {query: data.query, err: err, entries: docs});
             });
         });
