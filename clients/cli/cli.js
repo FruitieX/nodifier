@@ -98,25 +98,65 @@ var showAllEntries = function() {
     });
 };
 
-var setTag = function() {
-    console.log('there');
-    process.exit(0);
+// "foo:42" -> {key:"foo", val:"42"}
+// if only val is supplied, key will be set to defaultKey
+var parseKeyValString = function(entry, defaultKey) {
+    var key = defaultKey;
+    var val = entry;
+    if(entry.toString().lastIndexOf(':') !== -1) {
+        key = entry.toString().substr(0, entry.toString().lastIndexOf(':'));
+        val = entry.toString().substr(entry.toString().lastIndexOf(':') + 1);
+    }
+
+    return {
+        key: key,
+        val: val
+    };
 };
 
-var mvEntry = function(entry, category) {
-    // entry to modify may be referred to by just number (then default
-    // category "todo" is assumed), or by category:number
-    var fromCategory = config.categories[0];
-    var index = entry;
-    if(entry.toString().lastIndexOf(':') !== -1) {
-        fromCategory = entry.toString().substr(0, entry.toString().lastIndexOf(':'));
-        index = parseInt(entry.toString().substr(entry.toString().lastIndexOf(':') + 1));
-    }
+var setTag = function(entryString, tag) {
+    var entry = parseKeyValString(entryString, config.categories[0]);
+    entry.category = entry.key;
+    entry.index = entry.val;
+
+    var tag = parseKeyValString(tag);
+    tag.tagName = tag.key;
 
     socket.once('searchResults', function(data) {
         storeEntries(data);
 
-        getEntry(entries, fromCategory, index, function(srcEntry) {
+        getEntry(entries, entry.category, parseInt(entry.index), function(srcEntry) {
+            if(!srcEntry) {
+                console.log("Error: entry not found!");
+                onexit(true);
+            }
+            srcEntry = _.clone(srcEntry);
+            srcEntry[tag.tagName] = tag.val;
+
+            socket.send('set', srcEntry);
+            socket.on('updateResults', function(data) {
+                if(data.err)
+                    console.log(data.err);
+                else {
+                    printEntry(srcEntry, parseInt(entry.index));
+                    process.stdout.write('\n');
+                }
+
+                onexit(true);
+            });
+        });
+    });
+};
+
+var mvEntry = function(entryString, category) {
+    var entry = parseKeyValString(entryString, config.categories[0]);
+    entry.category = entry.key;
+    entry.index = entry.val;
+
+    socket.once('searchResults', function(data) {
+        storeEntries(data);
+
+        getEntry(entries, entry.category, parseInt(entry.index), function(srcEntry) {
             if(!srcEntry) {
                 console.log("Error: entry not found!");
                 onexit(true);
@@ -136,7 +176,7 @@ var mvEntry = function(entry, category) {
                 if(data.err)
                     console.log(data.err);
                 else {
-                    printEntry(srcEntry, index);
+                    printEntry(srcEntry, parseInt(entry.index));
                     process.stdout.write('\n');
                 }
 
@@ -152,11 +192,6 @@ socket.on('open', function() {
     if(argv._[0] === 'add') {
         newEntry();
     } else {
-        // following cmds all fetch entire entry list
-        socket.send('search', {
-            query: {}
-        });
-
         if(!_.isUndefined(argv._[0])) { // 2nd arg seen: is either move or tag cmd
             if(argv._[1] && argv._[1].match(/.+:.+/)) { // match tag:value
                 setTag.apply(this, argv._);
@@ -166,6 +201,11 @@ socket.on('open', function() {
         } else { // else ls cmd
             showAllEntries();
         }
+
+        // above cmds all need to fetch entire entry list
+        socket.send('search', {
+            query: {}
+        });
     }
 });
 
