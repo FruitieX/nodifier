@@ -5,6 +5,7 @@
   "main": "nodifier.js",
   "dependencies": {
     "cli-color": ">=0.2.3",
+    "http-auth": "^2.2.5",
     "socket.io": "^1.3.5",
     "socket.io-client": "^1.3.5",
     "spawn-sync": "git://github.com/FruitieX/spawn-sync"

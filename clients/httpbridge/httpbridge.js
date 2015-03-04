@@ -3,13 +3,10 @@
 var port = 5678;
 
 // HTTP - socket.io bridge to enable applications supporting HTTP to interact with nodifier
-var netEvent = require('net-event');
 var fs = require('fs');
 
 var config = require(process.env.HOME + '/.nodifier/config.js');
 var options = {
-    host: config.host,
-    port: config.port,
     tls: config.tls,
     key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
     cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
@@ -17,9 +14,9 @@ var options = {
     rejectUnauthorized: config.rejectUnauthorized
 };
 
-var socket = new netEvent(options);
+var socket = require('socket.io-client')((config.tls ? 'https://' : 'http://') + config.host + ':' + config.port, options);
 
-socket.on('open', function() {
+socket.on('connect', function() {
     console.log('HTTP server on port ' + port + ', bridging to node tls');
 });
 
@@ -50,9 +47,9 @@ var handlePOST = function(req, res) {
 
         if (data_json.method === 'newNotification') {
             delete(data_json.method);
-            socket.send('newNotification', data_json);
+            socket.emit('newNotification', data_json);
         } else if (data_json.method === 'setUnread') {
-            socket.send('markAs', {
+            socket.emit('markAs', {
                 read: false,
                 id: data_json.id,
                 uid: data_json.uid,
@@ -60,7 +57,7 @@ var handlePOST = function(req, res) {
                 context: data_json.context
             });
         } else if (data_json.method === 'setRead') {
-            socket.send('markAs', {
+            socket.emit('markAs', {
                 read: true,
                 id: data_json.id,
                 uid: data_json.uid,
