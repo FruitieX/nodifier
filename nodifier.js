@@ -180,10 +180,7 @@ var markAs = function(notifications, read) {
 };
 
 // networking
-var netEvent = require('net-event');
 var options = {
-    server: true,
-    port: config.port,
     tls: config.tls,
     key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
     cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
@@ -191,9 +188,13 @@ var options = {
     requestCert: config.requestCert,
     rejectUnauthorized: config.rejectUnauthorized
 };
-var server = new netEvent(options);
 
-server.on('open', function(socket) {
+var httpServer = require(config.tls ? 'https': 'http')
+.createServer(config.tls ? options: null).listen(config.port);
+
+var io = require('socket.io')(httpServer);
+
+io.on('connection', function(socket) {
     socket.on('newNotification', function(notification) {
         // add new notification
         var id = storeNotification(notification, false);
@@ -216,10 +217,10 @@ server.on('open', function(socket) {
         }
 
         // send matching notifications (or empty array) to requesting client
-        socket.send('notifications', notifications);
+        socket.emit('notifications', notifications);
     });
     socket.on('getRead', function() {
-        socket.send('notifications', readNotifications);
+        socket.emit('notifications', readNotifications);
     });
     socket.on('getUnread', function(search) {
         // get unread notifications by id, or all notifications if no search terms
@@ -229,11 +230,8 @@ server.on('open', function(socket) {
             notifications = searchNotifications(search.id, search.uid, search.source, search.context, false);
         }
 
-        socket.send('notifications', notifications);
+        socket.emit('notifications', notifications);
     });
-
-    socket.setKeepAlive(true);
-    socket.setNoDelay(true);
 });
 
 console.log('nodifier tls server listening on port ' + config.port);

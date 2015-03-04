@@ -110,12 +110,9 @@ var updateID = function() {
 };
 
 // networking
-var netEvent = require('net-event');
 var fs = require('fs');
 
 var options = {
-    host: config.host,
-    port: config.port,
     tls: config.tls,
     key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
     cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
@@ -123,7 +120,7 @@ var options = {
     rejectUnauthorized: config.rejectUnauthorized
 };
 
-var socket = new netEvent(options);
+var socket = require('socket.io-client')((config.tls ? 'https://' : 'http://') + config.host + ':' + config.port, options);
 
 /* set up event handlers
  *
@@ -205,7 +202,7 @@ if(new Array('u', 'r', 'lr', undefined).indexOf(process.argv[2]) !== -1
 }
 
 // handle commands once connected to server
-socket.on('open', function() {
+socket.on('connect', function() {
     switch(process.argv[2]) {
         // mark as (un)read
         case 'u':
@@ -216,7 +213,7 @@ socket.on('open', function() {
                 process.exit(1);
             }
 
-            socket.send('markAs', {
+            socket.emit('markAs', {
                 'read': (process.argv[2] === 'r' ? true : false),
                 'id': process.argv[3]
             });
@@ -224,25 +221,25 @@ socket.on('open', function() {
 
         // list read notifications
         case 'lr':
-            socket.send('getRead');
+            socket.emit('getRead');
             break;
 
         // 'listen' for notifications
         case 'l':
             // get all unread notifications once
-            socket.send('getUnread');
+            socket.emit('getUnread');
             break;
 
         default:
             if(open_re.test(process.argv[2])) {
                 // open notification(s) with program
-                socket.send('markAs', {
+                socket.emit('markAs', {
                     read: true,
                     id: process.argv[2]
                 });
             } else if (!process.argv[2]) {
                 // requested all notifications
-                socket.send('getUnread');
+                socket.emit('getUnread');
             } else {
                 console.log('unknown command!');
                 socket.close();
