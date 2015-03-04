@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 
 // template client program
-var netEvent = require('net-event');
 var fs = require('fs');
 
 var config = require(process.env.HOME + '/.nodifier/config.js');
 var options = {
-    host: config.host,
-    port: config.port,
     tls: config.tls,
     key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
     cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
@@ -15,7 +12,7 @@ var options = {
     rejectUnauthorized: config.rejectUnauthorized
 };
 
-var socket = new netEvent(options);
+var socket = require('socket.io-client')((config.tls ? 'https://' : 'http://') + config.host + ':' + config.port, options);
 
 socket.on('newNotification', function(notification) {
     // new notification arrived, print text property
@@ -36,19 +33,19 @@ socket.on('notifications', function(notifications) {
     for (var i = 0; i < notifications.length; i++)
         console.log(notifications[i].source + ': ' + notifications[i].text)
 });
-socket.on('open', function() {
-    socket.send('newNotification', {
+socket.on('connect', function() {
+    socket.emit('newNotification', {
         'text': 'notification text goes here',
         'source': 'testapp',
         'sourcebg': 'blue',
         'sourcefg': 'black'
     });
-    socket.send('markAs', {
+    socket.emit('markAs', {
         'read': true,
         'source': 'testapp'
     });
-    socket.send('getRead');
-    socket.send('getUnread', {
+    socket.emit('getRead');
+    socket.emit('getUnread', {
         'id': '5..42'
     });
 });
