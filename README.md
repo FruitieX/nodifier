@@ -106,7 +106,7 @@ fork of znc-push, and maintain all changes inside my server branch over at:
 
 API
 ---
-The server communicates over TLS sockets. Messages are sent as stringified
+~~The server communicates over TLS sockets. Messages are sent as stringified
 arrays containing an event as a first element and the data as the second element.
 Notifications are sent as JSON, see valid properties below.
 
@@ -116,6 +116,10 @@ a few methods to the exported socket object:
 * socket.on('myEvent', function(data) { console.log(data); }
 * socket.send('myOtherEvent', data);
 * socket.on('open', function() { console.log('connection opened'); });
+~~
+
+Update: `socket.io` now works fine with a custom CA, so nodifier moved back to using
+it instead!
 
 Here's a list of events the server responds to:
 
