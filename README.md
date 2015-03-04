@@ -108,15 +108,7 @@ API
 ---
 ~~The server communicates over TLS sockets. Messages are sent as stringified
 arrays containing an event as a first element and the data as the second element.
-Notifications are sent as JSON, see valid properties below.
-
-The included helper library `lib/connect.js` will take care of formatting by adding
-a few methods to the exported socket object:
-
-* socket.on('myEvent', function(data) { console.log(data); }
-* socket.send('myOtherEvent', data);
-* socket.on('open', function() { console.log('connection opened'); });
-~~
+Notifications are sent as JSON.~~
 
 Update: `socket.io` now works fine with a custom CA, so nodifier moved back to using
 it instead!
