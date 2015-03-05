@@ -202,7 +202,7 @@ io.on('connection', function(socket) {
         writeToFile();
 
         // broadcast new notification to all connected clients
-        socket.broadcast('newNotification', unreadNotifications[id]);
+        io.sockets.emit('newNotification', unreadNotifications[id]);
     });
     socket.on('markAs', function(search) {
         // search for notifications and mark results as (un)read according to s.read
@@ -213,7 +213,7 @@ io.on('connection', function(socket) {
             writeToFile();
 
             // broadcast updated notifications to all other connected clients
-            socket.broadcast('markAs', notifications, true);
+            socket.broadcast.emit('markAs', notifications);
         }
 
         // send matching notifications (or empty array) to requesting client
