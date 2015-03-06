@@ -2,6 +2,7 @@ var gcm = require('node-gcm');
 
 // HTTP - socket.io bridge to enable applications supporting HTTP to interact with nodifier
 var fs = require('fs');
+var _ = require('underscore');
 
 var config = require(process.env.HOME + '/.nodifier/config.js');
 var options = {
@@ -16,7 +17,20 @@ var socket = require('socket.io-client')((config.tls ? 'https://' : 'http://') +
 
 socket.on('newNotification', function(notification) {
     console.log('got notification:\n' + JSON.stringify(notification, undefined, 4));
-    sendNotification(notification);
+    sendNotification(notification, 'newNotification');
+});
+socket.on('markAs', function(notifications) {
+    console.log('marking notifications as (un)read:\n' + JSON.stringify(notifications, undefined, 4));
+    _.each(notifications, function(notification) {
+        sendNotification(notification, 'markAs');
+    });
+});
+
+socket.on('broadcast', function(data) {
+    if(data.gcmRegistrationId) {
+        console.log('received new gcm registration id: ' + data.gcmRegistrationId);
+        fs.writeFileSync('./registration-id.js', data.gcmRegistrationId);
+    }
 });
 
 socket.on('connect', function() {
@@ -25,13 +39,15 @@ socket.on('connect', function() {
 
 var skipSources = ['mail'];
 
-var sendNotification = function(notification) {
+var sendNotification = function(notification, method) {
     if(skipSources.indexOf(notification.source) !== -1) {
         console.log('skipping notification from source ' + notification.source);
         return;
     }
 
     var data = {
+        method: method,
+        read: notification.read,
         uid: notification.uid,
         source: notification.source,
         context: notification.context,
@@ -49,7 +65,8 @@ var sendNotification = function(notification) {
 
     // Add the registration IDs of the devices you want to send to
     var registrationIds = [];
-    registrationIds.push(fs.readFileSync('./registration-id.js'));
+    registrationIds.push(fs.readFileSync('./registration-id.js').toString('utf-8'));
+    console.log('using registration ids: ' + JSON.stringify(registrationIds));
     sender.send(message, registrationIds, function (err, result) {
       if(err) console.error(err);
       else    console.log(result);

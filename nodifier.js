@@ -232,6 +232,9 @@ io.on('connection', function(socket) {
 
         socket.emit('notifications', notifications);
     });
+    socket.on('broadcast', function(data) {
+        socket.broadcast.emit('broadcast', data);
+    });
 });
 
 console.log('nodifier tls server listening on port ' + config.port);

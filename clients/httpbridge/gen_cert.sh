@@ -4,7 +4,7 @@
 # Generate self signed certificate/key for SSL
 #
 
-NAME=nodifier
+NAME=nodifier-httpbridge
 KEYNAME=$NAME-key.pem
 CSRNAME=$NAME-csr.pem
 CERTNAME=$NAME-cert.pem

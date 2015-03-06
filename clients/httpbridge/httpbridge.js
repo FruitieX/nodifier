@@ -11,7 +11,8 @@ var options = {
     key: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-key.pem'),
     cert: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
     ca: fs.readFileSync(process.env.HOME + '/.nodifier/nodifier-cert.pem'),
-    rejectUnauthorized: config.rejectUnauthorized
+    rejectUnauthorized: config.rejectUnauthorized,
+    requestCert: config.requestCert
 };
 
 var socket = require('socket.io-client')((config.tls ? 'https://' : 'http://') + config.host + ':' + config.port, options);
@@ -20,6 +21,7 @@ socket.on('connect', function() {
     console.log('HTTP server on port ' + port + ', bridging to node tls');
 });
 
+/*
 var auth = require('http-auth');
 var htpasswd = require('./htpasswd.json');
 var basic = auth.basic({
@@ -27,6 +29,7 @@ var basic = auth.basic({
 }, function (username, password, callback) {
     callback(username === htpasswd.username && password === htpasswd.password);
 });
+*/
 
 var https = require('https');
 var url = require('url');
@@ -35,20 +38,23 @@ var fs = require('fs');
 var path = require('path');
 
 var options = {
-    key: fs.readFileSync(path.resolve(__dirname, './nodifier-key.pem')),
-    cert: fs.readFileSync(path.resolve(__dirname, './nodifier-cert.pem'))
+    key: fs.readFileSync(path.resolve(__dirname, './nodifier-httpbridge-key.pem')),
+    cert: fs.readFileSync(path.resolve(__dirname, './nodifier-httpbridge-cert.pem'))
 };
 
 var handlePOST = function(req, res) {
     var msg, notifications;
+    var queryData = url.parse(req.url, true).query;
 
     req.on('data', function(data) {
-        var data_json = querystring.parse(data.toString());
+        var data_json = JSON.parse(data.toString('utf-8'));
 
-        if (data_json.method === 'newNotification') {
+        if (queryData.method === 'broadcast') {
+            socket.emit('broadcast', data_json);
+        } else if (queryData.method === 'newNotification') {
             delete(data_json.method);
             socket.emit('newNotification', data_json);
-        } else if (data_json.method === 'setUnread') {
+        } else if (queryData.method === 'setUnread') {
             socket.emit('markAs', {
                 read: false,
                 id: data_json.id,
@@ -56,7 +62,7 @@ var handlePOST = function(req, res) {
                 source: data_json.source,
                 context: data_json.context
             });
-        } else if (data_json.method === 'setRead') {
+        } else if (queryData.method === 'setRead') {
             socket.emit('markAs', {
                 read: true,
                 id: data_json.id,
@@ -76,7 +82,7 @@ var handlePOST = function(req, res) {
     });
 };
 
-s = https.createServer(basic, options, function (req, res) {
+s = https.createServer(options, function (req, res) {
     if (req.method == 'POST') {
         handlePOST(req, res);
     }
